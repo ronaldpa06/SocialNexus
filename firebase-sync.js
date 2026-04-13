@@ -19,7 +19,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const SYNC_KEYS = ['snx_users', 'snx_custom_services']; // Chaves globais
+const SYNC_KEYS = ['snx_users', 'snx_custom_services', 'snx_excluded_cats']; // Chaves globais
 const originalSetItem = localStorage.setItem;
 const originalGetItem = localStorage.getItem;
 
