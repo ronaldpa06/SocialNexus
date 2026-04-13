@@ -262,7 +262,7 @@ const SNX_CONFIG = {
 
     // Gateway de Pagamento (Asaas API v3)
     ASAAS_API_URL: 'https://www.asaas.com/api/v3',
-    ASAAS_API_KEY: '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjE2ZDBmZTljLTk1OTYtNGJiYy04MGRjLTI2NzEwOGU2ZDNjOTo6JGFhY2hfYThjYjdjNDYtZTMwYi00MTA4LTljZDktMGM5Nzg5Yjg0NzI3', 
+    ASAAS_API_KEY: 'aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi', 
     
     // Configurações Globais
     EXCHANGE_RATE: 5.20, // 1 USD = 5.20 BRL
@@ -1695,7 +1695,7 @@ function getAdminCredentials() {
     const defaults = {
         email: "admin@socialnexus.com",
         password: "admin123",
-        asaasKey: SNX_CONFIG.ASAAS_API_KEY || "",
+        asaasKey: "aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi",
         asaasEnv: "production",
         panelName: "SocialNexus",
         whatsapp: "5592991054215"
