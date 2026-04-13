@@ -4910,7 +4910,11 @@ textarea::placeholder { color: var(--text-muted); }
     padding: 15px 25px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     text-align: right;
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 32f411d (feat: upgrade category management and ui)
 
 /* --- Fix: Prevent Horizontal Scrolling --- */
 html, body {
@@ -4941,7 +4945,11 @@ html, body {
         margin-left: 0 !important;
         margin-right: 0 !important;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 32f411d (feat: upgrade category management and ui)
 
 /* --- Prevent Tables from Breaking Layout --- */
 .table-responsive, .orders-table-container, .admin-table-wrapper {
@@ -4966,7 +4974,11 @@ table {
         max-width: 100%;
         height: auto;
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 32f411d (feat: upgrade category management and ui)
 
 /* --- Ninja Delete All Button --- */
 .btn-delete-all-ninja {
@@ -4995,4 +5007,8 @@ table {
 .btn-delete-all-ninja i {
     font-size: 1.1rem;
 }
+<<<<<<< HEAD
 
+=======
+
+>>>>>>> 32f411d (feat: upgrade category management and ui)
