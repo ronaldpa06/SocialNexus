@@ -1,54 +1,102 @@
 <#
 .SYNOPSIS
-    Sentinela SocialNexus - Sincronização Automática com Fornecedor
+    Sentinela SocialNexus - Sincronização Independente (PowerShell Puro)
 
 .DESCRIPTION
-    Este script roda em ciclo infinito (a cada 3 horas por padrão).
-    Ele acorda, chama a API do fornecedor via Node.js, atualiza os precos de serviço,
-    faz um commit das novidades e posta as atualizações na nuvem via Git no Netlify.
+    Este robô consulta a API da GrowFollows, aplica lucro de 100%, 
+    atualiza o arquivo de serviços e faz o upload automático para o site.
+    Roda a cada 3 horas.
 #>
 
+$API_KEY = "c1c3eac23e812939dedefdc9ac4bfb1c"
+$API_URL = "https://growfollows.com/api/v2?key=$API_KEY&action=services"
+$PROFIT_MULTIPLIER = 2.0
 $INTERVAL_HOURS = 3
 $INTERVAL_SECONDS = $INTERVAL_HOURS * 3600
 
+# Limpar tela
+Clear-Host
+
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "      ROBO SENTINELA DO SOCIALNEXUS       " -ForegroundColor Yellow
+Write-Host "      ROBO SENTINELA INDEPENDENTE v2      " -ForegroundColor Yellow
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "O robo esta ATIVO. Não feche esta janela!" -ForegroundColor Green
-Write-Host ""
+Write-Host "Estatus: ATIVO E VIGIANDO" -ForegroundColor Green
+Write-Host "Este robo nao precisa de Node.js ou outros programas." -ForegroundColor Gray
+Write-Host "------------------------------------------"
 
 while ($true) {
-    $timeNow = Get-Date -Format "dd/MM/yyyy HH:mm:ss"
-    Write-Host "[$timeNow] 🚀 Iniciando ciclo de sincronizacao..." -ForegroundColor Yellow
-    
-    # Passo 1: Executar o bot do Node.js
-    Write-Host "   -> Baixando novidades da GrowFollows..." -ForegroundColor DarkGray
-    node generate-services.js
-    
-    # Passo 2: Mandar para o Github/Netlify
-    Write-Host "   -> Postando atualizacoes na nuvem..." -ForegroundColor DarkGray
-    git add services-data.js
-    
-    # Só faz commit se ouver alteração real nos serviços
-    $gitStatus = git status --porcelain
-    if ($gitStatus -match "services-data.js") {
-        git commit -m "🤖 Sincronizacao automatica: Novos serviços/precos da GrowFollows"
+    $timeNow = Get-Date -Format "HH:mm:ss"
+    Write-Host "[$timeNow] 🚀 Acordando para vigiar o fornecedor..." -ForegroundColor Yellow
+
+    try {
+        # 1. Buscar dados do fornecedor
+        Write-Host "   -> Conectando na GrowFollows..." -ForegroundColor Gray
+        $rawData = Invoke-RestMethod -Uri $API_URL -Method Get
         
-        Write-Host "   -> Enviando arquivos (Upload)..." -ForegroundColor DarkGray
-        # Pega a branch atual para poder enviar com seguranca
-        $branch = (git branch --show-current)
-        git push origin $branch
-        Write-Host "✅ Sincronizacao concluida! Site atualizado na Netlify." -ForegroundColor Green
-    } else {
-        Write-Host "✅ Nenhum preco ou servico novo encontrado no fornecedor. Nada a enviar." -ForegroundColor Green
+        if ($rawData.error) {
+            Write-Host "   ❌ Erro na API: $($rawData.error)" -ForegroundColor Red
+        } else {
+            Write-Host "   -> $($rawData.Count) servicos encontrados. Aplicando lucro..." -ForegroundColor Gray
+            
+            # 2. Filtrar e Organizar com Lucro
+            $grouped = @{}
+            foreach ($s in $rawData) {
+                if ($s.name -match "<---" -or $s.name -match "-----" -or [double]$s.rate -ge 100) { continue }
+                
+                $cat = $s.category -if ($null -eq $s.category) { "Geral" } else { $s.category }
+                if (-not $grouped.ContainsKey($cat)) { $grouped[$cat] = @() }
+                
+                $cost = [double]$s.rate
+                $price = [math]::Round($cost * $PROFIT_MULTIPLIER, 4)
+                
+                $grouped[$cat] += @{
+                    id = $s.service
+                    name = $s.name
+                    cost = $cost
+                    price = $price
+                    min = [int]$s.min
+                    max = [int]$s.max
+                    category = $cat
+                    status = "available"
+                }
+            }
+
+            # 3. Gerar o arquivo services-data.js
+            $now = Get-Date -Format "dd/MM/yyyy HH:mm:ss"
+            $jsonContent = $grouped | ConvertTo-Json -Depth 10
+            $jsFileContent = @"
+/**
+ * SocialNexus - Servicos GrowFollows (Sincronizacao em Tempo Real)
+ * Atualizado pelo Robo Sentinela as: $now
+ */
+window.GROWFOLLOWS_SERVICES = {
+    lastSync: "$now",
+    data: $jsonContent
+};
+
+(function initServices() {
+    if(!window.servicesDB) window.servicesDB = {};
+    for (let key in window.servicesDB) delete window.servicesDB[key];
+    Object.assign(window.servicesDB, window.GROWFOLLOWS_SERVICES.data);
+})();
+"@
+            $jsFileContent | Out-File -FilePath "services-data.js" -Encoding utf8
+            Write-Host "   ✅ Arquivo de servicos atualizado localmente!" -ForegroundColor Green
+
+            # 4. Upload para o Site
+            Write-Host "   -> Enviando atualizacoes para a nuvem..." -ForegroundColor Gray
+            powershell -ExecutionPolicy Bypass -File .\upload.ps1
+            Write-Host "   🔥 Site atualizado com sucesso na Netlify!" -ForegroundColor Green
+        }
+    } catch {
+        Write-Host "   ❌ Erro critico no ciclo: $($_.Exception.Message)" -ForegroundColor Red
     }
 
     $timeNext = (Get-Date).AddSeconds($INTERVAL_SECONDS).ToString("HH:mm:ss")
-    Write-Host "==========================================" -ForegroundColor Cyan
-    Write-Host "💤 O robo vai dormir agora. Acordara as $timeNext" -ForegroundColor DarkCyan
-    Write-Host "Pode usar o PC normalmente. So nao feche esta janela azul." -ForegroundColor DarkGray
+    Write-Host "------------------------------------------"
+    Write-Host "💤 Sentinela em repouso. Voltara as $timeNext" -ForegroundColor DarkCyan
+    Write-Host "Nao feche esta janela azul." -ForegroundColor Gray
     Write-Host ""
     
-    # Dorme a quantidade de segundos estipulada
     Start-Sleep -Seconds $INTERVAL_SECONDS
 }
