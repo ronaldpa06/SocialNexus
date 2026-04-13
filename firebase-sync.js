@@ -117,6 +117,7 @@ window.handleGoogleAuthReal = function() {
                     password: 'google_auth_linked',
                     balance: 0,
                     plan: 'Starter',
+                    avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=667eea&color=fff`,
                     joined: new Date().toISOString()
                 };
                 storedUsers.push(snxUser);
