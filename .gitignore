@@ -1,0 +1,21 @@
+# Lixo do Windows
+Thumbs.db
+Desktop.ini
+
+# IDEs e Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Arquivos temporários do navegador / logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+
+# Se você criar uma pasta node_modules futuramente
+node_modules/
+
+# Arquivos de backup do Antigravity/Gemini (Opcional)
+.gemini/

@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="SocialNexus - A plataforma #1 de marketing em redes sociais. Seguidores, curtidas, visualizações e engajamento real para todas as redes sociais.">
+    <title>SocialNexus — Painel SMM Profissional</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    
+    <!-- Firebase SDK (Compat Version para fácil integração) -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+    <!-- ===================== LANDING PAGE ===================== -->
+    <div id="landing-page" class="page active">
+        
+        <!-- Navigation -->
+        <nav class="navbar" id="navbar">
+            <div class="nav-container">
+                <div class="nav-logo" onclick="handleLogoClick()" style="cursor:pointer;">
+                    <div class="logo-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <span class="logo-text">Social<span class="logo-accent">Nexus</span></span>
+                </div>
+                <div class="nav-links" id="nav-links">
+                    <a href="#features" class="nav-link" data-i18n="nav_features">Recursos</a>
+                    <a href="#services" class="nav-link" data-i18n="nav_services">Serviços</a>
+                    <a href="#stats" class="nav-link" data-i18n="nav_stats">Estatísticas</a>
+                    <a href="#faq" class="nav-link" data-i18n="nav_faq">FAQ</a>
+                </div>
+                <div class="nav-selectors">
+                    <select class="lang-selector" onchange="setLanguage(this.value)" id="global-lang-selector">
+                        <option value="pt">PT-BR</option>
+                        <option value="en">EN-US</option>
+                    </select>
+                    <select class="curr-selector" onchange="setCurrency(this.value)" id="global-curr-selector">
+                        <option value="BRL">R$ BRL</option>
+                        <option value="USD">$ USD</option>
+                    </select>
+                </div>
+                <div class="nav-actions">
+                    <button class="btn-ghost" onclick="showPage('login-page')" data-i18n="btn_login">Entrar</button>
+                    <button class="btn-primary-sm" onclick="showPage('register-page')" data-i18n="btn_register">Cadastrar</button>
+                </div>
+                <button class="nav-toggle" id="nav-toggle" onclick="toggleMobileMenu()">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero" id="hero">
+            <div class="hero-bg-effects">
+                <div class="hero-gradient-orb orb-1"></div>
+                <div class="hero-gradient-orb orb-2"></div>
+                <div class="hero-gradient-orb orb-3"></div>
+                <div class="hero-grid-overlay"></div>
+            </div>
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="hero-badge">
+                        <i class="fas fa-rocket"></i>
+                        <span>Plataforma #1 em Marketing Social</span>
+                    </div>
+                    <h1 class="hero-title" data-i18n="hero_title">
+                        Impulsione suas <span class="gradient-text">Redes Sociais</span> com resultados reais
+                    </h1>
+                    <!-- Visualização Mobile Exclusiva (entre Título e Legenda) -->
+                    <div class="hero-visual mobile-visual">
+                        <div class="hero-image-wrapper">
+                            <img src="assets/hero-character.png" alt="Personagem Empreendedor 3D" class="hero-image mobile-character-img">
+                            <div class="floating-card card-1">
+                                <i class="fab fa-instagram"></i>
+                                <div>
+                                    <span class="card-value">+12.5K</span>
+                                    <span class="card-label">Seguidores</span>
+                                </div>
+                            </div>
+                            <div class="floating-card card-2">
+                                <i class="fab fa-tiktok"></i>
+                                <div>
+                                    <span class="card-value">+85K</span>
+                                    <span class="card-label">Curtidas</span>
+                                </div>
+                            </div>
+                            <div class="floating-card card-3">
+                                <i class="fab fa-youtube"></i>
+                                <div>
+                                    <span class="card-value">+250K</span>
+                                    <span class="card-label">Views</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="hero-subtitle" data-i18n="hero_subtitle">
+                        Seguidores, curtidas, visualizações e engajamento para Instagram, TikTok, YouTube, Twitter e mais. 
+                        A ferramenta profissional que influenciadores e empresas confiam.
+                    </p>
+                    <div class="hero-cta">
+                        <button class="btn-primary-lg" onclick="showPage('register-page')" data-i18n="btn_start">
+                            <i class="fas fa-arrow-right"></i>
+                            Começar Agora — Grátis
+                        </button>
+                        <button class="btn-outline-lg" onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})" data-i18n="btn_view_services">
+                            <i class="fas fa-play-circle"></i>
+                            Ver Serviços
+                        </button>
+                    </div>
+                    <div class="hero-trust">
+                        <div class="trust-avatars">
+                            <div class="avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">R</div>
+                            <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);">M</div>
+                            <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">A</div>
+                            <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">L</div>
+                            <div class="avatar-count">+50K</div>
+                        </div>
+                        <span class="trust-text">Mais de <strong>50.000</strong> usuários ativos confiam na SocialNexus</span>
+                    </div>
+                </div>
+                <!-- Visualização Desktop Exclusiva -->
+                <div class="hero-visual desktop-visual">
+                    <div class="hero-image-wrapper">
+                        <img src="assets/hero-character.png" alt="Personagem Empreendedor 3D" class="hero-image desktop-character-img">
+                        <div class="floating-card card-1">
+                            <i class="fab fa-instagram"></i>
+                            <div>
+                                <span class="card-value">+12.5K</span>
+                                <span class="card-label">Seguidores</span>
+                            </div>
+                        </div>
+                        <div class="floating-card card-2">
+                            <i class="fab fa-tiktok"></i>
+                            <div>
+                                <span class="card-value">+85K</span>
+                                <span class="card-label">Curtidas</span>
+                            </div>
+                        </div>
+                        <div class="floating-card card-3">
+                            <i class="fab fa-youtube"></i>
+                            <div>
+                                <span class="card-value">+250K</span>
+                                <span class="card-label">Views</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Brands Marquee -->
+        <section class="brands-section">
+            <div class="brands-marquee">
+                <div class="marquee-track">
+                    <div class="brand-item"><i class="fab fa-instagram"></i> Instagram</div>
+                    <div class="brand-item"><i class="fab fa-tiktok"></i> TikTok</div>
+                    <div class="brand-item"><i class="fab fa-youtube"></i> YouTube</div>
+                    <div class="brand-item"><i class="fab fa-twitter"></i> Twitter</div>
+                    <div class="brand-item"><i class="fab fa-facebook"></i> Facebook</div>
+                    <div class="brand-item"><i class="fab fa-telegram"></i> Telegram</div>
+                    <div class="brand-item"><i class="fab fa-spotify"></i> Spotify</div>
+                    <div class="brand-item"><i class="fab fa-twitch"></i> Twitch</div>
+                    <div class="brand-item"><i class="fab fa-discord"></i> Discord</div>
+                    <div class="brand-item"><i class="fab fa-linkedin"></i> LinkedIn</div>
+                    <!-- duplicate for seamless loop -->
+                    <div class="brand-item"><i class="fab fa-instagram"></i> Instagram</div>
+                    <div class="brand-item"><i class="fab fa-tiktok"></i> TikTok</div>
+                    <div class="brand-item"><i class="fab fa-youtube"></i> YouTube</div>
+                    <div class="brand-item"><i class="fab fa-twitter"></i> Twitter</div>
+                    <div class="brand-item"><i class="fab fa-facebook"></i> Facebook</div>
+                    <div class="brand-item"><i class="fab fa-telegram"></i> Telegram</div>
+                    <div class="brand-item"><i class="fab fa-spotify"></i> Spotify</div>
+                    <div class="brand-item"><i class="fab fa-twitch"></i> Twitch</div>
+                    <div class="brand-item"><i class="fab fa-discord"></i> Discord</div>
+                    <div class="brand-item"><i class="fab fa-linkedin"></i> LinkedIn</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="features-section" id="features">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-badge">Por que nos escolher?</span>
+                    <h2 class="section-title">A plataforma mais <span class="gradient-text">completa</span> do mercado</h2>
+                    <p class="section-subtitle">Tecnologia de ponta aliada à experiência para entregar os melhores resultados</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon" style="--accent: #667eea;">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h3>Entrega Ultra Rápida</h3>
+                        <p>Pedidos processados em minutos. Nossa infraestrutura garante a entrega mais rápida do mercado.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" style="--accent: #f093fb;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3>100% Seguro</h3>
+                        <p>Métodos naturais de crescimento que protegem sua conta. Sem bots, sem riscos.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" style="--accent: #4facfe;">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h3>Preços Imbatíveis</h3>
+                        <p>Os melhores preços do mercado com descontos especiais para revendedores e pedidos em volume.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" style="--accent: #43e97b;">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h3>Suporte 24/7</h3>
+                        <p>Equipe dedicada disponível a qualquer hora via chat, WhatsApp e e-mail.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" style="--accent: #fa709a;">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <h3>Reposição Automática</h3>
+                        <p>Garantia de reposição automática em caso de queda. Seu investimento sempre protegido.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon" style="--accent: #a18cd1;">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <h3>API para Desenvolvedores</h3>
+                        <p>API completa para integrar nossos serviços em sua própria plataforma ou sistema.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services Section -->
+        <section class="services-section" id="services">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-badge">Nossos Serviços</span>
+                    <h2 class="section-title">Serviços para <span class="gradient-text">todas as redes</span></h2>
+                    <p class="section-subtitle">Soluções completas para crescimento orgânico e engajamento real</p>
+                </div>
+                <div class="services-grid">
+                    <div class="service-card" data-platform="instagram">
+                        <div class="service-icon instagram-gradient">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                        <h3>Instagram</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check"></i> Seguidores Reais</li>
+                            <li><i class="fas fa-check"></i> Curtidas em Posts</li>
+                            <li><i class="fas fa-check"></i> Views em Reels/Stories</li>
+                            <li><i class="fas fa-check"></i> Comentários</li>
+                            <li><i class="fas fa-check"></i> Impressões e Alcance</li>
+                        </ul>
+                        <span class="service-price">A partir de R$ 1,99</span>
+                    </div>
+                    <div class="service-card" data-platform="tiktok">
+                        <div class="service-icon tiktok-gradient">
+                            <i class="fab fa-tiktok"></i>
+                        </div>
+                        <h3>TikTok</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check"></i> Seguidores</li>
+                            <li><i class="fas fa-check"></i> Curtidas</li>
+                            <li><i class="fas fa-check"></i> Visualizações</li>
+                            <li><i class="fas fa-check"></i> Compartilhamentos</li>
+                            <li><i class="fas fa-check"></i> Comentários</li>
+                        </ul>
+                        <span class="service-price">A partir de R$ 0,99</span>
+                    </div>
+                    <div class="service-card" data-platform="youtube">
+                        <div class="service-icon youtube-gradient">
+                            <i class="fab fa-youtube"></i>
+                        </div>
+                        <h3>YouTube</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check"></i> Inscritos</li>
+                            <li><i class="fas fa-check"></i> Visualizações</li>
+                            <li><i class="fas fa-check"></i> Likes</li>
+                            <li><i class="fas fa-check"></i> Comentários</li>
+                            <li><i class="fas fa-check"></i> Horas de Watch Time</li>
+                        </ul>
+                        <span class="service-price">A partir de R$ 2,99</span>
+                    </div>
+                    <div class="service-card" data-platform="twitter">
+                        <div class="service-icon twitter-gradient">
+                            <i class="fab fa-twitter"></i>
+                        </div>
+                        <h3>Twitter / X</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check"></i> Seguidores</li>
+                            <li><i class="fas fa-check"></i> Curtidas</li>
+                            <li><i class="fas fa-check"></i> Retweets</li>
+                            <li><i class="fas fa-check"></i> Impressões</li>
+                            <li><i class="fas fa-check"></i> Engajamento</li>
+                        </ul>
+                        <span class="service-price">A partir de R$ 1,49</span>
+                    </div>
+                    <div class="service-card" data-platform="facebook">
+                        <div class="service-icon facebook-gradient">
+                            <i class="fab fa-facebook"></i>
+                        </div>
+                        <h3>Facebook</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check"></i> Curtidas na Página</li>
+                            <li><i class="fas fa-check"></i> Seguidores</li>
+                            <li><i class="fas fa-check"></i> Reações em Posts</li>
+                            <li><i class="fas fa-check"></i> Visualizações</li>
+                            <li><i class="fas fa-check"></i> Compartilhamentos</li>
+                        </ul>
+                        <span class="service-price">A partir de R$ 1,99</span>
+                    </div>
+                    <div class="service-card" data-platform="telegram">
+                        <div class="service-icon telegram-gradient">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <h3>Telegram</h3>
+                        <ul class="service-list">
+                            <li><i class="fas fa-check"></i> Membros de Grupo</li>
+                            <li><i class="fas fa-check"></i> Inscritos no Canal</li>
+                            <li><i class="fas fa-check"></i> Visualizações</li>
+                            <li><i class="fas fa-check"></i> Reações</li>
+                            <li><i class="fas fa-check"></i> Votos em Enquetes</li>
+                        </ul>
+                        <span class="service-price">A partir de R$ 2,49</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Growth Section with Image -->
+        <section class="growth-section">
+            <div class="section-container">
+                <div class="growth-grid">
+                    <div class="growth-content">
+                        <span class="section-badge">Crescimento Garantido</span>
+                        <h2 class="section-title-left">Transforme sua <span class="gradient-text">presença digital</span></h2>
+                        <p class="growth-text">Nossa plataforma utiliza tecnologia proprietária para garantir resultados consistentes e seguros. Cada serviço é otimizado para entregar o máximo de qualidade.</p>
+                        <div class="growth-stats">
+                            <div class="growth-stat">
+                                <span class="stat-number">99.8</span><span class="stat-suffix">%</span>
+                                <span class="stat-label">Taxa de Entrega</span>
+                            </div>
+                            <div class="growth-stat">
+                                <span class="stat-number">2</span><span class="stat-suffix">min</span>
+                                <span class="stat-label">Tempo Médio</span>
+                            </div>
+                            <div class="growth-stat">
+                                <span class="stat-number">30</span><span class="stat-suffix">dias</span>
+                                <span class="stat-label">Garantia</span>
+                            </div>
+                        </div>
+                        <button class="btn-primary-lg" onclick="showPage('register-page')">
+                            <i class="fas fa-chart-line"></i>
+                            Comece a Crescer
+                        </button>
+                    </div>
+                    <div class="growth-image">
+                        <img src="assets/growth-visual.png" alt="Crescimento Digital">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- Stats Section -->
+        <section class="stats-section" id="stats">
+            <div class="section-container">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-clipboard-list"></i></div>
+                        <span class="stat-big-number" data-target="3470776">0</span>
+                        <span class="stat-title">Pedidos Realizados</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <span class="stat-big-number" data-target="52847">0</span>
+                        <span class="stat-title">Usuários Ativos</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-server"></i></div>
+                        <span class="stat-big-number" data-target="850">0</span>
+                        <span class="stat-title">Serviços Disponíveis</span>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-star"></i></div>
+                        <span class="stat-big-number" data-target="4.9">0</span>
+                        <span class="stat-title">Avaliação Média</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="faq-section" id="faq">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-badge">Dúvidas Frequentes</span>
+                    <h2 class="section-title">Perguntas <span class="gradient-text">Frequentes</span></h2>
+                </div>
+                <div class="faq-grid">
+                    <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-question">
+                            <span>Como funciona o painel SMM?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Basta criar sua conta, adicionar saldo via Pix ou cartão, escolher o serviço desejado, inserir o link do seu perfil/post e fazer o pedido. A entrega começa automaticamente em poucos minutos.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-question">
+                            <span>Os seguidores são reais?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Oferecemos diferentes tipos de serviços. Temos seguidores reais com perfis autênticos, seguidores mistos e opções de alta retenção. Cada serviço indica claramente a qualidade oferecida.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-question">
+                            <span>Minha conta pode ser banida?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Nossos métodos são seguros e seguem as melhores práticas do mercado. Utilizamos entrega gradual para simular crescimento orgânico, minimizando qualquer risco.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-question">
+                            <span>Quais formas de pagamento aceitam?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Aceitamos Pix (pagamento instantâneo), cartão de crédito, boleto bancário e criptomoedas. Todos os pagamentos são processados de forma segura.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-question">
+                            <span>Tem garantia de reposição?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Sim! Todos os serviços possuem garantia de reposição. Se houver queda, a reposição é feita automaticamente dentro do período de garantia indicado em cada serviço.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item" onclick="toggleFaq(this)">
+                        <div class="faq-question">
+                            <span>Posso revender os serviços?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Com certeza! Oferecemos preços especiais para revendedores e até painel white-label no plano Enterprise, para que você possa criar seu próprio negócio.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="cta-section">
+            <div class="section-container">
+                <div class="cta-card">
+                    <div class="cta-bg-effects">
+                        <div class="cta-orb cta-orb-1"></div>
+                        <div class="cta-orb cta-orb-2"></div>
+                    </div>
+                    <h2>Pronto para impulsionar suas redes sociais?</h2>
+                    <p>Junte-se a milhares de profissionais que já crescem com a SocialNexus</p>
+                    <button class="btn-primary-lg btn-white" onclick="showPage('register-page')">
+                        <i class="fas fa-rocket"></i>
+                        Criar Conta Grátis
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-container">
+                <div class="footer-grid">
+                    <div class="footer-brand">
+                        <div class="nav-logo" onclick="handleLogoClick()" style="cursor:pointer;">
+                            <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                            <span class="logo-text">Social<span class="logo-accent">Nexus</span></span>
+                        </div>
+                        <p>A plataforma #1 de marketing em redes sociais do Brasil. Resultados reais e confiáveis para impulsionar seu crescimento digital.</p>
+                        <div class="footer-socials">
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-whatsapp"></i></a>
+                            <a href="#"><i class="fab fa-telegram"></i></a>
+                            <a href="#"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                    <div class="footer-links-group">
+                        <h4>Plataforma</h4>
+                        <a href="#features">Recursos</a>
+                        <a href="#services">Serviços</a>
+                        <a href="#stats">Estatísticas</a>
+                        <a href="#">API</a>
+                    </div>
+                    <div class="footer-links-group">
+                        <h4>Suporte</h4>
+                        <a href="#faq">FAQ</a>
+                        <a href="#">Central de Ajuda</a>
+                        <a href="#">WhatsApp</a>
+                        <a href="#">Status do Sistema</a>
+                    </div>
+                    <div class="footer-links-group">
+                        <h4>Legal</h4>
+                        <a href="#" onclick="showPolicy('terms')">Termos de Uso</a>
+                        <a href="#" onclick="showPolicy('privacy')">Política de Privacidade</a>
+                        <a href="#" onclick="showPolicy('refund')">Política de Reembolso</a>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2026 SocialNexus. Todos os direitos reservados.</p>
+                    <div class="footer-payment">
+                        <span>Pagamentos:</span>
+                        <i class="fab fa-pix"></i>
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-bitcoin"></i>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
+        <!-- WhatsApp Float Button -->
+        <a href="javascript:void(0)" class="whatsapp-float" id="whatsapp-btn" onclick="openWhatsApp()">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+    </div>
+
+    <!-- ===================== LOGIN PAGE ===================== -->
+    <div id="login-page" class="page">
+        <div class="auth-container">
+            <div class="auth-side">
+                <div class="auth-side-content">
+                    <div class="nav-logo" onclick="handleLogoClick()" style="cursor:pointer;">
+                        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                        <span class="logo-text">Social<span class="logo-accent">Nexus</span></span>
+                    </div>
+                    <h2>Bem-vindo de volta!</h2>
+                    <p>Acesse seu painel e continue impulsionando suas redes sociais com os melhores serviços do mercado.</p>
+                    <img src="assets/growth-visual.png" alt="Growth" class="auth-illustration">
+                </div>
+            </div>
+            <div class="auth-form-side">
+                <div class="auth-form-container">
+                    <button class="btn-back" onclick="showPage('landing-page')">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </button>
+                    <h2>Entrar na sua conta</h2>
+                    <p class="auth-subtitle">Digite suas credenciais para acessar o painel</p>
+                    <form id="login-form" onsubmit="handleLogin(event)">
+                        <div class="form-group">
+                            <label for="login-email">E-mail</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="login-email" placeholder="seu@email.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Senha</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="login-password" placeholder="••••••••" required>
+                                <button type="button" class="toggle-pass" onclick="togglePassword('login-password', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked> Lembrar de mim
+                            </label>
+                            <a href="#" class="forgot-link" onclick="handleForgotPassword()">Esqueceu a senha?</a>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                    </form>
+                    <div class="auth-divider">
+                        <span>ou</span>
+                    </div>
+                    <button class="btn-google" onclick="handleGoogleAuthReal()">
+                        <i class="fab fa-google"></i> Continuar com Google
+                    </button>
+                    <p class="auth-switch">
+                        Não tem uma conta? <a href="#" onclick="showPage('register-page')">Cadastre-se</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== REGISTER PAGE ===================== -->
+    <div id="register-page" class="page">
+        <div class="auth-container">
+            <div class="auth-side register-side">
+                <div class="auth-side-content">
+                    <div class="nav-logo" onclick="handleLogoClick()" style="cursor:pointer;">
+                        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                        <span class="logo-text">Social<span class="logo-accent">Nexus</span></span>
+                    </div>
+                    <h2>Comece seu crescimento</h2>
+                    <p>Crie sua conta gratuita e tenha acesso imediato a centenas de serviços para todas as redes sociais.</p>
+                    <div class="register-benefits">
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Cadastro 100% gratuito</span>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Ativação instantânea</span>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>+850 serviços disponíveis</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="auth-form-side">
+                <div class="auth-form-container">
+                    <button class="btn-back" onclick="showPage('landing-page')">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </button>
+                    <h2>Criar nova conta</h2>
+                    <p class="auth-subtitle">Preencha os dados para começar</p>
+                    <form id="register-form" onsubmit="handleRegister(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="reg-name">Nome completo</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" id="reg-name" placeholder="Seu nome" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-username">Usuário</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-at"></i>
+                                    <input type="text" id="reg-username" placeholder="seunome" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">E-mail</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="reg-email" placeholder="seu@email.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-whatsapp">WhatsApp</label>
+                            <div class="input-wrapper">
+                                <i class="fab fa-whatsapp"></i>
+                                <input type="tel" id="reg-whatsapp" placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="reg-password">Senha</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" id="reg-password" placeholder="••••••••" required>
+                                    <button type="button" class="toggle-pass" onclick="togglePassword('reg-password', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-confirm">Confirmar Senha</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" id="reg-confirm" placeholder="••••••••" required>
+                                </div>
+                            </div>
+                        </div>
+                        <label class="checkbox-label terms-label">
+                            <input type="checkbox" required> Concordo com os <a href="#" onclick="showPolicy('terms')">Termos de Uso</a> e <a href="#" onclick="showPolicy('privacy')">Política de Privacidade</a>
+                        </label>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-user-plus"></i> Criar Conta
+                        </button>
+                    </form>
+                    <div class="auth-divider">
+                        <span>ou</span>
+                    </div>
+                    <button class="btn-google" onclick="handleGoogleAuthReal()">
+                        <i class="fab fa-google"></i> Continuar com Google
+                    </button>
+                    <p class="auth-switch">
+                        Já tem uma conta? <a href="#" onclick="showPage('login-page')">Faça login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <div id="dashboard-page" class="page">
+        <div class="dashboard-layout">
+            <!-- User Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="nav-logo" onclick="handleLogoClick()" style="cursor:pointer;">
+                        <div class="logo-icon"><i class="fas fa-rocket"></i></div>
+                        <span class="logo-text">Social<span class="logo-accent">Nexus</span></span>
+                    </div>
+                    <button class="sidebar-close" onclick="toggleSidebar()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="sidebar-link active" onclick="showDashTab('dash-overview', this)" id="sidebar-overview">
+                        <i class="fas fa-th-large"></i> Visão Geral
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-neworder', this)" id="sidebar-neworder">
+                        <i class="fas fa-plus-circle"></i> Novo Pedido
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-orders', this)" id="sidebar-orders">
+                        <i class="fas fa-clipboard-list"></i> Meus Pedidos
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-services', this)" id="sidebar-services">
+                        <i class="fas fa-layer-group"></i> Serviços
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-addbalance', this)" id="sidebar-addbalance">
+                        <i class="fas fa-wallet"></i> Adicionar Saldo
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-api', this)" id="sidebar-api">
+                        <i class="fas fa-code"></i> API
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-support', this)" id="sidebar-support">
+                        <i class="fas fa-life-ring"></i> Suporte
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <button class="btn-logout" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="dashboard-main">
+                <!-- Top Bar -->
+                <header class="dash-topbar">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="topbar-right">
+                        <!-- Botão Adicionar (Mobile e PC) -->
+                        <button class="btn-add-balance" onclick="showDashTab('dash-addbalance', document.getElementById('sidebar-addbalance'))">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+
+                        <div class="balance-display pc-only">
+                            <i class="fas fa-wallet"></i>
+                            <span>R$ <strong id="user-balance">0,00</strong></span>
+                        </div>
+
+                        <!-- Novo Menu de Usuário (Dropdown) -->
+                        <div class="topbar-user-dropdown-container">
+                            <div class="topbar-user-trigger" onclick="toggleUserDropdown()">
+                                <div class="user-avatar-small" id="top-user-avatar">RN</div>
+                                <div class="user-meta pc-only">
+                                    <span id="top-user-name">Ronald</span>
+                                    <span class="user-rank">Plano Starter</span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+
+                            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                <div class="dropdown-item" onclick="showDashTab('dash-profile')">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>Minha Conta</span>
+                                </div>
+                                <div class="dropdown-item" onclick="toggleNotificationPanel(); event.stopPropagation();">
+                                    <i class="fas fa-bell"></i>
+                                    <span>Notificações</span>
+                                    <span class="notif-count-badge" id="drop-notif-count">2</span>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item logout" onclick="handleLogout()">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Sair</span>
+                                </div>
+                            </div>
+
+                            <!-- O Painel de Notificações agora abre vinculado aqui ou fixo -->
+                            <div class="notif-panel" id="notif-panel">
+                                <div class="notif-header">Central de Avisos</div>
+                                <div class="notif-content" id="notif-content">
+                                    <div class="notif-item unread">
+                                        <i class="fas fa-gift"></i>
+                                        <div>
+                                            <p>Bônus de 10% no Pix ativo agora!</p>
+                                            <span>Há 5 minutos</span>
+                                        </div>
+                                    </div>
+                                    <div class="notif-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <div>
+                                            <p>Novos serviços de TikTok adicionados.</p>
+                                            <span>Ontem</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Dashboard Content -->
+                <div class="dash-content">
+
+                    <!-- Overview Tab (Layout UpMídias) -->
+                    <div class="dash-tab active" id="dash-overview">
+                        
+                        <!-- Novo Banner Espacial Profissional -->
+                        <div class="dash-space-banner">
+                            <div class="banner-content">
+                                <h1>Social<span>Nexus</span></h1>
+                                <p>Sua plataforma #1 em Marketing Social</p>
+                            </div>
+                        </div>
+                        
+                        <div class="up-stat-container">
+                            <!-- Card Boas Vindas -->
+                            <div class="up-card welcome-up">
+                                <div class="up-icon pink"><i class="fas fa-list-ul"></i></div>
+                                <div class="up-text">
+                                    <h2 id="welcome-username">ronaldpalheta</h2>
+                                    <span>BEM VINDO !</span>
+                                </div>
+                            </div>
+                            <!-- Card Saldo -->
+                            <div class="up-card balance-up">
+                                <div class="up-icon pink"><i class="fas fa-wallet"></i></div>
+                                <div class="up-text">
+                                    <h2 id="stat-balance">R$ 0,00</h2>
+                                    <span>SEU SALDO</span>
+                                </div>
+                            </div>
+                            <!-- Card Pedidos -->
+                            <div class="up-card orders-up">
+                                <div class="up-icon pink"><i class="fas fa-users"></i></div>
+                                <div class="up-text">
+                                    <h2 id="stat-total-orders">0</h2>
+                                    <span>TOTAL DE PEDIDOS</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dash-section-row">
+                            <div class="recent-orders-card">
+                                <div class="card-header-row">
+                                    <h3><i class="fas fa-history"></i> Pedidos Recentes</h3>
+                                    <a href="#" onclick="showDashTab('dash-orders', document.getElementById('sidebar-orders'))">Ver todos</a>
+                                </div>
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Nenhum pedido realizado ainda</p>
+                                    <button class="btn-primary-sm" onclick="showDashTab('dash-neworder', document.getElementById('sidebar-neworder'))">Fazer Primeiro Pedido</button>
+                                </div>
+                            </div>
+                            <div class="quick-actions-card">
+                                <h3><i class="fas fa-bolt"></i> Ações Rápidas</h3>
+                                <div class="quick-actions-grid">
+                                    <button class="quick-action" onclick="showDashTab('dash-neworder', document.getElementById('sidebar-neworder'))">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Novo Pedido</span>
+                                    </button>
+                                    <button class="quick-action" onclick="showDashTab('dash-addbalance', document.getElementById('sidebar-addbalance'))">
+                                        <i class="fas fa-wallet"></i>
+                                        <span>Add Saldo</span>
+                                    </button>
+                                    <button class="quick-action" onclick="showDashTab('dash-services', document.getElementById('sidebar-services'))">
+                                        <i class="fas fa-search"></i>
+                                        <span>Serviços</span>
+                                    </button>
+                                    <button class="quick-action" onclick="showDashTab('dash-support', document.getElementById('sidebar-support'))">
+                                        <i class="fas fa-headset"></i>
+                                        <span>Suporte</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Order Tab -->
+                    <div class="dash-tab" id="dash-neworder">
+                        <div class="tab-header-flex">
+                            <h2 class="tab-title"><i class="fas fa-plus-circle"></i> Novo Pedido</h2>
+                        </div>
+                        
+                        <div class="new-order-container">
+                            <div class="order-form-card">
+                                <form id="order-form" onsubmit="handleNewOrder(event)">
+                                    <!-- Barra de Busca (Estilo UpMidias) -->
+                                    <div class="up-search-group">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" id="svc-search" placeholder="Procurar" oninput="filterServicesBySearch()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="order-category">Categoria</label>
+                                        <div class="custom-select-wrapper" id="cat-wrapper">
+                                            <div class="custom-select">
+                                                <div class="custom-select__trigger" id="cat-trigger" onclick="toggleDropdown('cat')">
+                                                    <span id="cat-selected-text"><i class="fas fa-list"></i> Selecione a Categoria</span>
+                                                    <i class="fas fa-chevron-down arrow"></i>
+                                                </div>
+                                                <div class="custom-options" id="cat-options">
+                                                    <!-- Injetado via JS dinamicamente -->
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="order-category" value="" onchange="updateServices()">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="order-service">Serviço</label>
+                                        <div class="custom-select-wrapper" id="svc-wrapper">
+                                            <div class="custom-select">
+                                                <div class="custom-select__trigger" id="svc-trigger" onclick="toggleDropdown('svc')">
+                                                    <span id="svc-selected-text">Primeiro selecione a categoria</span>
+                                                    <i class="fas fa-chevron-down arrow"></i>
+                                                </div>
+                                                <div class="custom-options" id="svc-options">
+                                                    <!-- Injetado via JS -->
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="order-service" value="" onchange="updateOrderInfo()">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="order-link">Link do Perfil ou Post</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-link"></i>
+                                            <input type="url" id="order-link" placeholder="https://..." required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="order-quantity">Quantidade</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-sort-numeric-up"></i>
+                                            <input type="number" id="order-quantity" placeholder="1000" min="10" required oninput="calculateTotal()">
+                                        </div>
+                                        <span class="input-hint" id="quantity-hint">Mín: 10 — Máx: 100.000</span>
+                                    </div>
+                                    
+                                    <div class="order-total-card">
+                                        <div class="total-label">Total a Pagar</div>
+                                        <div class="total-value" id="order-total">R$ 0,00</div>
+                                        <div class="price-k-label" id="price-per-k">Preço por 1k: R$ 0,00</div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn-submit">
+                                        <i class="fas fa-rocket"></i> Confirmar Pedido
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="order-sidebar">
+                                <div class="notice-card warning">
+                                    <div class="notice-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="notice-content">
+                                        <h3>ATENÇÃO! LEIA ANTES:</h3>
+                                        <ul>
+                                            <li>Perfil deve estar <strong>PÚBLICO</strong>.</li>
+                                            <li>Não peça o mesmo link 2x ao mesmo tempo.</li>
+                                            <li>Link errado = Pedido perdido (Sem Reembolso).</li>
+                                            <li>Velocidade e início variam por serviço.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="service-details-panel" id="service-details-panel" style="display:none;">
+                                    <!-- Preenchido dinamicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Tab -->
+                    <div class="dash-tab" id="dash-orders">
+                        <h2 class="tab-title"><i class="fas fa-clipboard-list"></i> Meus Pedidos</h2>
+                        <div class="orders-toolbar">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Buscar por ID ou link..." id="search-orders">
+                            </div>
+                            <div class="filter-group">
+                                <select id="filter-status">
+                                    <option value="all">Todos</option>
+                                    <option value="pending">Pendente</option>
+                                    <option value="processing">Em Andamento</option>
+                                    <option value="completed">Concluído</option>
+                                    <option value="cancelled">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="orders-table-wrapper">
+                            <table class="orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Serviço</th>
+                                        <th>Link</th>
+                                        <th>Quantidade</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-tbody">
+                                    <tr class="empty-row">
+                                        <td colspan="7">
+                                            <div class="empty-state">
+                                                <i class="fas fa-inbox"></i>
+                                                <p>Nenhum pedido realizado ainda</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Services Tab -->
+                    <div class="dash-tab" id="dash-services">
+                        <h2 class="tab-title"><i class="fas fa-layer-group"></i> Lista de Serviços</h2>
+                        <div class="services-toolbar">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Buscar serviço..." id="search-services" oninput="filterServices()">
+                            </div>
+                            <div class="filter-group">
+                                <select id="filter-platform" onchange="filterServices()">
+                                    <option value="all">Todas as Plataformas</option>
+                                    <option value="instagram">Instagram</option>
+                                    <option value="tiktok">TikTok</option>
+                                    <option value="youtube">YouTube</option>
+                                    <option value="twitter">Twitter / X</option>
+                                    <option value="facebook">Facebook</option>
+                                    <option value="telegram">Telegram</option>
+                                    <option value="spotify">Spotify</option>
+                                    <option value="twitch">Twitch</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="services-table-header">
+                            <span class="sth-id">ID</span>
+                            <span class="sth-name">Serviço</span>
+                            <span class="sth-price">Preço/1K</span>
+                            <span class="sth-min">Mín</span>
+                            <span class="sth-max">Máx</span>
+                            <span class="sth-time">Tempo</span>
+                            <span class="sth-refill">Reposição</span>
+                            <span class="sth-action"></span>
+                        </div>
+                        <div class="services-list" id="services-list">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Add Balance Tab -->
+                    <div class="dash-tab" id="dash-addbalance">
+                        <h2 class="tab-title"><i class="fas fa-wallet"></i> Adicionar Saldo</h2>
+                        <div class="unified-payment-hub">
+                            <!-- Seletor de Método (Cards Compactos) -->
+                            <div class="payment-selector">
+                                <button class="pay-method active" id="pay-btn-pix" onclick="switchPayMethod('pix')">
+                                    <i class="fas fa-qrcode"></i>
+                                    <span>Pix</span>
+                                </button>
+                                <button class="pay-method" id="pay-btn-card" onclick="switchPayMethod('card')">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Cartão</span>
+                                </button>
+                                <button class="pay-method" id="pay-btn-crypto" onclick="switchPayMethod('crypto')">
+                                    <i class="fab fa-bitcoin"></i>
+                                    <span>Cripto</span>
+                                </button>
+                            </div>
+
+                            <div class="payment-form-card">
+                                <div id="pay-area-pix" class="pay-area active">
+                                    <div class="pay-header">
+                                        <h3>Pagar via Pix (Liberação Instantânea)</h3>
+                                        <p class="pay-warning"><i class="fas fa-bolt"></i> O saldo cairá na sua conta segundos após o pagamento.</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Valor (R$)</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-dollar-sign"></i>
+                                            <input type="number" id="pix-amount" placeholder="Ex: 50.00" value="50.00" min="1" step="1">
+                                        </div>
+                                    </div>
+                                    <div class="quick-amounts-grid">
+                                        <button onclick="setAmount('pix', 10)">R$ 10</button>
+                                        <button onclick="setAmount('pix', 50)">R$ 50</button>
+                                        <button onclick="setAmount('pix', 100)">R$ 100</button>
+                                    </div>
+                                    <button class="btn-submit" onclick="generatePixPayment()">
+                                        <i class="fas fa-check"></i> Gerar QR Code
+                                    </button>
+                                </div>
+
+                                <div id="pay-area-card" class="pay-area">
+                                    <div class="pay-header">
+                                        <h3>Pagar com Cartão de Crédito</h3>
+                                        <p class="pay-warning"><i class="fas fa-shield-alt"></i> Processamento seguro via Asaas. Use apenas cartões do mesmo titular da conta.</p>
+                                    </div>
+                                    <div class="form-grid-2">
+                                        <div class="form-group">
+                                            <label>Número do Cartão</label>
+                                            <div class="input-wrapper">
+                                                <i class="fas fa-credit-card"></i>
+                                                <input type="text" id="card-number" placeholder="0000 0000 0000 0000">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Nome no Cartão</label>
+                                            <div class="input-wrapper">
+                                                <i class="fas fa-user"></i>
+                                                <input type="text" id="card-name" placeholder="Como no cartão">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-grid-3">
+                                        <div class="form-group">
+                                            <label>Expiração</label>
+                                            <input type="text" id="card-expiry" placeholder="MM/YY">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>CVV</label>
+                                            <input type="text" id="card-cvv" placeholder="123">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Valor (R$)</label>
+                                            <input type="number" id="card-amount" value="50">
+                                        </div>
+                                    </div>
+                                    <button class="btn-submit" onclick="processCardPayment()">
+                                        <i class="fas fa-lock"></i> Finalizar Pagamento Seguro
+                                    </button>
+                                </div>
+
+                                <div id="pay-area-crypto" class="pay-area">
+                                    <div class="pay-header">
+                                        <h3>Pagar com Criptomoedas</h3>
+                                        <p class="pay-warning"><i class="fas fa-clock"></i> O saldo será creditado após 2 confirmações (15-60 min).</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Selecionar Moeda</label>
+                                        <select id="crypto-currency" onchange="updateCryptoAddress()">
+                                            <option value="btc">Bitcoin (BTC)</option>
+                                            <option value="usdt">USDT (TRC-20)</option>
+                                            <option value="eth">Ethereum (ETH)</option>
+                                        </select>
+                                    </div>
+                                    <div class="crypto-display">
+                                        <div id="crypto-address-area">
+                                            <p id="crypto-label">Endereço de Depósito:</p>
+                                            <code id="crypto-address">Selecione uma moeda...</code>
+                                            <button class="btn-copy" onclick="copyCrypto()"><i class="fas fa-copy"></i> Copiar</button>
+                                        </div>
+                                    </div>
+                                    <button class="btn-submit" onclick="confirmCryptoPayment()">
+                                        <i class="fas fa-check"></i> Já realizei o envio
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                        <!-- Profile Tab -->
+                        <div class="dash-tab" id="dash-profile">
+                            <div class="section-header">
+                                <h2>Minha Conta</h2>
+                                <p>Gerencie seus dados e altere sua senha</p>
+                            </div>
+                            
+                            <div class="profile-card">
+                                <div class="profile-group">
+                                    <h3>Dados do Perfil</h3>
+                                    <div class="info-row">
+                                        <label>Nome Completo</label>
+                                        <p id="profile-name">Ronald Palheta</p>
+                                    </div>
+                                    <div class="info-row">
+                                        <label>Usuário</label>
+                                        <p id="profile-username">ronaldpalheta</p>
+                                    </div>
+                                    <div class="info-row">
+                                        <label>Email</label>
+                                        <p id="profile-email">ronald@exemplo.com</p>
+                                    </div>
+                                    <div class="info-row">
+                                        <label>WhatsApp / Telefone</label>
+                                        <p id="profile-phone">(00) 00000-0000</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="profile-group">
+                                    <h3>Alterar Senha</h3>
+                                    <form id="change-password-form" onsubmit="event.preventDefault(); showToast('Funcionalidade de troca de senha em implementação', 'info')">
+                                        <div class="form-group">
+                                            <label>Nova Senha</label>
+                                            <input type="password" placeholder="Digite sua nova senha">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Confirmar Nova Senha</label>
+                                            <input type="password" placeholder="Repita a nova senha">
+                                        </div>
+                                        <button class="btn-primary-sm" type="submit">Atualizar Senha</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    <!-- API Tab -->
+                    <div class="dash-tab" id="dash-api">
+                        <h2 class="tab-title"><i class="fas fa-code"></i> API de Integração</h2>
+                        <div class="api-card">
+                            <div class="api-key-section">
+                                <h3>Sua Chave de API</h3>
+                                <div class="api-key-display">
+                                    <span id="api-key-value">sn_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
+                                    <button class="btn-copy" onclick="copyApiKey()"><i class="fas fa-copy"></i></button>
+                                </div>
+                                <button class="btn-outline-sm" onclick="regenerateApiKey()">
+                                    <i class="fas fa-sync-alt"></i> Gerar Nova Chave
+                                </button>
+                            </div>
+                            <div class="api-docs">
+                                <h3>Documentação</h3>
+                                <div class="api-endpoint">
+                                    <span class="method-badge get">GET</span>
+                                    <code>/api/v1/services</code>
+                                    <p>Lista todos os serviços disponíveis</p>
+                                </div>
+                                <div class="api-endpoint">
+                                    <span class="method-badge post">POST</span>
+                                    <code>/api/v1/order</code>
+                                    <p>Criar um novo pedido</p>
+                                </div>
+                                <div class="api-endpoint">
+                                    <span class="method-badge get">GET</span>
+                                    <code>/api/v1/order/{id}</code>
+                                    <p>Consultar status de um pedido</p>
+                                </div>
+                                <div class="api-endpoint">
+                                    <span class="method-badge get">GET</span>
+                                    <code>/api/v1/balance</code>
+                                    <p>Consultar saldo da conta</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Support Tab -->
+                    <div class="dash-tab" id="dash-support">
+                        <h2 class="tab-title"><i class="fas fa-life-ring"></i> Suporte</h2>
+                        <div class="support-grid">
+                            <div class="support-card">
+                                <div class="support-icon"><i class="fab fa-whatsapp"></i></div>
+                                <h3>WhatsApp</h3>
+                                <p>Fale conosco em tempo real</p>
+                                <button class="btn-outline-sm"><i class="fas fa-external-link-alt"></i> Abrir Chat</button>
+                            </div>
+                            <div class="support-card">
+                                <div class="support-icon"><i class="fas fa-envelope"></i></div>
+                                <h3>E-mail</h3>
+                                <p>suporte@socialnexus.com</p>
+                                <button class="btn-outline-sm"><i class="fas fa-paper-plane"></i> Enviar E-mail</button>
+                            </div>
+                            <div class="support-card">
+                                <div class="support-icon"><i class="fab fa-telegram"></i></div>
+                                <h3>Telegram</h3>
+                                <p>Canal de suporte e novidades</p>
+                                <button class="btn-outline-sm"><i class="fas fa-external-link-alt"></i> Abrir Canal</button>
+                            </div>
+                        </div>
+                        <div class="ticket-form-card">
+                            <h3><i class="fas fa-ticket-alt"></i> Abrir Ticket de Suporte</h3>
+                            <form onsubmit="handleTicket(event)">
+                                <div class="form-group">
+                                    <label for="ticket-subject">Assunto</label>
+                                    <div class="select-wrapper">
+                                        <select id="ticket-subject">
+                                            <option value="order">Problema com Pedido</option>
+                                            <option value="payment">Pagamento</option>
+                                            <option value="refund">Reembolso</option>
+                                            <option value="api">API</option>
+                                            <option value="other">Outro</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ticket-order-id">ID do Pedido (opcional)</label>
+                                    <div class="input-wrapper">
+                                        <i class="fas fa-hashtag"></i>
+                                        <input type="text" id="ticket-order-id" placeholder="Ex: 12345">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="ticket-message">Mensagem</label>
+                                    <textarea id="ticket-message" placeholder="Descreva seu problema em detalhes..." rows="5" required></textarea>
+                                </div>
+                                <button type="submit" class="btn-submit">
+                                    <i class="fas fa-paper-plane"></i> Enviar Ticket
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ===================== ADMIN PANEL ===================== -->
+    <div id="admin-page" class="page">
+        <div class="dashboard-layout">
+            <!-- Admin Sidebar -->
+            <aside class="sidebar admin-sidebar" id="admin-sidebar">
+                <div class="sidebar-header">
+                    <div class="nav-logo">
+                        <div class="logo-icon" style="background: linear-gradient(135deg, #f5576c, #ff6b6b);"><i class="fas fa-crown"></i></div>
+                        <span class="logo-text">Admin<span class="logo-accent">Panel</span></span>
+                    </div>
+                    <button class="sidebar-close" onclick="toggleAdminSidebar()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="sidebar-link active" onclick="showAdminTab('admin-dashboard', this)" id="admin-sidebar-dash">
+                        <i class="fas fa-chart-pie"></i> Dashboard
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showAdminTab('admin-revenue', this)" id="admin-sidebar-revenue">
+                        <i class="fas fa-dollar-sign"></i> Faturamento
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showAdminTab('admin-clients', this)" id="admin-sidebar-clients">
+                        <i class="fas fa-users-cog"></i> Clientes
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showAdminTab('admin-all-orders', this)" id="admin-sidebar-orders">
+                        <i class="fas fa-clipboard-check"></i> Todos os Pedidos
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showAdminTab('admin-services-mgmt', this)" id="admin-sidebar-services">
+                        <i class="fas fa-tags"></i> Serviços & Lucros
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showAdminTab('admin-settings', this)" id="admin-sidebar-settings">
+                        <i class="fas fa-cog"></i> Configurações
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <div class="sidebar-user">
+                        <div class="user-avatar" style="background: linear-gradient(135deg, #f5576c, #ff6b6b);">AD</div>
+                        <div class="user-info">
+                            <span class="user-name">Administrador</span>
+                            <span class="user-plan">Super Admin</span>
+                        </div>
+                    </div>
+                    <button class="btn-logout" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </aside>
+
+            <main class="dashboard-main">
+                <!-- Admin Top Bar -->
+                <header class="dash-topbar">
+                    <button class="mobile-toggle" onclick="toggleAdminSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button class="sidebar-toggle" onclick="toggleAdminSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="topbar-right">
+                        <div class="balance-display" style="border-color: rgba(245, 87, 108, 0.3);">
+                            <i class="fas fa-crown" style="color: #f5576c;"></i>
+                            <span>Painel <strong style="color: #f5576c;">Administrativo</strong></span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="dash-content">
+
+                    <!-- Admin Dashboard Tab -->
+                    <div class="dash-tab active" id="admin-dashboard">
+                        <div class="dash-welcome">
+                            <h1>Painel Administrativo 👑</h1>
+                            <p>Visão geral completa do seu negócio</p>
+                        </div>
+                        <div class="overview-cards">
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #43e97b;"><i class="fas fa-dollar-sign"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Faturamento Total</span>
+                                    <span class="ov-value" id="admin-total-revenue">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #667eea;"><i class="fas fa-users"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Total de Clientes</span>
+                                    <span class="ov-value" id="admin-total-clients">0</span>
+                                </div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #fa709a;"><i class="fas fa-shopping-cart"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Total de Pedidos</span>
+                                    <span class="ov-value" id="admin-total-orders">0</span>
+                                </div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #f9a825;"><i class="fas fa-chart-line"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Faturamento Hoje</span>
+                                    <span class="ov-value" id="admin-today-revenue">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lucro & Calculadora Section -->
+                        <div class="overview-cards" style="margin-top: 20px;">
+                            <div class="overview-card" style="border: 1px solid rgba(255,255,255,0.1);">
+                                <div class="ov-icon" style="--accent: #ffffff;"><i class="fas fa-file-invoice-dollar"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Custo Total (Investido)</span>
+                                    <span class="ov-value" id="admin-total-cost">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <div class="overview-card profit-highlight" style="background: rgba(67, 233, 123, 0.05); border: 1px solid rgba(67, 233, 123, 0.2);">
+                                <div class="ov-icon" style="--accent: #43e97b;"><i class="fas fa-piggy-bank"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">LUCRO LÍQUIDO TOTAL</span>
+                                    <span class="ov-value" id="admin-net-profit" style="color: #43e97b; font-size: 24px;">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #f093fb;"><i class="fas fa-percentage"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Lucro Médio p/ Pedido</span>
+                                    <span class="ov-value" id="admin-avg-profit">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Revenue Chart Simulation -->
+                        <div class="dash-section-row">
+                            <div class="recent-orders-card">
+                                <div class="card-header-row">
+                                    <h3><i class="fas fa-chart-area"></i> Faturamento dos Últimos 7 Dias</h3>
+                                </div>
+                                <div class="admin-chart" id="admin-chart">
+                                    <div class="chart-bars">
+                                        <div class="chart-bar-group" data-day="Seg">
+                                            <div class="chart-bar" style="height: 45%;"></div>
+                                            <span class="chart-label">Seg</span>
+                                        </div>
+                                        <div class="chart-bar-group" data-day="Ter">
+                                            <div class="chart-bar" style="height: 72%;"></div>
+                                            <span class="chart-label">Ter</span>
+                                        </div>
+                                        <div class="chart-bar-group" data-day="Qua">
+                                            <div class="chart-bar" style="height: 58%;"></div>
+                                            <span class="chart-label">Qua</span>
+                                        </div>
+                                        <div class="chart-bar-group" data-day="Qui">
+                                            <div class="chart-bar" style="height: 85%;"></div>
+                                            <span class="chart-label">Qui</span>
+                                        </div>
+                                        <div class="chart-bar-group" data-day="Sex">
+                                            <div class="chart-bar" style="height: 92%;"></div>
+                                            <span class="chart-label">Sex</span>
+                                        </div>
+                                        <div class="chart-bar-group" data-day="Sáb">
+                                            <div class="chart-bar" style="height: 67%;"></div>
+                                            <span class="chart-label">Sáb</span>
+                                        </div>
+                                        <div class="chart-bar-group" data-day="Dom">
+                                            <div class="chart-bar" style="height: 38%;"></div>
+                                            <span class="chart-label">Dom</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="quick-actions-card">
+                                <h3><i class="fas fa-bolt"></i> Resumo Rápido</h3>
+                                <div class="admin-quick-stats">
+                                    <div class="admin-stat-row">
+                                        <span class="admin-stat-label"><i class="fas fa-circle" style="color: #43e97b; font-size: 8px;"></i> Pedidos Concluídos</span>
+                                        <span class="admin-stat-value" id="admin-completed">0</span>
+                                    </div>
+                                    <div class="admin-stat-row">
+                                        <span class="admin-stat-label"><i class="fas fa-circle" style="color: #4facfe; font-size: 8px;"></i> Em Processamento</span>
+                                        <span class="admin-stat-value" id="admin-processing">0</span>
+                                    </div>
+                                    <div class="admin-stat-row">
+                                        <span class="admin-stat-label"><i class="fas fa-circle" style="color: #f9a825; font-size: 8px;"></i> Pendentes</span>
+                                        <span class="admin-stat-value" id="admin-pending">0</span>
+                                    </div>
+                                    <div class="admin-stat-row">
+                                        <span class="admin-stat-label"><i class="fas fa-circle" style="color: #f5576c; font-size: 8px;"></i> Cancelados</span>
+                                        <span class="admin-stat-value" id="admin-cancelled">0</span>
+                                    </div>
+                                    <div class="admin-stat-divider"></div>
+                                    <div class="admin-stat-row">
+                                        <span class="admin-stat-label"><i class="fas fa-wallet" style="color: #a18cd1; font-size: 10px;"></i> Saldo Total Clientes</span>
+                                        <span class="admin-stat-value" id="admin-client-balance">R$ 0,00</span>
+                                    </div>
+                                    <div class="admin-stat-row">
+                                        <span class="admin-stat-label"><i class="fas fa-user-plus" style="color: #667eea; font-size: 10px;"></i> Novos Hoje</span>
+                                        <span class="admin-stat-value" id="admin-new-today">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Revenue Tab -->
+                    <div class="dash-tab" id="admin-revenue">
+                        <h2 class="tab-title"><i class="fas fa-dollar-sign" style="color: #43e97b;"></i> Faturamento Detalhado</h2>
+                        <div class="overview-cards" style="margin-bottom: 24px;">
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #43e97b;"><i class="fas fa-calendar-day"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Hoje</span>
+                                    <span class="ov-value" id="rev-today">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #4facfe;"><i class="fas fa-calendar-week"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Esta Semana</span>
+                                    <span class="ov-value" id="rev-week">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #667eea;"><i class="fas fa-calendar-alt"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Este Mês</span>
+                                    <span class="ov-value" id="rev-month">R$ 0,00</span>
+                                </div>
+                            </div>
+                            <div class="overview-card">
+                                <div class="ov-icon" style="--accent: #f093fb;"><i class="fas fa-calendar"></i></div>
+                                <div class="ov-info">
+                                    <span class="ov-label">Total Geral</span>
+                                    <span class="ov-value" id="rev-total">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="recent-orders-card">
+                            <div class="card-header-row">
+                                <h3><i class="fas fa-history"></i> Histórico de Transações</h3>
+                            </div>
+                            <div class="orders-table-wrapper">
+                                <table class="orders-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Cliente</th>
+                                            <th>Tipo</th>
+                                            <th>Valor</th>
+                                            <th>Método</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-transactions">
+                                        <tr class="empty-row">
+                                            <td colspan="5">
+                                                <div class="empty-state">
+                                                    <i class="fas fa-inbox"></i>
+                                                    <p>Nenhuma transação registrada</p>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clients Tab -->
+                    <div class="dash-tab" id="admin-clients">
+                        <h2 class="tab-title"><i class="fas fa-users-cog" style="color: #667eea;"></i> Gerenciar Clientes</h2>
+                        <div class="orders-toolbar">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Buscar por nome, email ou usuário..." id="admin-search-clients" oninput="filterAdminClients()">
+                            </div>
+                        </div>
+                        <div class="orders-table-wrapper">
+                            <table class="orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nome</th>
+                                        <th>E-mail</th>
+                                        <th>Senha</th>
+                                        <th>WhatsApp</th>
+                                        <th>Saldo</th>
+                                        <th>Pedidos</th>
+                                        <th>Cadastro</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-clients-tbody">
+                                    <tr class="empty-row">
+                                        <td colspan="9">
+                                            <div class="empty-state">
+                                                <i class="fas fa-users"></i>
+                                                <p>Nenhum cliente cadastrado</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- All Orders Tab -->
+                    <div class="dash-tab" id="admin-all-orders">
+                        <h2 class="tab-title"><i class="fas fa-clipboard-check" style="color: #fa709a;"></i> Todos os Pedidos</h2>
+                        <div class="orders-toolbar">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Buscar pedido por ID, cliente ou serviço..." id="admin-search-orders" oninput="filterAdminOrders()">
+                            </div>
+                            <div class="filter-group">
+                                <select id="admin-filter-status" onchange="filterAdminOrders()">
+                                    <option value="all">Todos</option>
+                                    <option value="pending">Pendente</option>
+                                    <option value="processing">Em Andamento</option>
+                                    <option value="completed">Concluído</option>
+                                    <option value="cancelled">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="orders-table-wrapper">
+                            <table class="orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Cliente</th>
+                                        <th>Serviço</th>
+                                        <th>Link</th>
+                                        <th>Qtd</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                        <th>Data</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-orders-tbody">
+                                    <tr class="empty-row">
+                                        <td colspan="9">
+                                            <div class="empty-state">
+                                                <i class="fas fa-inbox"></i>
+                                                <p>Nenhum pedido encontrado</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Admin Services & Profits Management Tab -->
+                    <div class="dash-tab" id="admin-services-mgmt">
+                        <div class="card-header-row" style="margin-bottom: 20px;">
+                            <h2 class="tab-title" style="margin: 0;"><i class="fas fa-tags" style="color: #f5576c;"></i> Gestão de Serviços & Lucros</h2>
+                            <div class="admin-header-actions" style="display: flex; gap: 10px;">
+                                <button class="btn-primary-sm" onclick="syncGrowFollowsServices()" style="background: var(--accent-secondary); width: auto;">
+                                    <i class="fas fa-sync-alt"></i> Sincronizar GrowFollows
+                                </button>
+                                <button class="btn-submit" style="width: auto; padding: 10px 20px;" onclick="showAddServiceModal()">
+                                    <i class="fas fa-plus"></i> Novo Serviço
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="services-toolbar" style="margin-bottom: 10px;">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Buscar serviço por nome ou ID..." id="admin-search-services" oninput="loadAdminServicesMgmt()">
+                            </div>
+                        </div>
+
+                        <!-- Painel de Lucro em Massa -->
+                        <div class="global-profit-bar">
+                            <div class="profit-config-group">
+                                <div class="profit-label">
+                                    <i class="fas fa-percentage"></i>
+                                    <span>Lucro Global Automático:</span>
+                                </div>
+                                <div class="profit-controls">
+                                    <div class="input-with-symbol">
+                                        <input type="number" id="global-profit-percent" value="150" min="0">
+                                        <span>%</span>
+                                    </div>
+                                    <button class="btn-primary-sm" onclick="applyGlobalProfit()">
+                                        <i class="fas fa-magic"></i> Aplicar em Todos
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Nova Ferramenta: Excluir Categorias em Massa -->
+                            <div class="profit-config-group" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                                <div class="profit-label">
+                                    <i class="fas fa-trash-alt" style="color: #ff4b2b;"></i>
+                                    <span>Remover Categoria Inteira:</span>
+                                </div>
+                                <div class="profit-controls">
+                                    <select id="admin-delete-cat-select" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 6px;">
+                                        <option value="">Selecione para excluir...</option>
+                                        <!-- Preenchido via JS -->
+                                    </select>
+                                    <button class="btn-action danger" onclick="deleteEntireCategory()" style="padding: 8px 15px; border-radius: 6px;">
+                                        <i class="fas fa-eraser"></i> Excluir Tudo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="orders-table-wrapper">
+                            <table class="orders-table admin-svc-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Categoria</th>
+                                        <th>Serviço</th>
+                                        <th>Custo (GF)</th>
+                                        <th>Revenda (Você)</th>
+                                        <th>Lucro %</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-services-tbody">
+                                    <!-- Injetado por JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Admin Settings Tab -->
+                    <div class="dash-tab" id="admin-settings">
+                        <h2 class="tab-title"><i class="fas fa-cog" style="color: #a18cd1;"></i> Configurações do Painel</h2>
+                        <div class="order-form-card" style="max-width: 700px;">
+                            <h3 style="margin-bottom: 20px;"><i class="fas fa-key"></i> Credenciais de Admin</h3>
+                            <div class="form-group">
+                                <label>E-mail do Administrador</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-envelope"></i>
+                                    <input type="email" id="admin-email-config" value="admin@socialnexus.com">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Senha do Administrador</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" id="admin-pass-config" value="admin123">
+                                    <button type="button" class="toggle-pass" onclick="togglePassword('admin-pass-config', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="saveAdminSettings()" style="max-width: 200px;">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                        <div class="order-form-card" style="max-width: 700px; margin-top: 20px;">
+                            <h3 style="margin-bottom: 20px;"><i class="fas fa-paint-brush"></i> Configurações do Site</h3>
+                            <div class="form-group">
+                                <label>Nome do Painel</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-heading"></i>
+                                    <input type="text" id="panel-name-config" value="SocialNexus">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>WhatsApp de Suporte</label>
+                                <div class="input-wrapper">
+                                    <i class="fab fa-whatsapp"></i>
+                                    <input type="text" id="whatsapp-config" placeholder="5592999999999">
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="showToast('Configurações salvas!', 'success')" style="max-width: 200px;">
+                                <i class="fas fa-save"></i> Salvar
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Live Ticker (Prova Social) -->
+    <div id="live-ticker-container"></div>
+
+    <!-- Firebase Sync Engine -->
+    <script src="firebase-sync.js"></script>
+    <!-- Serviços GrowFollows Pré-carregados (2324 serviços, sem CORS) -->
+    <script src="services-data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
