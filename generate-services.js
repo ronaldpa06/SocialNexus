@@ -77,13 +77,16 @@ https.get(API_URL, (res) => {
  * Atualizado pela última vez pelo WebHook Sentinela às: ${new Date().toLocaleString('pt-BR')}
  */
 
-window.GROWFOLLOWS_SERVICES = ${JSON.stringify(grouped, null, 2)};
+window.GROWFOLLOWS_SERVICES = {
+    lastSync: "${new Date().toLocaleString('pt-BR')}",
+    data: ${JSON.stringify(grouped, null, 2)}
+};
 
 // Inicializar o motor
 (function initServices() {
     if(!window.servicesDB) window.servicesDB = {};
     for (let key in window.servicesDB) delete window.servicesDB[key];
-    Object.assign(window.servicesDB, window.GROWFOLLOWS_SERVICES);
+    Object.assign(window.servicesDB, window.GROWFOLLOWS_SERVICES.data);
 })();
 `;
 
