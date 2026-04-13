@@ -4967,3 +4967,32 @@ table {
         height: auto;
     }
 }
+
+/* --- Ninja Delete All Button --- */
+.btn-delete-all-ninja {
+    background: linear-gradient(135deg, #ff4b2b 0%, #ff416c 100%);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-delete-all-ninja:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 75, 43, 0.5);
+    filter: brightness(1.2);
+}
+
+.btn-delete-all-ninja i {
+    font-size: 1.1rem;
+}
+
