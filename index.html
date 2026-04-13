@@ -1125,41 +1125,54 @@
 
                                 <div id="pay-area-card" class="pay-area">
                                     <div class="pay-header">
-                                        <h3>Pagar com Cartão de Crédito</h3>
-                                        <p class="pay-warning"><i class="fas fa-shield-alt"></i> Processamento seguro via Asaas. Use apenas cartões do mesmo titular da conta.</p>
+                                        <h3>Cartão de Crédito</h3>
+                                        <p class="pay-warning"><i class="fas fa-shield-alt"></i> Pagamento processado com segurança via Asaas.</p>
                                     </div>
-                                    <div class="form-grid-2">
-                                        <div class="form-group">
-                                            <label>Número do Cartão</label>
+                                    
+                                    <div class="form-group" style="margin-bottom: 20px;">
+                                        <label>Valor a Recarregar (R$)</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-wallet"></i>
+                                            <input type="number" id="card-amount" placeholder="Ex: 50.00" value="50.00" min="5">
+                                        </div>
+                                        <p style="font-size: 0.75rem; opacity: 0.7; margin-top: 5px;">Mínimo R$ 5,00 para cartão de crédito.</p>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Número do Cartão</label>
+                                        <div class="input-wrapper">
+                                            <i id="card-brand-icon" class="fas fa-credit-card"></i>
+                                            <input type="text" id="card-number" placeholder="0000 0000 0000 0000" maxlength="19">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Nome Completo (como no cartão)</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-user"></i>
+                                            <input type="text" id="card-name" placeholder="JOAO A SILVA">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-row-flex" style="display: flex; gap: 15px;">
+                                        <div class="form-group" style="flex: 1.5;">
+                                            <label>Validade</label>
                                             <div class="input-wrapper">
-                                                <i class="fas fa-credit-card"></i>
-                                                <input type="text" id="card-number" placeholder="0000 0000 0000 0000">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <input type="text" id="card-expiry" placeholder="MM/AA" maxlength="5">
                                             </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label>Nome no Cartão</label>
-                                            <div class="input-wrapper">
-                                                <i class="fas fa-user"></i>
-                                                <input type="text" id="card-name" placeholder="Como no cartão">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="form-grid-3">
-                                        <div class="form-group">
-                                            <label>Expiração</label>
-                                            <input type="text" id="card-expiry" placeholder="MM/YY">
-                                        </div>
-                                        <div class="form-group">
+                                        <div class="form-group" style="flex: 1;">
                                             <label>CVV</label>
-                                            <input type="text" id="card-cvv" placeholder="123">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Valor (R$)</label>
-                                            <input type="number" id="card-amount" value="50">
+                                            <div class="input-wrapper">
+                                                <i class="fas fa-lock"></i>
+                                                <input type="text" id="card-cvv" placeholder="123" maxlength="4">
+                                            </div>
                                         </div>
                                     </div>
-                                    <button class="btn-submit" onclick="processCardPayment()">
-                                        <i class="fas fa-lock"></i> Finalizar Pagamento Seguro
+
+                                    <button class="btn-submit" onclick="processCardPayment()" style="margin-top: 15px;">
+                                        <i class="fas fa-lock"></i> Confirmar Pagamento com Cartão
                                     </button>
                                 </div>
 
@@ -1788,6 +1801,30 @@
                             </button>
                         </div>
                         <div class="order-form-card" style="max-width: 700px; margin-top: 20px;">
+                            <h3 style="margin-bottom: 20px;"><i class="fas fa-credit-card"></i> Gateway de Pagamento (Asaas)</h3>
+                            <div class="form-group">
+                                <label>Chave de API Asaas</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-key"></i>
+                                    <input type="password" id="asaas-key-config" placeholder="$asaas_..." value="">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Ambiente</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-flask"></i>
+                                    <select id="asaas-env-config" style="width: 100%; background: transparent; border: none; color: white;">
+                                        <option value="sandbox" selected>Sandbox (Testes)</option>
+                                        <option value="production">Produção (Real)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="btn-submit" onclick="saveAdminSettings()" style="max-width: 200px;">
+                                <i class="fas fa-save"></i> Salvar Gateway
+                            </button>
+                        </div>
+
+                        <div class="order-form-card" style="max-width: 700px; margin-top: 20px;">
                             <h3 style="margin-bottom: 20px;"><i class="fas fa-paint-brush"></i> Configurações do Site</h3>
                             <div class="form-group">
                                 <label>Nome do Painel</label>
@@ -1803,8 +1840,8 @@
                                     <input type="text" id="whatsapp-config" placeholder="5592999999999">
                                 </div>
                             </div>
-                            <button class="btn-submit" onclick="showToast('Configurações salvas!', 'success')" style="max-width: 200px;">
-                                <i class="fas fa-save"></i> Salvar
+                            <button class="btn-submit" onclick="saveAdminSettings()" style="max-width: 200px;">
+                                <i class="fas fa-save"></i> Salvar Layout
                             </button>
                         </div>
                     </div>
@@ -1814,11 +1851,32 @@
         </div>
     </div>
 
+    <!-- Modal de Políticas Legais -->
+    <div id="policy-modal" class="policy-modal">
+        <div class="policy-modal-content animate__animated animate__zoomIn">
+            <div class="policy-header">
+                <h3 id="policy-title">Termos de Uso</h3>
+                <button onclick="closePolicy()" class="btn-close-modal">&times;</button>
+            </div>
+            <div id="policy-body" class="policy-body">
+                <!-- Conteúdo injetado via JS -->
+            </div>
+            <div class="policy-footer">
+                <button onclick="closePolicy()" class="btn-primary-sm">Entendido</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast-container" id="toast-container"></div>
 
     <!-- Live Ticker (Prova Social) -->
     <div id="live-ticker-container"></div>
+
+    <!-- Firebase Core & Auth (Real SDKs) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
     <!-- Firebase Sync Engine -->
     <script src="firebase-sync.js"></script>
