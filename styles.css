@@ -4837,3 +4837,133 @@ textarea::placeholder { color: var(--text-muted); }
     padding-left: 22px;
     background: rgba(255, 255, 255, 0.08);
 }
+
+/* --- Policy Modal --- */
+.policy-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.policy-modal.active {
+    display: flex;
+}
+
+.policy-modal-content {
+    background: var(--card-bg);
+    width: 100%;
+    max-width: 800px;
+    max-height: 85vh;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+}
+
+.policy-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.policy-body {
+    padding: 25px;
+    overflow-y: auto;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.policy-body h4 {
+    color: var(--accent-color);
+    margin: 20px 0 10px 0;
+    font-size: 1.1rem;
+}
+
+.policy-body p {
+    margin-bottom: 15px;
+}
+
+.policy-footer {
+    padding: 15px 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: right;
+}
+
+/* --- Fix: Prevent Horizontal Scrolling --- */
+html, body {
+    overflow-x: hidden !important;
+    width: 100%;
+    position: relative;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+.section-container, .container, .main-dashboard, .order-form-grid {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+}
+
+/* Fix for possible leaking elements in dashboard */
+.dashboard-container {
+    display: flex;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+    .hero-content, .services-grid, .footer-grid {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+}
+
+/* --- Prevent Tables from Breaking Layout --- */
+.table-responsive, .orders-table-container, .admin-table-wrapper {
+    width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    border-radius: 12px;
+}
+
+table {
+    min-width: 600px; /* Garante que a tabela tenha estrutura mas deslize dentro do box */
+}
+
+@media (max-width: 600px) {
+    .dash-topbar {
+        padding: 0 15px;
+    }
+    
+    /* Impedir que imagens grandes vazem */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+}
