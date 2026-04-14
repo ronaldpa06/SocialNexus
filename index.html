@@ -1868,6 +1868,28 @@
                         </div>
 
                         <div class="order-form-card" style="max-width: 700px; margin-top: 20px;">
+                            <h3 style="margin-bottom: 20px;"><i class="fas fa-robot"></i> Provedor SMM (GrowFollows)</h3>
+                            <div class="form-group">
+                                <label>Chave de API SMM</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-terminal"></i>
+                                    <input type="password" id="smm-key-config" placeholder="Chave da API do Provedor..." value="">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Cotação Dólar (R$)</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-exchange-alt"></i>
+                                    <input type="number" step="0.01" id="dollar-rate-config" value="5.50">
+                                </div>
+                                <p style="font-size: 0.7rem; color: #888; margin-top: 5px;">Usado para converter os preços do fornecedor original.</p>
+                            </div>
+                            <button class="btn-submit" onclick="saveAdminSettings()" style="max-width: 200px;">
+                                <i class="fas fa-save"></i> Salvar SMM
+                            </button>
+                        </div>
+
+                        <div class="order-form-card" style="max-width: 700px; margin-top: 20px;">
                             <h3 style="margin-bottom: 20px;"><i class="fas fa-paint-brush"></i> Configurações do Site</h3>
                             <div class="form-group">
                                 <label>Nome do Painel</label>
