@@ -4996,3 +4996,8 @@ table {
     font-size: 1.1rem;
 }
 
+
+.btn-submit, .btn-primary, .btn-primary-sm { background: linear-gradient(135deg, #f5576c, #ff6b6b) !important; border: none !important; }
+.last-sync-badge { border-left: 4px solid #f5576c !important; }
+.cat-manage-item:hover { border-color: #f5576c !important; }
+
