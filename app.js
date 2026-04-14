@@ -2128,12 +2128,15 @@ function loadAdminTransactions() {
 
 // ─── Service & Profit Management (Admin) ───
 
+/**
+ * Gestão de Serviços & Lucros (Admin)
+ **/
 let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
 
 function loadAdminServicesMgmt() {
     const tbody = document.getElementById('admin-services-tbody');
     const updateContainer = document.getElementById('last-update-container');
-    const catManagerList = document.getElementById('admin-category-manager-list');
+    const catDeleteSelect = document.getElementById('admin-delete-cat-select');
     const excludedArea = document.getElementById('excluded-categories-area');
     const excludedList = document.getElementById('admin-excluded-list');
     
@@ -2142,7 +2145,7 @@ function loadAdminServicesMgmt() {
     // 1. Mostrar Horário da Última Atualização
     if (updateContainer) {
         const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? 
-                         window.GROWFOLLOWS_SERVICES.lastSync : 'Sincronize para ver';
+                         window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Robô...';
         updateContainer.innerHTML = `
             <div class="last-sync-badge">
                 <i class="fas fa-history"></i> Última sincronização do robô: <strong>${lastSync}</strong>
@@ -2150,13 +2153,13 @@ function loadAdminServicesMgmt() {
         `;
     }
 
-    // 2. Renderizar Tabela de Serviços
+    // 2. Renderizar Tabela Completa (Original)
     tbody.innerHTML = '';
     const platforms = Object.keys(servicesDB).filter(p => !excludedCategories.includes(p)).sort();
 
     platforms.forEach(platform => {
         servicesDB[platform].forEach(svc => {
-            if (searchTerm && !svc.name.toLowerCase().includes(searchTerm) && !svc.id.toString().includes(searchTerm) && !platform.toLowerCase().includes(searchTerm)) return;
+            if (searchTerm && !svc.name.toLowerCase().includes(searchTerm) && !svc.id.toString().includes(searchTerm)) return;
 
             const tr = document.createElement('tr');
             const profitVal = svc.price - svc.cost;
@@ -2167,7 +2170,7 @@ function loadAdminServicesMgmt() {
                 <td>#${svc.id}</td>
                 <td><span class="platform-badge">${platform.toUpperCase()}</span></td>
                 <td><div class="svc-name-admin">${svc.name}</div></td>
-                <td><span class="cost-val">${formatValue(svc.cost)}</span></td>
+                <td><span class="cost-val">R$ ${parseFloat(svc.cost).toFixed(2)}</span></td>
                 <td>
                     <div class="edit-price-wrapper">
                         <input type="number" step="0.01" class="admin-price-input" value="${svc.price.toFixed(2)}" 
@@ -2190,34 +2193,32 @@ function loadAdminServicesMgmt() {
         });
     });
 
-    // 3. Renderizar Gestor de Categorias Ativas (Cards)
-    if (catManagerList) {
-        catManagerList.innerHTML = platforms.map(p => `
-            <div class="cat-manage-item">
-                <div class="cat-info">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="cat-name">${p}</span>
-                </div>
-                <button class="btn-delete-cat" onclick="deleteEntireCategory('${p}')" title="Ocultar Categoria">
-                    <i class="fas fa-eye-slash"></i>
-                </button>
-            </div>
-        `).join('');
+    // 3. Restaurar Seletor de Categorias (Melhorado)
+    if (catDeleteSelect) {
+        const currentSelected = catDeleteSelect.value;
+        catDeleteSelect.innerHTML = '<option value="">Selecione categoria para remover...</option>';
+        platforms.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            catDeleteSelect.appendChild(opt);
+        });
+        catDeleteSelect.value = currentSelected;
     }
 
-    // 4. Renderizar Categorias Excluídas (Cemitério)
+    // 4. Renderizar Cemitério de Categorias (Restauração)
     if (excludedArea && excludedList) {
         if (excludedCategories.length > 0) {
             excludedArea.style.display = 'block';
             excludedList.innerHTML = excludedCategories.sort().map(p => `
-                <div class="cat-manage-item" style="border-color: rgba(255,21,100,0.2);">
+                <div class="cat-manage-item" style="border-color: rgba(255,21,100,0.2); margin-bottom: 8px;">
                     <div class="cat-info">
                         <i class="fas fa-ghost" style="color: #ff4b2b;"></i>
-                        <span class="cat-name" style="color: rgba(255,255,255,0.5);">${p}</span>
+                        <span class="cat-name" style="color: rgba(255,255,255,0.7); margin: 0 15px;">${p}</span>
+                        <button class="btn-restore-cat" onclick="restoreCategory('${p}')" style="font-size: 0.75rem; padding: 4px 10px;">
+                            <i class="fas fa-undo"></i> Reativar
+                        </button>
                     </div>
-                    <button class="btn-restore-cat" onclick="restoreCategory('${p}')">
-                        <i class="fas fa-undo"></i> Restaurar
-                    </button>
                 </div>
             `).join('');
         } else {
@@ -2226,8 +2227,23 @@ function loadAdminServicesMgmt() {
     }
 }
 
-function deleteEntireCategory(cat) {
-    if (!confirm(`Deseja ocultar a categoria "${cat}"? Ela não aparecerá para os clientes mesmo após as atualizações do robô.`)) return;
+function restoreCategory(cat) {
+    excludedCategories = excludedCategories.filter(c => c !== cat);
+    localStorage.setItem('snx_excluded_cats', JSON.stringify(excludedCategories));
+    
+    loadAdminServicesMgmt();
+    if (typeof renderCategories === 'function') renderCategories();
+    showToast(`Categoria "${cat}" restaurada e ativa no site!`, 'success');
+}
+
+function deleteEntireCategory(catParaExcluir = null) {
+    const cat = catParaExcluir || document.getElementById('admin-delete-cat-select').value;
+    if (!cat) {
+        showToast('Escolha uma categoria para remover!', 'warning');
+        return;
+    }
+    
+    if (!confirm(`CUIDADO! Isso vai ocultar TODOS os serviços de "${cat}" e o robô não irá trazê-los de volta. Confirmar?`)) return;
     
     if (!excludedCategories.includes(cat)) {
         excludedCategories.push(cat);
@@ -2235,47 +2251,41 @@ function deleteEntireCategory(cat) {
     }
     
     loadAdminServicesMgmt();
-    renderCategories();
-    showToast(`Categoria "${cat}" ocultada com sucesso.`, 'info');
+    if (typeof renderCategories === 'function') renderCategories();
+    showToast(`Categoria "${cat}" removida e bloqueada com sucesso!`, 'success');
 }
 
-function restoreCategory(cat) {
-    excludedCategories = excludedCategories.filter(c => c !== cat);
-    localStorage.setItem('snx_excluded_cats', JSON.stringify(excludedCategories));
-    
-    loadAdminServicesMgmt();
-    renderCategories();
-    showToast(`Categoria "${cat}" restaurada!`, 'success');
+function toggleSvcStatus(platform, id) {
+    const svc = servicesDB[platform].find(s => s.id === id);
+    if (svc) {
+        svc.status = svc.status === 'available' ? 'paused' : 'available';
+        saveDynamicServices();
+        loadAdminServicesMgmt();
+        showToast(`Serviço ${svc.status === 'available' ? 'Ativado' : 'Pausado'}`, 'info');
+    }
 }
 
-function confirmDeleteAllCategories() {
-    const total = Object.keys(servicesDB).filter(p => !excludedCategories.includes(p)).length;
-    if (total === 0) return showToast('Nenhuma categoria ativa para excluir.', 'warning');
-
-    if (!confirm('!!! ALERTA MÁXIMO !!!\n\nIsso irá ocultar TODAS as categorias ativas do seu site agora. Tem certeza?')) return;
-    
-    Object.keys(servicesDB).forEach(p => {
-        if (!excludedCategories.includes(p)) {
-            excludedCategories.push(p);
-        }
-    });
-    
-    localStorage.setItem('snx_excluded_cats', JSON.stringify(excludedCategories));
-    loadAdminServicesMgmt();
-    renderCategories();
-    showToast('Site limpo! Todas as categorias foram ocultadas.', 'error');
+function updateSvcResale(platform, id, newPrice) {
+    const service = servicesDB[platform].find(s => s.id === id);
+    if (service) {
+        service.price = parseFloat(newPrice);
+        saveDynamicServices();
+        loadAdminServicesMgmt();
+        showToast('Preço individual atualizado!', 'success');
+    }
 }
 
 function deleteService(platform, id) {
-    if (!confirm('Remover este serviço do banco local? (Nota: Se o robô rodar, ele pode voltar se estiver ativo no fornecedor)')) return;
+    if (!confirm('Deseja remover este serviço individualmente?')) return;
     
     if (servicesDB[platform]) {
         servicesDB[platform] = servicesDB[platform].filter(s => s.id != id);
         if (servicesDB[platform].length === 0) {
             deleteEntireCategory(platform);
         } else {
+            saveDynamicServices();
             loadAdminServicesMgmt();
-            showToast('Serviço removido localmente.', 'info');
+            showToast('Serviço removido.', 'info');
         }
     }
 }
