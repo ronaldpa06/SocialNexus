@@ -78,7 +78,7 @@ https.get(API_URL, (res) => {
  */
 
 window.GROWFOLLOWS_SERVICES = {
-    lastSync: "${new Date().toLocaleString('pt-BR')}",
+    lastSync: "${new Date().toLocaleTimeString('pt-BR')} do dia ${new Date().toLocaleDateString('pt-BR')}",
     data: ${JSON.stringify(grouped, null, 2)}
 };
 
