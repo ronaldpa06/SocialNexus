@@ -1758,13 +1758,18 @@
                             <div class="category-management-v2" style="margin-top: 25px; border-top: 2px solid rgba(255,255,255,0.05); padding-top: 20px;">
                                 <div id="last-update-container"></div>
                                 
-                                <h3 style="color: #f5576c; font-size: 1rem; margin-bottom: 15px;"><i class="fas fa-layer-group"></i> Categorias Ativas</h3>
-                                <div id="admin-category-manager-list" class="ninja-category-grid">
-                                    <!-- Renderizado via JS -->
+                                <h3 style="color: #4facfe; font-size: 1rem; margin-bottom: 15px;"><i class="fas fa-search-plus"></i> Ocultar Categorias em Massa</h3>
+                                <div class="category-search-container">
+                                    <div class="cat-search-bar">
+                                        <i class="fas fa-filter"></i>
+                                        <input type="text" id="cat-search-input" placeholder="Digite o nome da categoria para ocultar..." oninput="searchCategoriesToExclude()">
+                                        <div id="cat-search-results" class="cat-results-dropdown"></div>
+                                    </div>
+                                    <p class="search-hint">As categorias selecionadas serão movidas para o "Cemitério" abaixo e ficarão invisíveis para os clientes.</p>
                                 </div>
 
                                 <div id="excluded-categories-area" style="margin-top: 25px; display: none;">
-                                    <h3 style="color: #ff4b2b; font-size: 1rem; margin-bottom: 15px;"><i class="fas fa-ghost"></i> Categorias Ocultas (Cemitério)</h3>
+                                    <h3 style="color: #888; font-size: 1rem; margin-bottom: 15px;"><i class="fas fa-eye-slash"></i> Categorias no Cemitério (Ocultas)</h3>
                                     <div id="admin-excluded-list" class="ninja-category-grid">
                                         <!-- Renderizado via JS -->
                                     </div>
