@@ -1713,51 +1713,63 @@ function getAdminCredentials() {
     return combined;
 }
 
+/**
+ * 🛠️ Carregamento Seguro de Configurações
+ */
 function loadAdminSettings() {
-    const creds = getAdminCredentials();
-    const emailInput = document.getElementById('admin-email-config');
-    const passInput = document.getElementById('admin-pass-config');
-    const asaasKeyInput = document.getElementById('asaas-key-config');
-    const asaasEnvInput = document.getElementById('asaas-env-config');
-    const smmKeyInput = document.getElementById('smm-key-config');
-    const dollarRateInput = document.getElementById('dollar-rate-config');
-    const panelNameInput = document.getElementById('panel-name-config');
-    const whatsappInput = document.getElementById('whatsapp-config');
+    try {
+        const creds = getAdminCredentials();
+        const fields = {
+            'admin-email-config': creds.email,
+            'admin-pass-config': creds.password,
+            'asaas-key-config': creds.asaasKey,
+            'asaas-env-config': creds.asaasEnv,
+            'smm-key-config': creds.smmKey,
+            'dollar-rate-config': creds.dollarRate,
+            'panel-name-config': creds.panelName,
+            'whatsapp-config': creds.whatsapp
+        };
 
-    if (emailInput) emailInput.value = creds.email;
-    if (passInput) passInput.value = creds.password;
-    if (asaasKeyInput) asaasKeyInput.value = creds.asaasKey || '';
-    if (asaasEnvInput) asaasEnvInput.value = creds.asaasEnv || 'sandbox';
-    if (smmKeyInput) smmKeyInput.value = creds.smmKey || '';
-    if (dollarRateInput) dollarRateInput.value = creds.dollarRate || '5.50';
-    if (panelNameInput) panelNameInput.value = creds.panelName || 'SocialNexus';
-    if (whatsappInput) whatsappInput.value = creds.whatsapp || '';
+        for (const [id, value] of Object.entries(fields)) {
+            const el = document.getElementById(id);
+            if (el) el.value = value || '';
+        }
+        console.log("✅ Configurações carregadas com sucesso.");
+    } catch (err) {
+        console.error("❌ Erro ao carregar configurações:", err);
+    }
 }
 
 function saveAdminSettings() {
-    const email = document.getElementById('admin-email-config').value;
-    const password = document.getElementById('admin-pass-config').value;
-    const asaasKey = document.getElementById('asaas-key-config').value;
-    const asaasEnv = document.getElementById('asaas-env-config').value;
-    const smmKey = document.getElementById('smm-key-config').value;
-    const dollarRate = document.getElementById('dollar-rate-config').value;
-    const panelName = document.getElementById('panel-name-config').value;
-    const whatsapp = document.getElementById('whatsapp-config').value;
+    try {
+        const email = document.getElementById('admin-email-config').value;
+        const password = document.getElementById('admin-pass-config').value;
+        const asaasKey = document.getElementById('asaas-key-config').value;
+        const asaasEnv = document.getElementById('asaas-env-config').value;
+        const smmKey = document.getElementById('smm-key-config').value;
+        const dollarRate = document.getElementById('dollar-rate-config').value;
+        const panelName = document.getElementById('panel-name-config').value;
+        const whatsapp = document.getElementById('whatsapp-config').value;
 
-    if (!email || !password) {
-        showToast('Preencha pelo menos email e senha!', 'error');
-        return;
+        if (!email || !password) {
+            showToast('Preencha pelo menos email e senha!', 'error');
+            return;
+        }
+
+        const setts = { email, password, asaasKey, asaasEnv, smmKey, dollarRate, panelName, whatsapp };
+        localStorage.setItem('snx_admin', JSON.stringify(setts));
+        
+        // Atualiza logo do painel
+        const brandLabels = document.querySelectorAll('.logo-text');
+        brandLabels.forEach(el => el.innerHTML = `${panelName}<span class="logo-accent">Panel</span>`);
+        
+        showToast('Configurações salvas com sucesso!', 'success');
+    } catch (err) {
+        console.error("❌ Erro ao salvar configurações:", err);
+        showToast('Erro técnico ao salvar.', 'error');
     }
-
-    const setts = { email, password, asaasKey, asaasEnv, smmKey, dollarRate, panelName, whatsapp };
-    localStorage.setItem('snx_admin', JSON.stringify(setts));
-    
-    // Atualiza nome do painel na UI imediatamente se houver elementos
-    const brandLabels = document.querySelectorAll('.logo-text');
-    brandLabels.forEach(el => el.innerHTML = `${panelName}<span class="logo-accent">Panel</span>`);
-    
-    showToast('Configurações salvas com sucesso!', 'success');
 }
+
 
 
 // Admin Dashboard
