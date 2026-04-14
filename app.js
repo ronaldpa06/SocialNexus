@@ -1759,11 +1759,16 @@ function saveAdminSettings() {
         const setts = { email, password, asaasKey, asaasEnv, smmKey, dollarRate, panelName, whatsapp };
         localStorage.setItem('snx_admin', JSON.stringify(setts));
         
+        // 🚀 SINCRONIZAR COM FIREBASE (Para os clientes poderem pagar)
+        if (typeof syncConfigToFirebase === 'function') {
+            syncConfigToFirebase(setts);
+        }
+
         // Atualiza logo do painel
         const brandLabels = document.querySelectorAll('.logo-text');
         brandLabels.forEach(el => el.innerHTML = `${panelName}<span class="logo-accent">Panel</span>`);
         
-        showToast('Configurações salvas com sucesso!', 'success');
+        showToast('Configurações salvas e sincronizadas!', 'success');
     } catch (err) {
         console.error("❌ Erro ao salvar configurações:", err);
         showToast('Erro técnico ao salvar.', 'error');
