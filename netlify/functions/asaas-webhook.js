@@ -68,7 +68,15 @@ exports.handler = async function(event, context) {
             console.log(`💰 Pix / Cartão aprovado! Valor: R$${amountPaid} para Usuário ID: ${userId}`);
 
             // 3. Resgata todos os usuários do Firebase DB
-            const users = await fetchFirebaseData('GET') || [];
+            let rawUsers = await fetchFirebaseData('GET');
+            let users = [];
+            
+            // Desenbrulha a String (como o site salva no Firebase)
+            if (typeof rawUsers === 'string') {
+                users = JSON.parse(rawUsers);
+            } else if (Array.isArray(rawUsers)) {
+                users = rawUsers;
+            }
             
             // 4. Encontra o usuário específico
             let orderFoundAndUpdated = false;
@@ -86,7 +94,8 @@ exports.handler = async function(event, context) {
 
             // 6. Atualiza e Salva o banco de dados inteiro no Firebase
             if (orderFoundAndUpdated) {
-                 await fetchFirebaseData('PUT', users);
+                 // Embrulha de volta em String para manter a compatibilidade com o site
+                 await fetchFirebaseData('PUT', JSON.stringify(users));
                  console.log("☁️ Firebase sincronizado com sucesso!");
                  return { statusCode: 200, body: "Saldo creditado com sucesso!" };
             } else {
