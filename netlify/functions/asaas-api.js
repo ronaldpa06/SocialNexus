@@ -5,15 +5,15 @@
 
 const https = require('https');
 
-const ASAAS_API_KEY = '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi';
-const ASAAS_URL = 'www.asaas.com'; // Produção Real
+const ASAAS_API_KEY = process.env.ASAAS_API_KEY || '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi';
+const ASAAS_URL = 'api.asaas.com';
 
 function asaasRequest(method, path, data = null) {
     return new Promise((resolve, reject) => {
         const options = {
             hostname: ASAAS_URL,
             port: 443,
-            path: '/api/v3' + path,
+            path: '/v3' + path,
             method: method,
             headers: {
                 'access_token': ASAAS_API_KEY,
