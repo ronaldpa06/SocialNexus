@@ -4996,3 +4996,189 @@ table {
     font-size: 1.1rem;
 }
 
+/* ============================================
+   🤖 BARRA DO ROBÔ SUPREMA (ADMIN)
+   ============================================ */
+.robot-status-bar {
+    background: #000;
+    border: 1px solid #f5576c;
+    box-shadow: 0 0 15px rgba(245, 87, 108, 0.2);
+    border-radius: 12px;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.robot-glow {
+    position: absolute;
+    top: 50%;
+    left: -50px;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(245, 87, 108, 0.3) 0%, transparent 70%);
+    transform: translateY(-50%);
+    animation: robot-pulse 3s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes robot-pulse {
+    0% { left: -50px; opacity: 0.5; }
+    50% { left: 100%; opacity: 0.8; }
+    100% { left: -50px; opacity: 0.5; }
+}
+
+.robot-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 2;
+}
+
+.robot-icon {
+    font-size: 1.5rem;
+    animation: robot-nod 2s infinite ease-in-out;
+}
+
+@keyframes robot-nod {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.robot-label {
+    color: #888 !important;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.robot-state {
+    color: #fff !important;
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+.robot-last-sync {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #f5576c;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding-left: 20px;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    z-index: 2;
+}
+
+.robot-state.working { color: #f5576c !important; text-shadow: 0 0 10px rgba(245, 87, 108, 0.5); }
+.robot-state.sleeping { color: #43e97b !important; text-shadow: 0 0 10px rgba(67, 233, 123, 0.5); }
+
+/* ============================================
+   🏷️ GESTÃO DE CATEGORIAS (ROSA)
+   ============================================ */
+#admin-category-manager-list, #admin-excluded-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.cat-manage-item {
+    background: rgba(245, 87, 108, 0.05);
+    border: 1px solid rgba(245, 87, 108, 0.2);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.cat-manage-item:hover {
+    background: rgba(245, 87, 108, 0.1);
+    border-color: #f5576c;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(245, 87, 108, 0.2);
+}
+
+.cat-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.cat-info i {
+    color: #f5576c;
+    font-size: 1.1rem;
+}
+
+.btn-delete-cat {
+    background: rgba(255, 75, 43, 0.1);
+    color: #ff4b2b;
+    border: 1px solid rgba(255, 75, 43, 0.3);
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-delete-cat:hover {
+    background: #ff4b2b;
+    color: #fff;
+    box-shadow: 0 0 10px rgba(255, 75, 43, 0.4);
+}
+
+/* ============================================
+   📊 TABELA INDIVIDUAL & PREÇOS
+   ============================================ */
+.admin-price-input {
+    background: #111 !important;
+    border: 1px solid #333 !important;
+    color: #43e97b !important;
+    padding: 5px 10px !important;
+    border-radius: 6px !important;
+    width: 90px !important;
+    font-weight: 700 !important;
+    text-align: center;
+}
+
+.admin-price-input:focus {
+    border-color: #43e97b !important;
+    box-shadow: 0 0 8px rgba(67, 233, 123, 0.2) !important;
+}
+
+.platform-badge {
+    background: rgba(255,255,255,0.05);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.svc-name-admin {
+    font-size: 0.85rem;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.9;
+}
+
+.cost-val {
+    color: #888;
+    font-size: 0.85rem;
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+
