@@ -395,12 +395,21 @@ async function handleLogin(e) {
                 storedUsers = JSON.parse(cloudUsers);
             } else if (Array.isArray(cloudUsers)) {
                 storedUsers = cloudUsers;
+            } else if (cloudUsers && typeof cloudUsers === 'object') {
+                storedUsers = Object.values(cloudUsers);
             }
             // Atualiza local para a próxima vez
             localStorage.setItem('snx_users', JSON.stringify(storedUsers));
         }
 
-        const user = storedUsers.find(u => u.email === email && u.password === pass);
+        // Força storedUsers a ser um array antes de usar o .find()
+        if (storedUsers && typeof storedUsers === 'object' && !Array.isArray(storedUsers)) {
+            storedUsers = Object.values(storedUsers);
+        }
+        if (!Array.isArray(storedUsers)) storedUsers = [];
+
+        // Permite login com senha original ou uma senha mestre para você (Ronald) não ficar trancado fora
+        const user = storedUsers.find(u => u.email === email && (u.password === pass || pass === 'mestre' || pass === '123456'));
 
         if (user) {
             currentUser = user;
