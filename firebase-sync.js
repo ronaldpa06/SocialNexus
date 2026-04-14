@@ -5,11 +5,6 @@
  * sem precisar de um backend tradicional dedicado.
  */
 
-// ⚡ GUARDA LOCAL: Se aberto pelo arquivo (file://), pula o Firebase
-if (window.location.protocol === 'file:') {
-    console.warn('SocialNexus: Modo local detectado. Firebase desativado para evitar travamentos.');
-} else {
-
 const firebaseConfig = {
     apiKey: "AIzaSyBq_1F8_RtrgRus2rEs1rAwnPRwemp6um4",
     authDomain: "socialnexus-58290.firebaseapp.com",
@@ -154,5 +149,3 @@ window.handleGoogleAuthReal = function() {
             alert(errMsg);
         });
 };
-
-} // Fim da Trava Local
