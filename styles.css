@@ -4996,7 +4996,3 @@ table {
     font-size: 1.1rem;
 }
 
-
-.last-sync-badge { border-left: 4px solid var(--accent-primary); }
-.cat-manage-item:hover { border-color: var(--accent-primary) !important; }
-
