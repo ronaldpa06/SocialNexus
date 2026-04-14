@@ -35,10 +35,12 @@ async function getCredentialsFromFirebase() {
     });
 }
 
-function asaasRequest(method, path, apiKey, data = null) {
+function asaasRequest(method, path, apiKey, data = null, isSandbox = false) {
     return new Promise((resolve, reject) => {
+        const hostname = isSandbox ? 'sandbox.asaas.com' : 'api.asaas.com';
+        
         const options = {
-            hostname: 'api.asaas.com',
+            hostname: hostname,
             port: 443,
             path: '/v3' + path,
             method: method,
@@ -81,6 +83,7 @@ exports.handler = async function(event, context) {
         // 🔍 BUSCA CHAVE CONFIGURADA
         const firebaseConfig = await getCredentialsFromFirebase();
         let finalApiKey = firebaseConfig.asaasKey;
+        const isSandbox = firebaseConfig.asaasEnv === 'sandbox';
 
         // Fallback para ENV se Firebase falhar
         if (!finalApiKey) finalApiKey = process.env.ASAAS_API_KEY;
@@ -92,6 +95,8 @@ exports.handler = async function(event, context) {
                 body: JSON.stringify({ success: false, error: "Asaas não configurado no painel Admin!" }) 
             };
         }
+        
+        let cpfInput = payload.cpf || "00000000000";
 
         // --- AÇÃO: GERAR PIX ---
         if (action === 'generate_pix') {
@@ -99,8 +104,8 @@ exports.handler = async function(event, context) {
                 name: userName,
                 email: userEmail || "cliente@socialnexus.com",
                 externalReference: userId,
-                cpfCnpj: "00000000000" // Fallback CPF to prevent Asaas blocks
-            });
+                cpfCnpj: cpfInput
+            }, isSandbox);
 
             if (customerRes.status !== 200) {
                  const errMsg = customerRes.data && customerRes.data.errors ? customerRes.data.errors[0].description : "Erro do Asaas";
@@ -116,14 +121,14 @@ exports.handler = async function(event, context) {
                 dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
                 description: `Adicao de Saldo SocialNexus - ${userName}`,
                 externalReference: userId
-            });
+            }, isSandbox);
 
             if (paymentRes.status !== 200) {
                  const errMsg = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors[0].description : "Erro ao gerar PIX";
                  return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
             }
 
-            const qrRes = await asaasRequest('GET', `/payments/${paymentRes.data.id}/pixQrCode`, finalApiKey);
+            const qrRes = await asaasRequest('GET', `/payments/${paymentRes.data.id}/pixQrCode`, finalApiKey, null, isSandbox);
 
             return {
                 statusCode: 200,
@@ -146,8 +151,8 @@ exports.handler = async function(event, context) {
                 name: userName,
                 email: userEmail || "cliente@socialnexus.com",
                 externalReference: userId,
-                cpfCnpj: "00000000000" // Fallback CPF
-            });
+                cpfCnpj: cpfInput
+            }, isSandbox);
 
             if (customerRes.status !== 200) {
                  const errMsg = customerRes.data && customerRes.data.errors ? customerRes.data.errors[0].description : "Erro do Asaas";
@@ -174,12 +179,12 @@ exports.handler = async function(event, context) {
                 creditCardHolderInfo: {
                     name: userName,
                     email: userEmail || "cliente@socialnexus.com",
-                    cpfCnpj: "00000000000",
+                    cpfCnpj: cpfInput,
                     postalCode: "00000000",
                     addressNumber: "0",
                     phone: "0000000000"
                 }
-            });
+            }, isSandbox);
 
             if (paymentRes.status !== 200) {
                  const errMsg = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors[0].description : "Cartão Recusado";
