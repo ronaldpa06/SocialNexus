@@ -4921,8 +4921,8 @@ textarea::placeholder { color: var(--text-muted); }
 }
 
 .section-container, .container, .main-dashboard, .order-form-grid {
-    max-width: 100vw !important;
-    overflow-x: hidden !important;
+    max-width: 100% !important;
+    overflow-x: clip !important;
 }
 
 /* Fix for possible leaking elements in dashboard */
