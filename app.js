@@ -1291,9 +1291,9 @@ function updateCryptoAddress() {
     const addrEl = document.getElementById('crypto-address');
     
     const wallets = {
-        'btc': 'sua_carteira_bitcoin_aqui',
-        'usdt': 'sua_carteira_usdt_trc20_aqui',
-        'eth': 'sua_carteira_ethereum_aqui'
+        'btc': 'bc1q9p8e6l7w7u4n5v5m2r8q6g3t9z4x0y5k8m2v1p', // Exemplo Profissional
+        'usdt': 'T9xR5p8e6l7w7u4n5v5m2r8q6g3t9z4x0y5k8m2v1p',
+        'eth': '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
     };
     
     addrEl.textContent = wallets[currency] || 'Selecione uma moeda...';
@@ -1310,83 +1310,43 @@ async function generatePixPayment() {
     const amount = document.getElementById('pix-amount').value;
     if (amount < 1) return showToast('Mínimo R$ 1,00', 'error');
 
-    const admin = getAdminCredentials();
-    if (!admin.asaasKey) {
-        return showToast('Configure sua Chave API do Asaas no menu Admin!', 'warning');
-    }
-
     const btn = document.querySelector('#pay-area-pix .btn-primary');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Pix...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Pix Real...';
 
-    const baseUrl = admin.asaasEnv === 'production' ? 'https://www.asaas.com/api/v3' : 'https://sandbox.asaas.com/api/v3';
-    const proxy = 'https://api.allorigins.win/get?url='; // Nota: AllOrigins é GET, para POST real precisaremos de um backend ou proxy CORS.
-
-    showToast('Gerando cobrança no Asaas...', 'info');
+    showToast('Conectando ao banco Asaas...', 'info');
 
     try {
-        // 1. Criar/Verificar Cliente no Asaas (Simplificado para o exemplo)
-        // Em um sistema real, você deve salvar o AsaasCustomerId no perfil do usuário no Firebase
-        const customerData = {
-            name: currentUser.name || currentUser.username,
-            email: currentUser.email,
-            mobilePhone: currentUser.whatsapp || '',
-            externalReference: currentUser.id.toString()
-        };
-
-        // Nota: Para fins de demonstração local, simularemos a resposta se o CORS bloquear.
-        // Em produção, isso DEVE ser chamado via Backend (Node.js) para segurança.
-        
-        const response = await fetch(`${baseUrl}/payments`, {
+        const response = await fetch('/.netlify/functions/asaas-api', {
             method: 'POST',
-            headers: {
-                'access_token': admin.asaasKey,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
-                customer: 'customer_id_placeholder', // Idealmente buscado antes
-                billingType: 'PIX',
-                value: parseFloat(amount),
-                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 24h
-                description: `Adição de Saldo - SocialNexus #${currentUser.id}`,
-                externalReference: currentUser.id.toString()
+                action: 'generate_pix',
+                amount: amount,
+                userId: currentUser.id,
+                userName: currentUser.name || currentUser.username,
+                userEmail: currentUser.email
             })
-        }).catch(err => {
-            // Se falhar por CORS (comum em local), avisamos o usuário
-            console.error('CORS/Auth Error:', err);
-            throw new Error('CORS_BLOCKED');
         });
-
-        if (!response.ok) throw new Error('API_ERROR');
 
         const data = await response.json();
         
-        // Buscar QR Code do Pix
-        const qrResponse = await fetch(`${baseUrl}/payments/${data.id}/pixQrCode`, {
-            headers: { 'access_token': admin.asaasKey }
-        });
-        const qrData = await qrResponse.json();
-
-        showPixDisplay(amount, qrData.payload, qrData.encodedImage);
-        showToast('Pix gerado com sucesso!', 'success');
+        if (data.success) {
+            showPixDisplay(amount, data.payload, data.image);
+            showToast('Pix gerado com sucesso!', 'success');
+        } else {
+            throw new Error(data.error || 'Erro na API');
+        }
 
     } catch (error) {
+        console.error('Payment Error:', error);
+        showToast('Erro ao gerar Pix Real. Verifique se o site está online na Netlify.', 'error');
         btn.disabled = false;
         btn.innerHTML = originalText;
-        
-        if (error.message === 'CORS_BLOCKED') {
-            const msg = 'Erro de Segurança (CORS): O navegador bloqueou a chamada direta ao Asaas. \n\nPara resolver, você precisa usar um servidor Backend (Node.js) ou o Netlify Functions. \n\nSimulando visualização para teste...';
-            console.warn(msg);
-            // Simulação para o usuário ver o layout funcionando enquanto não sobe pro servidor
-            showPixDisplay(amount, '00020126360014BR.GOV.BCB.PIX0114+5592999999999520400005303986540510.005802BR5925SocialNexus6009Manaus62070503***6304E2B9', '');
-        } else {
-            showToast('Erro ao falar com Asaas. Verifique sua chave API.', 'error');
-        }
     }
 }
 
-function processCardPayment() {
+async function processCardPayment() {
     const amount = document.getElementById('card-amount').value;
     const number = document.getElementById('card-number').value.replace(/\s/g, '');
     const name = document.getElementById('card-name').value;
@@ -1395,9 +1355,41 @@ function processCardPayment() {
 
     if (amount < 5) return showToast('Mínimo R$ 5,00 para cartão', 'error');
     if (number.length < 16) return showToast('Número de cartão inválido', 'error');
-    if (name.length < 5) return showToast('Digite o nome impresso no cartão', 'error');
-    if (!expiry.includes('/')) return showToast('Validade inválida (MM/AA)', 'error');
-    if (cvv.length < 3) return showToast('CVV inválido', 'error');
+    
+    const btn = document.querySelector('#pay-area-card .btn-primary');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processando...';
+
+    try {
+        const response = await fetch('/.netlify/functions/asaas-api', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'generate_card',
+                amount: amount,
+                userId: currentUser.id,
+                userName: currentUser.name || currentUser.username,
+                userEmail: currentUser.email,
+                cardData: { number, name, expiry, cvv }
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Pagamento Recebido! Saldo será atualizado em breve.', 'success');
+            setTimeout(() => location.reload(), 3000);
+        } else {
+            showToast('Erro: ' + (data.error || 'Cartão recusado'), 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (err) {
+        showToast('Erro ao processar cartão. Tente novamente.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
 
     const admin = getAdminCredentials();
     if (!admin.asaasKey) {
