@@ -1436,29 +1436,8 @@ async function processCardPayment() {
     }
 }
 
-// Fim do processamento de cartão (bloco órfão removido para evitar erro de sintaxe)
+// --- Fim da seção de pagamentos corrigida ---
 
-        showToast('Pagamento aprovado com sucesso! (Simulado)', 'success');
-        
-        // Adiciona saldo (Simulação)
-        if (currentUser) {
-            currentUser.balance += parseFloat(amount);
-            localStorage.setItem('snx_session', JSON.stringify(currentUser));
-            
-            // Salva na lista global de usuários
-            const users = JSON.parse(localStorage.getItem('snx_users') || '[]');
-            const uIdx = users.findIndex(u => u.id === currentUser.id);
-            if (uIdx !== -1) {
-                users[uIdx].balance = currentUser.balance;
-                localStorage.setItem('snx_users', JSON.stringify(users));
-            }
-            
-            saveTransaction(currentUser.name, 'Entrada', parseFloat(amount), 'Cartão');
-            loadDashboard();
-            showPage('dashboard-page');
-        }
-    }, 2500);
-}
 
 // Inicializar Máscaras de Cartão
 function initCardMasks() {
