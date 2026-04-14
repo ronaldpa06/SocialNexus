@@ -1,4 +1,4 @@
-﻿window.GROWFOLLOWS_SERVICES = { lastSync: '21:13:15 - 13/04/2026', nextSync: '00:13:15 - 14/04/2026', data: {
+﻿window.GROWFOLLOWS_SERVICES = { lastSync: '00:05:25 - 14/04/2026', nextSync: '03:05:25 - 14/04/2026', data: {
     "🇺🇦 Website Traffic from Ukraine [ + Choose Referrer ]":  [
                                                                     {
                                                                         "id":  9791,
@@ -11275,11 +11275,11 @@
                                                          {
                                                              "id":  39,
                                                              "name":  "TikTok - Followers [ Worldwide 🌎 ] ~ 50k/day ~ Instant ~ 𝗥𝗘𝗙𝗜𝗟𝗟 30D",
-                                                             "price":  3.314,
-                                                             "cost":  1.657,
+                                                             "price":  4.156,
+                                                             "cost":  2.078,
                                                              "min":  10,
                                                              "status":  "available",
-                                                             "max":  10000000
+                                                             "max":  1000000
                                                          },
                                                          {
                                                              "id":  473,
@@ -13353,7 +13353,7 @@
                                                                  "cost":  2,
                                                                  "min":  10,
                                                                  "status":  "available",
-                                                                 "max":  10000000
+                                                                 "max":  1000000
                                                              },
                                                              {
                                                                  "id":  97,
