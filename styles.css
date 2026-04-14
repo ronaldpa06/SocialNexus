@@ -3183,9 +3183,12 @@ textarea::placeholder { color: var(--text-muted); }
 }
 
 /* Client Action Buttons */
-.nav-actions {
-    display: flex;
-    gap: 12px;
+@media (min-width: 992px) {
+    .nav-actions {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
 }
 
 .nav-selectors {
@@ -5086,3 +5089,6 @@ table {
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+
+/* Fix Mobile Buttons Forced */
+@media (max-width: 991px) { .nav-actions { display: none !important; } }
