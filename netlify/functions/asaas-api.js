@@ -97,12 +97,14 @@ exports.handler = async function(event, context) {
         if (action === 'generate_pix') {
             const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
                 name: userName,
-                email: userEmail,
-                externalReference: userId
+                email: userEmail || "cliente@socialnexus.com",
+                externalReference: userId,
+                cpfCnpj: "00000000000" // Fallback CPF to prevent Asaas blocks
             });
 
             if (customerRes.status !== 200) {
-                 return { statusCode: customerRes.status, body: JSON.stringify({ success: false, error: "Erro ao criar cliente no Asaas" }) };
+                 const errMsg = customerRes.data && customerRes.data.errors ? customerRes.data.errors[0].description : "Erro do Asaas";
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
             }
 
             const customerId = customerRes.data.id;
@@ -117,7 +119,8 @@ exports.handler = async function(event, context) {
             });
 
             if (paymentRes.status !== 200) {
-                 return { statusCode: paymentRes.status, body: JSON.stringify({ success: false, error: "Erro ao criar pagamento" }) };
+                 const errMsg = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors[0].description : "Erro ao gerar PIX";
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
             }
 
             const qrRes = await asaasRequest('GET', `/payments/${paymentRes.data.id}/pixQrCode`, finalApiKey);
@@ -141,12 +144,14 @@ exports.handler = async function(event, context) {
             // 1. Criar/Buscar Cliente
             const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
                 name: userName,
-                email: userEmail,
-                externalReference: userId
+                email: userEmail || "cliente@socialnexus.com",
+                externalReference: userId,
+                cpfCnpj: "00000000000" // Fallback CPF
             });
 
             if (customerRes.status !== 200) {
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Erro ao registrar cliente no gateway." }) };
+                 const errMsg = customerRes.data && customerRes.data.errors ? customerRes.data.errors[0].description : "Erro do Asaas";
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
             }
 
             const customerId = customerRes.data.id;
@@ -168,8 +173,8 @@ exports.handler = async function(event, context) {
                 },
                 creditCardHolderInfo: {
                     name: userName,
-                    email: userEmail,
-                    cpfCnpj: "00000000000", // Placeholder se não coletado
+                    email: userEmail || "cliente@socialnexus.com",
+                    cpfCnpj: "00000000000",
                     postalCode: "00000000",
                     addressNumber: "0",
                     phone: "0000000000"
@@ -177,7 +182,7 @@ exports.handler = async function(event, context) {
             });
 
             if (paymentRes.status !== 200) {
-                 const errMsg = paymentRes.data.errors ? paymentRes.data.errors[0].description : "Cartão Recusado";
+                 const errMsg = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors[0].description : "Cartão Recusado";
                  return { statusCode: 400, body: JSON.stringify({ success: false, error: errMsg }) };
             }
 
