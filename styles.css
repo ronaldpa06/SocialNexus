@@ -5234,4 +5234,41 @@ table {
     opacity: 0.6;
 }
 
+/* ============================================
+   ⚙️ CENTRAL DE COMANDO MASTER
+   ============================================ */
+.settings-master-container {
+    padding: 10px;
+    animation: fadeIn 0.5s ease;
+}
+
+.admin-input-dark {
+    background: rgba(0,0,0,0.3) !important;
+    border: 1px solid rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+    padding: 12px 15px !important;
+    border-radius: 8px !important;
+    width: 100% !important;
+    font-size: 0.95rem !important;
+    margin-top: 5px;
+    transition: all 0.3s;
+}
+
+.admin-input-dark:focus {
+    border-color: #4facfe !important;
+    background: rgba(0,0,0,0.5) !important;
+    box-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
+}
+
+.order-form-card h3 {
+    font-size: 1.1rem;
+    color: #4facfe;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 15px;
+}
+
 
