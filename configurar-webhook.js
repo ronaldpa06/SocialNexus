@@ -24,12 +24,7 @@ rl.question('👉 Digite e pressione Enter o link do seu site (apenas a URL, ex:
     let baseUrl = netLink.trim();
     if(baseUrl.endsWith('/')) baseUrl = baseUrl.slice(0, -1);
     
-    // URL do Webhook na Produção
-    const WEBHOOK_URL = 'https://socialnexuss.netlify.app/.netlify/functions/asaas-webhook';
-    const ASAAS_API_KEY = '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi';
-    const ASAAS_API_URL = 'api.asaas.com';
-    
-    const webhookFullUrl = WEBHOOK_URL;
+    const webhookFullUrl = `${baseUrl}/.netlify/functions/asaas-webhook`;
     console.log(`\n📡 Ligando para o Asaas e registrando a URL Invisível: ${webhookFullUrl}...`);
 
     const payload = JSON.stringify({
