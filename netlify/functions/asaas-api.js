@@ -133,16 +133,69 @@ exports.handler = async function(event, context) {
             };
         }
 
+        // --- AÇÃO: PROCESSAR CARTÃO ---
         if (action === 'generate_card') {
-            // Lógica de cartão aqui... (Igual, mas com tratamento de erro melhor)
-            return { statusCode: 400, body: JSON.stringify({ success: false, error: "Pagamento por cartão em atualização." }) };
+            const { number, name, expiry, cvv } = cardData;
+            const [expiryMonth, expiryYear] = expiry.split('/');
+
+            // 1. Criar/Buscar Cliente
+            const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
+                name: userName,
+                email: userEmail,
+                externalReference: userId
+            });
+
+            if (customerRes.status !== 200) {
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Erro ao registrar cliente no gateway." }) };
+            }
+
+            const customerId = customerRes.data.id;
+
+            // 2. Processar Pagamento Cartão
+            const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
+                customer: customerId,
+                billingType: 'CREDIT_CARD',
+                value: parseFloat(amount),
+                dueDate: new Date().toISOString().split('T')[0],
+                description: `Adicao de Saldo SocialNexus - ${userName}`,
+                externalReference: userId,
+                creditCard: {
+                    holderName: name,
+                    number: number,
+                    expiryMonth: expiryMonth,
+                    expiryYear: "20" + expiryYear,
+                    cvv: cvv
+                },
+                creditCardHolderInfo: {
+                    name: userName,
+                    email: userEmail,
+                    cpfCnpj: "00000000000", // Placeholder se não coletado
+                    postalCode: "00000000",
+                    addressNumber: "0",
+                    phone: "0000000000"
+                }
+            });
+
+            if (paymentRes.status !== 200) {
+                 const errMsg = paymentRes.data.errors ? paymentRes.data.errors[0].description : "Cartão Recusado";
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: errMsg }) };
+            }
+
+            return {
+                statusCode: 200,
+                body: JSON.stringify({
+                    success: true,
+                    paymentId: paymentRes.data.id,
+                    status: paymentRes.data.status
+                })
+            };
         }
 
         return { statusCode: 400, body: "Invalid Action" };
 
     } catch (error) {
         console.error("❌ ERRO INTERNO:", error.message);
-        return { statusCode: 500, body: JSON.stringify({ error: "Erro interno no servidor de pagamentos." }) };
+        return { statusCode: 500, body: JSON.stringify({ success: false, error: "Conexão perdida com o gateway." }) };
     }
 };
 
