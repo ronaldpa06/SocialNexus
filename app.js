@@ -2105,13 +2105,25 @@ function loadAdminServicesMgmt() {
     
     const searchTerm = document.getElementById('admin-search-services').value.toLowerCase();
     
-    // 1. Mostrar Horário da Última Atualização
+    // 1. Mostrar Inteligência do Robô e Horário de Precisão
     if (updateContainer) {
         const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? 
-                         window.GROWFOLLOWS_SERVICES.lastSync : 'Sincronize para ver';
+                         window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Robô...';
+        
+        // Lógica de Ciclo: Trabalha 3h, Dorme 3h
+        const hour = new Date().getHours();
+        const robotState = (Math.floor(hour / 3) % 2 === 0) 
+            ? '<span style="color: #43e97b;"><i class="fas fa-cog fa-spin"></i> Robô está Rodando agora... ⚒️</span>' 
+            : '<span style="color: #fa709a;"><i class="fas fa-moon"></i> Robô está Dormindo... 😴</span>';
+
         updateContainer.innerHTML = `
-            <div class="last-sync-badge">
-                <i class="fas fa-history"></i> Última sincronização do robô: <strong>${lastSync}</strong>
+            <div class="last-sync-badge" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 20px;">
+                <div style="font-size: 14px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-robot"></i> <strong>STATUS:</strong> ${robotState}
+                </div>
+                <div style="font-size: 11px; opacity: 0.7; display: flex; items-center; gap: 15px;">
+                    <span><i class="fas fa-clock"></i> Última Sincronização: <strong style="color: #fff;">${lastSync}</strong></span>
+                </div>
             </div>
         `;
     }
