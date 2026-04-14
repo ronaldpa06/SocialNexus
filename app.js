@@ -9,6 +9,7 @@ const servicesDB = window.servicesDB;
 
 // ─── App State & Internationalization ───
 let currentUser = null;
+window.currentUser = null; // Exposição para o Sincronizador de Nuvem
 let orders = [];
 let selectedPaymentMethod = null;
 
@@ -505,37 +506,53 @@ function finishGoogleAuth(name, email) {
 
 // ─── Dashboard Functions ───
 /**
- * ─── Atualização Instantânea de Saldo (Firebase -> UI) ───
+ * ─── Sincronizador de Saldo em Tempo Real (Background Polling) ───
  */
+async function startBalancePolling() {
+    // Busca o saldo imediatamente ao carregar
+    await refreshUserBalance();
+    
+    // E depois a cada 10 segundos de forma invisível
+    setInterval(async () => {
+        if (currentUser && currentUser.id) {
+            await refreshUserBalance();
+        }
+    }, 10000);
+}
+
 async function refreshUserBalance() {
     if (!currentUser || !currentUser.id) return;
     
     try {
-        // Usa a base de dados sincronizada (que agora puxa do Firebase em tempo real)
         const users = typeof syncFromFirebase === 'function' ? await syncFromFirebase() : [];
         if (users && users.length > 0) {
+            // Comparação robusta (converte tudo para String para não dar erro)
             const freshData = users.find(u => u.id.toString() === currentUser.id.toString());
+            
             if (freshData) {
-                currentUser.balance = parseFloat(freshData.balance || 0);
-                localStorage.setItem('snx_session', JSON.stringify(currentUser));
-                
-                const balEl = document.getElementById('user-balance');
-                const statBalEl = document.getElementById('stat-balance');
-                if (balEl) balEl.textContent = formatValue(currentUser.balance);
-                if (statBalEl) statBalEl.textContent = formatValue(currentUser.balance);
-                console.log("💰 Saldo sincronizado:", currentUser.balance);
+                const newBal = parseFloat(freshData.balance || 0);
+                if (currentUser.balance !== newBal) {
+                    currentUser.balance = newBal;
+                    localStorage.setItem('snx_session', JSON.stringify(currentUser));
+                    
+                    const balEl = document.getElementById('user-balance');
+                    const statBalEl = document.getElementById('stat-balance');
+                    if (balEl) balEl.textContent = formatValue(currentUser.balance);
+                    if (statBalEl) statBalEl.textContent = formatValue(currentUser.balance);
+                    console.log("💰 Saldo atualizado via Nuvem:", currentUser.balance);
+                }
             }
         }
     } catch (err) {
-        console.error("❌ Erro ao sincronizar saldo:", err);
+        console.error("❌ Erro na sincronização de saldo:", err);
     }
 }
 
 function loadDashboard() {
     if (!currentUser) return;
     
-    // 🔥 Garante que o saldo esteja sempre atualizado ao entrar ou dar F5
-    refreshUserBalance();
+    // Inicia o monitoramento constante do saldo
+    startBalancePolling();
 
     // Sincroniza dados no Topbar e Perfil
     const displayName = formatDisplayName(currentUser.name);
@@ -1339,15 +1356,18 @@ function copyCrypto() {
 async function generatePixPayment() {
     let amountStr = document.getElementById('pix-amount').value.replace(/\./g, '').replace(',', '.');
     const amount = parseFloat(amountStr);
-
     if (isNaN(amount) || amount < 1) return showToast('Mínimo R$ 1,00', 'error');
 
     const btn = document.querySelector('#pay-area-pix .btn-submit');
     const originalText = btn.innerHTML;
     
-    // 🔍 BUSCA CHAVE DO COFRE NO FIREBASE (Para funcionar para o cliente)
-    showToast('Validando configuração de pagamento...', 'info');
-    
+    // ⏱️ TIMER DE SEGURANÇA (15 segundos)
+    const timeoutMsg = setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        showToast('Servidor demorou a responder. Tente novamente!', 'warning');
+    }, 15000);
+
     let finalApiKey = "";
     try {
         const configUrl = 'https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_config.json';
@@ -1355,79 +1375,45 @@ async function generatePixPayment() {
         const config = await response.json();
         finalApiKey = config.asaasKey;
     } catch (e) {
-        console.error("Erro ao buscar config:", e);
+        console.error("Firebase Config Error:", e);
     }
 
     if (!finalApiKey || finalApiKey.trim() === "") {
-        return showToast('Sistema de pagamento em manutenção. Avise o Admin!', 'warning');
+        clearTimeout(timeoutMsg);
+        return showToast('Sistema em manutenção. API não configurada!', 'warning');
     }
 
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Pix...';
 
-    const baseUrl = admin.asaasEnv === 'production' ? 'https://www.asaas.com/api/v3' : 'https://sandbox.asaas.com/api/v3';
-    const proxy = 'https://api.allorigins.win/get?url='; // Nota: AllOrigins é GET, para POST real precisaremos de um backend ou proxy CORS.
-
-    showToast('Gerando cobrança no Asaas...', 'info');
-
     try {
-        // 1. Criar/Verificar Cliente no Asaas (Simplificado para o exemplo)
-        // Em um sistema real, você deve salvar o AsaasCustomerId no perfil do usuário no Firebase
-        const customerData = {
-            name: currentUser.name || currentUser.username,
-            email: currentUser.email,
-            mobilePhone: currentUser.whatsapp || '',
-            externalReference: currentUser.id.toString()
-        };
-
-        // Nota: Para fins de demonstração local, simularemos a resposta se o CORS bloquear.
-        // Em produção, isso DEVE ser chamado via Backend (Node.js) para segurança.
-        
-        const response = await fetch(`${baseUrl}/payments`, {
+        const response = await fetch('/.netlify/functions/asaas-api', {
             method: 'POST',
-            headers: {
-                'access_token': admin.asaasKey,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({
-                customer: 'customer_id_placeholder', // Idealmente buscado antes
-                billingType: 'PIX',
-                value: parseFloat(amount),
-                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 24h
-                description: `Adição de Saldo - SocialNexus #${currentUser.id}`,
-                externalReference: currentUser.id.toString()
+                action: 'generate_pix',
+                amount: amount,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userEmail: currentUser.email
             })
-        }).catch(err => {
-            // Se falhar por CORS (comum em local), avisamos o usuário
-            console.error('CORS/Auth Error:', err);
-            throw new Error('CORS_BLOCKED');
         });
 
-        if (!response.ok) throw new Error('API_ERROR');
-
-        const data = await response.json();
+        clearTimeout(timeoutMsg);
+        const result = await response.json();
         
-        // Buscar QR Code do Pix
-        const qrResponse = await fetch(`${baseUrl}/payments/${data.id}/pixQrCode`, {
-            headers: { 'access_token': admin.asaasKey }
-        });
-        const qrData = await qrResponse.json();
-
-        showPixDisplay(amount, qrData.payload, qrData.encodedImage);
-        showToast('Pix gerado com sucesso!', 'success');
-
-    } catch (error) {
+        if (result.success) {
+            renderPixResult(result);
+        } else {
+            showToast('Erro: ' + (result.error || 'Falha ao gerar QR Code'), 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (err) {
+        clearTimeout(timeoutMsg);
+        console.error("Asaas API Error:", err);
+        showToast('Erro de conexão com o servidor.', 'error');
         btn.disabled = false;
         btn.innerHTML = originalText;
-        
-        if (error.message === 'CORS_BLOCKED') {
-            const msg = 'Erro de Segurança (CORS): O navegador bloqueou a chamada direta ao Asaas. \n\nPara resolver, você precisa usar um servidor Backend (Node.js) ou o Netlify Functions. \n\nSimulando visualização para teste...';
-            console.warn(msg);
-            // Simulação para o usuário ver o layout funcionando enquanto não sobe pro servidor
-            showPixDisplay(amount, '00020126360014BR.GOV.BCB.PIX0114+5592999999999520400005303986540510.005802BR5925SocialNexus6009Manaus62070503***6304E2B9', '');
-        } else {
-            showToast('Erro ao falar com Asaas. Verifique sua chave API.', 'error');
-        }
     }
 }
 
@@ -2834,6 +2820,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('snx_session');
     if (saved) {
         currentUser = JSON.parse(saved);
+        window.currentUser = currentUser; // Alimenta o motor de sincronia
+        
         if (currentUser.role === 'admin') {
             loadAdminDashboard();
             showPage('admin-page');
