@@ -1,4 +1,4 @@
-﻿window.GROWFOLLOWS_SERVICES = { lastSync: '21:04:31 - 13/04/2026', nextSync: '00:04:31 - 14/04/2026', data: {
+﻿window.GROWFOLLOWS_SERVICES = { lastSync: '21:13:15 - 13/04/2026', nextSync: '00:13:15 - 14/04/2026', data: {
     "🇺🇦 Website Traffic from Ukraine [ + Choose Referrer ]":  [
                                                                     {
                                                                         "id":  9791,
