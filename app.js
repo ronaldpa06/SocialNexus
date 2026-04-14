@@ -1361,7 +1361,7 @@ async function generatePixPayment() {
     btn.disabled = true;
     btn.innerHTML = "<i class=\"fas fa-spinner fa-spin\"></i> Gerando...";
     try {
-        const res = await fetch("/.netlify/functions/asaas-api", {
+        const res = await fetch("https://socialnexuss.netlify.app/.netlify/functions/asaas-api", {
             method: "POST", messenger: "internal",
             body: JSON.stringify({ action: "generate_pix", amount: amount, userId: currentUser.id, userName: currentUser.name || currentUser.username, userEmail: currentUser.email })
         });
@@ -1392,7 +1392,7 @@ async function processCardPayment() {
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processando...';
 
     try {
-        const response = await fetch('/.netlify/functions/asaas-api', {
+        const response = await fetch('https://socialnexuss.netlify.app/.netlify/functions/asaas-api', {
             method: 'POST',
             body: JSON.stringify({
                 action: 'generate_card',
@@ -2763,5 +2763,6 @@ function formatDisplayName(name) {
     
     return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
 }
+
 
 
