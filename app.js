@@ -11,6 +11,7 @@ const servicesDB = window.servicesDB;
 let currentUser = null;
 let orders = [];
 let selectedPaymentMethod = null;
+let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
 
 // Multi-language configuration
 const i18n = {
