@@ -37,7 +37,16 @@
                     <a href="#stats" class="nav-link" data-i18n="nav_stats">Estatísticas</a>
                     <a href="#faq" class="nav-link" data-i18n="nav_faq">FAQ</a>
                 </div>
-
+                <div class="nav-selectors">
+                    <select class="lang-selector" onchange="setLanguage(this.value)" id="global-lang-selector">
+                        <option value="pt">PT-BR</option>
+                        <option value="en">EN-US</option>
+                    </select>
+                    <select class="curr-selector" onchange="setCurrency(this.value)" id="global-curr-selector">
+                        <option value="BRL">R$ BRL</option>
+                        <option value="USD">$ USD</option>
+                    </select>
+                </div>
                 <div class="nav-actions">
                     <button class="btn-ghost" onclick="showPage('login-page')" data-i18n="btn_login">Entrar</button>
                     <button class="btn-primary-sm" onclick="showPage('register-page')" data-i18n="btn_register">Cadastrar</button>
@@ -555,14 +564,554 @@
                     <h2>Entrar na sua conta</h2>
                     <p class="auth-subtitle">Digite suas credenciais para acessar o painel</p>
                     <form id="login-form" onsubmit="handleLogin(event)">
-                        <div class="form-group" style="margin-bottom: 5px;">
+                        <div class="form-group">
+                            <label for="login-email">E-mail</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="login-email" placeholder="seu@email.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Senha</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-lock"></i>
+                                <input type="password" id="login-password" placeholder="••••••••" required>
+                                <button type="button" class="toggle-pass" onclick="togglePassword('login-password', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" checked> Lembrar de mim
+                            </label>
+                            <a href="#" class="forgot-link" onclick="handleForgotPassword()">Esqueceu a senha?</a>
+                        </div>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-sign-in-alt"></i> Entrar
+                        </button>
+                    </form>
+                    <div class="auth-divider">
+                        <span>ou</span>
+                    </div>
+                    <button class="btn-google" onclick="handleGoogleAuthReal()">
+                        <i class="fab fa-google"></i> Continuar com Google
+                    </button>
+                    <p class="auth-switch">
+                        Não tem uma conta? <a href="#" onclick="showPage('register-page')">Cadastre-se</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== REGISTER PAGE ===================== -->
+    <div id="register-page" class="page">
+        <div class="auth-container">
+            <div class="auth-side register-side">
+                <div class="auth-side-content">
+                    <div class="nav-logo" onclick="handleLogoClick()" style="cursor:pointer;">
+                        <div class="logo-icon"><i class="fas fa-bolt"></i></div>
+                        <span class="logo-text">Social<span class="logo-accent">Nexus</span></span>
+                    </div>
+                    <h2>Comece seu crescimento</h2>
+                    <p>Crie sua conta gratuita e tenha acesso imediato a centenas de serviços para todas as redes sociais.</p>
+                    <div class="register-benefits">
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Cadastro 100% gratuito</span>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Ativação instantânea</span>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>+850 serviços disponíveis</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="auth-form-side">
+                <div class="auth-form-container">
+                    <button class="btn-back" onclick="showPage('landing-page')">
+                        <i class="fas fa-arrow-left"></i> Voltar
+                    </button>
+                    <h2>Criar nova conta</h2>
+                    <p class="auth-subtitle">Preencha os dados para começar</p>
+                    <form id="register-form" onsubmit="handleRegister(event)">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="reg-name">Nome completo</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-user"></i>
+                                    <input type="text" id="reg-name" placeholder="Seu nome" required>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-username">Usuário</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-at"></i>
+                                    <input type="text" id="reg-username" placeholder="seunome" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">E-mail</label>
+                            <div class="input-wrapper">
+                                <i class="fas fa-envelope"></i>
+                                <input type="email" id="reg-email" placeholder="seu@email.com" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-whatsapp">WhatsApp</label>
+                            <div class="input-wrapper">
+                                <i class="fab fa-whatsapp"></i>
+                                <input type="tel" id="reg-whatsapp" placeholder="(00) 00000-0000">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="reg-password">Senha</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" id="reg-password" placeholder="••••••••" required>
+                                    <button type="button" class="toggle-pass" onclick="togglePassword('reg-password', this)">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="reg-confirm">Confirmar Senha</label>
+                                <div class="input-wrapper">
+                                    <i class="fas fa-lock"></i>
+                                    <input type="password" id="reg-confirm" placeholder="••••••••" required>
+                                </div>
+                            </div>
+                        </div>
+                        <label class="checkbox-label terms-label">
+                            <input type="checkbox" required> Concordo com os <a href="#" onclick="showPolicy('terms')">Termos de Uso</a> e <a href="#" onclick="showPolicy('privacy')">Política de Privacidade</a>
+                        </label>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-user-plus"></i> Criar Conta
+                        </button>
+                    </form>
+                    <div class="auth-divider">
+                        <span>ou</span>
+                    </div>
+                    <button class="btn-google" onclick="handleGoogleAuthReal()">
+                        <i class="fab fa-google"></i> Continuar com Google
+                    </button>
+                    <p class="auth-switch">
+                        Já tem uma conta? <a href="#" onclick="showPage('login-page')">Faça login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <div id="dashboard-page" class="page">
+        <div class="dashboard-layout">
+            <!-- User Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="nav-logo" onclick="handleLogoClick()" style="cursor:pointer;">
+                        <div class="logo-icon"><i class="fas fa-rocket"></i></div>
+                        <span class="logo-text">Social<span class="logo-accent">Nexus</span></span>
+                    </div>
+                    <button class="sidebar-close" onclick="toggleSidebar()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#" class="sidebar-link active" onclick="showDashTab('dash-overview', this)" id="sidebar-overview">
+                        <i class="fas fa-th-large"></i> Visão Geral
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-neworder', this)" id="sidebar-neworder">
+                        <i class="fas fa-plus-circle"></i> Novo Pedido
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-orders', this)" id="sidebar-orders">
+                        <i class="fas fa-clipboard-list"></i> Meus Pedidos
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-services', this)" id="sidebar-services">
+                        <i class="fas fa-layer-group"></i> Serviços
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-addbalance', this)" id="sidebar-addbalance">
+                        <i class="fas fa-wallet"></i> Adicionar Saldo
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-api', this)" id="sidebar-api">
+                        <i class="fas fa-code"></i> API
+                    </a>
+                    <a href="#" class="sidebar-link" onclick="showDashTab('dash-support', this)" id="sidebar-support">
+                        <i class="fas fa-life-ring"></i> Suporte
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <button class="btn-logout" onclick="handleLogout()">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="dashboard-main">
+                <!-- Top Bar -->
+                <header class="dash-topbar">
+                    <button class="mobile-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="topbar-right">
+                        <!-- Botão Adicionar (Mobile e PC) -->
+                        <button class="btn-add-balance" onclick="showDashTab('dash-addbalance', document.getElementById('sidebar-addbalance'))">
+                            <i class="fas fa-plus"></i> Adicionar
+                        </button>
+
+                        <div class="balance-display pc-only">
+                            <i class="fas fa-wallet"></i>
+                            <span>R$ <strong id="user-balance">0,00</strong></span>
+                        </div>
+
+                        <!-- Novo Menu de Usuário (Dropdown) -->
+                        <div class="topbar-user-dropdown-container">
+                            <div class="topbar-user-trigger" onclick="toggleUserDropdown()">
+                                <div class="user-avatar-small" id="top-user-avatar">RN</div>
+                                <div class="user-meta pc-only">
+                                    <span id="top-user-name">Ronald</span>
+                                    <span class="user-rank">Plano Starter</span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+
+                            <div class="user-dropdown-menu" id="user-dropdown-menu">
+                                <div class="dropdown-item" onclick="showDashTab('dash-profile')">
+                                    <i class="fas fa-user-circle"></i>
+                                    <span>Minha Conta</span>
+                                </div>
+                                <div class="dropdown-item" onclick="toggleNotificationPanel(); event.stopPropagation();">
+                                    <i class="fas fa-bell"></i>
+                                    <span>Notificações</span>
+                                    <span class="notif-count-badge" id="drop-notif-count">2</span>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="dropdown-item logout" onclick="handleLogout()">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Sair</span>
+                                </div>
+                            </div>
+
+                            <!-- O Painel de Notificações agora abre vinculado aqui ou fixo -->
+                            <div class="notif-panel" id="notif-panel">
+                                <div class="notif-header">Central de Avisos</div>
+                                <div class="notif-content" id="notif-content">
+                                    <div class="notif-item unread">
+                                        <i class="fas fa-gift"></i>
+                                        <div>
+                                            <p>Bônus de 10% no Pix ativo agora!</p>
+                                            <span>Há 5 minutos</span>
+                                        </div>
+                                    </div>
+                                    <div class="notif-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <div>
+                                            <p>Novos serviços de TikTok adicionados.</p>
+                                            <span>Ontem</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Dashboard Content -->
+                <div class="dash-content">
+
+                    <!-- Overview Tab (Layout UpMídias) -->
+                    <div class="dash-tab active" id="dash-overview">
+                        
+                        <!-- Novo Banner Espacial Profissional -->
+                        <div class="dash-space-banner">
+                            <div class="banner-content">
+                                <h1>Social<span>Nexus</span></h1>
+                                <p>Sua plataforma #1 em Marketing Social</p>
+                            </div>
+                        </div>
+                        
+                        <div class="up-stat-container">
+                            <!-- Card Boas Vindas -->
+                            <div class="up-card welcome-up">
+                                <div class="up-icon pink"><i class="fas fa-list-ul"></i></div>
+                                <div class="up-text">
+                                    <h2 id="welcome-username">ronaldpalheta</h2>
+                                    <span>BEM VINDO !</span>
+                                </div>
+                            </div>
+                            <!-- Card Saldo -->
+                            <div class="up-card balance-up">
+                                <div class="up-icon pink"><i class="fas fa-wallet"></i></div>
+                                <div class="up-text">
+                                    <h2 id="stat-balance">R$ 0,00</h2>
+                                    <span>SEU SALDO</span>
+                                </div>
+                            </div>
+                            <!-- Card Pedidos -->
+                            <div class="up-card orders-up">
+                                <div class="up-icon pink"><i class="fas fa-users"></i></div>
+                                <div class="up-text">
+                                    <h2 id="stat-total-orders">0</h2>
+                                    <span>TOTAL DE PEDIDOS</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dash-section-row">
+                            <div class="recent-orders-card">
+                                <div class="card-header-row">
+                                    <h3><i class="fas fa-history"></i> Pedidos Recentes</h3>
+                                    <a href="#" onclick="showDashTab('dash-orders', document.getElementById('sidebar-orders'))">Ver todos</a>
+                                </div>
+                                <div class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>Nenhum pedido realizado ainda</p>
+                                    <button class="btn-primary-sm" onclick="showDashTab('dash-neworder', document.getElementById('sidebar-neworder'))">Fazer Primeiro Pedido</button>
+                                </div>
+                            </div>
+                            <div class="quick-actions-card">
+                                <h3><i class="fas fa-bolt"></i> Ações Rápidas</h3>
+                                <div class="quick-actions-grid">
+                                    <button class="quick-action" onclick="showDashTab('dash-neworder', document.getElementById('sidebar-neworder'))">
+                                        <i class="fas fa-plus-circle"></i>
+                                        <span>Novo Pedido</span>
+                                    </button>
+                                    <button class="quick-action" onclick="showDashTab('dash-addbalance', document.getElementById('sidebar-addbalance'))">
+                                        <i class="fas fa-wallet"></i>
+                                        <span>Add Saldo</span>
+                                    </button>
+                                    <button class="quick-action" onclick="showDashTab('dash-services', document.getElementById('sidebar-services'))">
+                                        <i class="fas fa-search"></i>
+                                        <span>Serviços</span>
+                                    </button>
+                                    <button class="quick-action" onclick="showDashTab('dash-support', document.getElementById('sidebar-support'))">
+                                        <i class="fas fa-headset"></i>
+                                        <span>Suporte</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Order Tab -->
+                    <div class="dash-tab" id="dash-neworder">
+                        <div class="tab-header-flex">
+                            <h2 class="tab-title"><i class="fas fa-plus-circle"></i> Novo Pedido</h2>
+                        </div>
+                        
+                        <div class="new-order-container">
+                            <div class="order-form-card">
+                                <form id="order-form" onsubmit="handleNewOrder(event)">
+                                    <!-- Barra de Busca (Estilo UpMidias) -->
+                                    <div class="up-search-group">
+                                        <i class="fas fa-search"></i>
+                                        <input type="text" id="svc-search" placeholder="Procurar" oninput="filterServicesBySearch()">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="order-category">Categoria</label>
+                                        <div class="custom-select-wrapper" id="cat-wrapper">
+                                            <div class="custom-select">
+                                                <div class="custom-select__trigger" id="cat-trigger" onclick="toggleDropdown('cat')">
+                                                    <span id="cat-selected-text"><i class="fas fa-list"></i> Selecione a Categoria</span>
+                                                    <i class="fas fa-chevron-down arrow"></i>
+                                                </div>
+                                                <div class="custom-options" id="cat-options">
+                                                    <!-- Injetado via JS dinamicamente -->
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="order-category" value="" onchange="updateServices()">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="order-service">Serviço</label>
+                                        <div class="custom-select-wrapper" id="svc-wrapper">
+                                            <div class="custom-select">
+                                                <div class="custom-select__trigger" id="svc-trigger" onclick="toggleDropdown('svc')">
+                                                    <span id="svc-selected-text">Primeiro selecione a categoria</span>
+                                                    <i class="fas fa-chevron-down arrow"></i>
+                                                </div>
+                                                <div class="custom-options" id="svc-options">
+                                                    <!-- Injetado via JS -->
+                                                </div>
+                                            </div>
+                                            <input type="hidden" id="order-service" value="" onchange="updateOrderInfo()">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="order-link">Link do Perfil ou Post</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-link"></i>
+                                            <input type="url" id="order-link" placeholder="https://..." required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="order-quantity">Quantidade</label>
+                                        <div class="input-wrapper">
+                                            <i class="fas fa-sort-numeric-up"></i>
+                                            <input type="number" id="order-quantity" placeholder="1000" min="10" required oninput="calculateTotal()">
+                                        </div>
+                                        <span class="input-hint" id="quantity-hint">Mín: 10 — Máx: 100.000</span>
+                                    </div>
+                                    
+                                    <div class="order-total-card">
+                                        <div class="total-label">Total a Pagar</div>
+                                        <div class="total-value" id="order-total">R$ 0,00</div>
+                                        <div class="price-k-label" id="price-per-k">Preço por 1k: R$ 0,00</div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn-submit">
+                                        <i class="fas fa-rocket"></i> Confirmar Pedido
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div class="order-sidebar">
+                                <div class="notice-card warning">
+                                    <div class="notice-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="notice-content">
+                                        <h3>ATENÇÃO! LEIA ANTES:</h3>
+                                        <ul>
+                                            <li>Perfil deve estar <strong>PÚBLICO</strong>.</li>
+                                            <li>Não peça o mesmo link 2x ao mesmo tempo.</li>
+                                            <li>Link errado = Pedido perdido (Sem Reembolso).</li>
+                                            <li>Velocidade e início variam por serviço.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="service-details-panel" id="service-details-panel" style="display:none;">
+                                    <!-- Preenchido dinamicamente -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Tab -->
+                    <div class="dash-tab" id="dash-orders">
+                        <h2 class="tab-title"><i class="fas fa-clipboard-list"></i> Meus Pedidos</h2>
+                        <div class="orders-toolbar">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Buscar por ID ou link..." id="search-orders">
+                            </div>
+                            <div class="filter-group">
+                                <select id="filter-status">
+                                    <option value="all">Todos</option>
+                                    <option value="pending">Pendente</option>
+                                    <option value="processing">Em Andamento</option>
+                                    <option value="completed">Concluído</option>
+                                    <option value="cancelled">Cancelado</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="orders-table-wrapper">
+                            <table class="orders-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Serviço</th>
+                                        <th>Link</th>
+                                        <th>Quantidade</th>
+                                        <th>Valor</th>
+                                        <th>Status</th>
+                                        <th>Data</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-tbody">
+                                    <tr class="empty-row">
+                                        <td colspan="7">
+                                            <div class="empty-state">
+                                                <i class="fas fa-inbox"></i>
+                                                <p>Nenhum pedido realizado ainda</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Services Tab -->
+                    <div class="dash-tab" id="dash-services">
+                        <h2 class="tab-title"><i class="fas fa-layer-group"></i> Lista de Serviços</h2>
+                        <div class="services-toolbar">
+                            <div class="search-bar">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Buscar serviço..." id="search-services" oninput="filterServices()">
+                            </div>
+                            <div class="filter-group">
+                                <select id="filter-platform" onchange="filterServices()">
+                                    <option value="all">Todas as Plataformas</option>
+                                    <option value="instagram">Instagram</option>
+                                    <option value="tiktok">TikTok</option>
+                                    <option value="youtube">YouTube</option>
+                                    <option value="twitter">Twitter / X</option>
+                                    <option value="facebook">Facebook</option>
+                                    <option value="telegram">Telegram</option>
+                                    <option value="spotify">Spotify</option>
+                                    <option value="twitch">Twitch</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="services-table-header">
+                            <span class="sth-id">ID</span>
+                            <span class="sth-name">Serviço</span>
+                            <span class="sth-price">Preço/1K</span>
+                            <span class="sth-min">Mín</span>
+                            <span class="sth-max">Máx</span>
+                            <span class="sth-time">Tempo</span>
+                            <span class="sth-refill">Reposição</span>
+                            <span class="sth-action"></span>
+                        </div>
+                        <div class="services-list" id="services-list">
+                            <!-- Filled by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Add Balance Tab -->
+                    <div class="dash-tab" id="dash-addbalance">
+                        <h2 class="tab-title"><i class="fas fa-wallet"></i> Adicionar Saldo</h2>
+                        <div class="unified-payment-hub">
+                            <!-- Seletor de Método (Cards Compactos) -->
+                            <div class="payment-selector">
+                                <button class="pay-method active" id="pay-btn-pix" onclick="switchPayMethod('pix')">
+                                    <i class="fas fa-qrcode"></i>
+                                    <span>Pix</span>
+                                </button>
+                                <button class="pay-method" id="pay-btn-card" onclick="switchPayMethod('card')">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Cartão</span>
+                                </button>
+                                <button class="pay-method" id="pay-btn-crypto" onclick="switchPayMethod('crypto')">
+                                    <i class="fab fa-bitcoin"></i>
+                                    <span>Cripto</span>
+                                </button>
+                            </div>
+
+                            <div class="payment-form-card">
+                                <div id="pay-area-pix" class="pay-area active">
+                                    <div class="pay-header">
+                                        <h3>Pagar via Pix (Liberação Instantânea)</h3>
+                                        <p class="pay-warning"><i class="fas fa-bolt"></i> O saldo cairá na sua conta segundos após o pagamento.</p>
+                                    </div>
+                                    <div class="form-group">
                                         <label>Valor (R$)</label>
                                         <div class="input-wrapper">
                                             <i class="fas fa-dollar-sign"></i>
-                                            <input type="number" id="pix-amount" placeholder="Ex: 1,00" value="1.00" min="1" max="50000" onblur="this.value = this.value ? parseFloat(this.value).toFixed(2) : '">
+                                            <input type="number" id="pix-amount" placeholder="Ex: 50.00" value="50.00" min="1" step="1">
                                         </div>
-                                    </div>
-                                    <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-bottom: 20px; padding-left: 5px;"><i class="fas fa-info-circle"></i> Mínimo R$ 1,00 | Máximo R$ 50.000,00</div>
                                     </div>
                                     <div class="quick-amounts-grid">
                                         <button onclick="setAmount('pix', 10)">R$ 10</button>
@@ -656,119 +1205,6 @@
                     </div>
 
                         <!-- Profile Tab -->
-
-                    <!-- Overview Tab -->
-                    <div class="dash-tab active" id="dash-overview">
-                        <div class="dash-welcome">
-                            <h1>Olá, <span id="user-display-name">Usuário</span>! 👋</h1>
-                            <p>Que tal impulsionar suas redes sociais hoje?</p>
-                        </div>
-                        <div class="overview-cards">
-                            <div class="overview-card">
-                                <div class="ov-icon" style="--accent: #43e97b;"><i class="fas fa-wallet"></i></div>
-                                <div class="ov-info">
-                                    <span class="ov-label">Saldo Disponível</span>
-                                    <span class="ov-value" id="dash-balance">R$ 0,00</span>
-                                </div>
-                            </div>
-                            <div class="overview-card">
-                                <div class="ov-icon" style="--accent: #667eea;"><i class="fas fa-shopping-cart"></i></div>
-                                <div class="ov-info">
-                                    <span class="ov-label">Total de Pedidos</span>
-                                    <span class="ov-value" id="dash-total-orders">0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- New Order Tab -->
-                    <div class="dash-tab" id="dash-neworder">
-                        <h2 class="tab-title"><i class="fas fa-plus-circle"></i> Novo Pedido</h2>
-                        <div class="new-order-container">
-                            <div class="order-form-card">
-                                <form id="order-form" onsubmit="handleNewOrder(event)">
-                                    <div class="form-group">
-                                        <label>Categoria</label>
-                                        <div id="cat-options"></div>
-                                        <input type="hidden" id="order-category" onchange="updateServices()">
-                                        <div class="custom-select-wrapper" onclick="toggleDropdown('cat')">
-                                            <div class="custom-select"><span id="cat-selected-text">Selecionar Categoria</span></div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Serviço</label>
-                                        <input type="hidden" id="order-service" onchange="updateOrderInfo()">
-                                        <div class="custom-select-wrapper" onclick="toggleDropdown('svc')">
-                                            <div class="custom-select"><span id="svc-selected-text">Selecionar Serviço</span></div>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Link</label>
-                                        <div class="input-wrapper"><i class="fas fa-link"></i>
-                                            <input type="url" id="order-link" placeholder="https://..." required>
-                                        </div>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Quantidade</label>
-                                        <div class="input-wrapper"><i class="fas fa-sort-numeric-up"></i>
-                                            <input type="number" id="order-quantity" oninput="calculateTotal()" required>
-                                        </div>
-                                        <span id="quantity-hint" class="input-hint"></span>
-                                    </div>
-                                    <div class="order-total-card">
-                                        <div class="total-label">Total a Pagar</div>
-                                        <div class="total-value" id="order-total">R$ 0,00</div>
-                                        <div id="price-per-k" style="font-size: 11px; opacity: 0.7;"></div>
-                                    </div>
-                                    <button type="submit" class="btn-submit"><i class="fas fa-rocket"></i> Confirmar Pedido</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Add Balance Tab -->
-                    <div class="dash-tab" id="dash-addbalance">
-                        <h2 class="tab-title"><i class="fas fa-wallet"></i> Adicionar Saldo</h2>
-                        <div class="payment-form-card">
-                            <div class="payment-selector" style="display:flex; gap:10px; margin-bottom:20px;">
-                                <button onclick="switchPayMethod('pix')" class="pay-method active" id="pay-btn-pix"><i class="fas fa-qrcode"></i> Pix</button>
-                                <button onclick="switchPayMethod('card')" class="pay-method" id="pay-btn-card"><i class="fas fa-credit-card"></i> Cartão</button>
-                            </div>
-                            <div id="pay-area-pix" class="pay-area active">
-                                <div class="form-group">
-                                    <label>Valor (R$)</label>
-                                    <div class="input-wrapper">
-                                        <i class="fas fa-dollar-sign"></i>
-                                        <input type="number" id="pix-amount" value="1.00" min="1" onblur="this.value = this.value ? parseFloat(this.value).toFixed(2) : '1.00'">
-                                    </div>
-                                    <div style="font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 8px;">Mínimo R$ 1,00 | Máximo R$ 50.000,00</div>
-                                </div>
-                                <button class="btn-submit" onclick="generatePixPayment()"><i class="fas fa-check"></i> Gerar QR Code</button>
-                                <div id="pix-qr-container" style="display:none; text-align:center; margin-top:20px; background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px;">
-                                    <img id="qr-image" style="max-width:200px; border-radius: 8px; margin-bottom: 15px;">
-                                    <textarea id="pix-copy-code" readonly style="width:100%; background:#000; color:#fff; padding:10px; font-size:10px; border:none; border-radius:4px; height: 60px;"></textarea>
-                                    <button onclick="copyPixCode()" class="btn-primary-sm" style="margin-top:10px;">Copiar Código</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Orders Tab -->
-                    <div class="dash-tab" id="dash-orders">
-                        <h2 class="tab-title"><i class="fas fa-clipboard-list"></i> Meus Pedidos</h2>
-                        <div class="orders-table-wrapper">
-                            <table class="orders-table">
-                                <thead><tr><th>ID</th><th>Serviço</th><th>Link</th><th>Valor</th><th>Status</th></tr></thead>
-                                <tbody id="orders-tbody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Services Tab -->
-                    <div class="dash-tab" id="dash-services">
-                        <h2 class="tab-title"><i class="fas fa-list"></i> Serviços Disponíveis</h2>
-                        <div id="services-list" class="services-list"></div>
-                    </div>
                         <div class="dash-tab" id="dash-profile">
                             <div class="section-header">
                                 <h2>Minha Conta</h2>
@@ -1301,32 +1737,34 @@
                             </div>
                             
                             <!-- Nova Ferramenta: Excluir Categorias em Massa -->
-                            <!-- Barra de Sincronizao Profissional -->
-                            <div id="last-update-container"></div>
-
-                            <div class="profit-config-group" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-                                <div class="profit-label">
-                                    <i class="fas fa-trash-alt" style="color: #ff4b2b;"></i>
-                                    <span>Remover Categoria Inteira:</span>
-                                </div>
-                                <div class="profit-controls">
-                                    <select id="admin-delete-cat-select" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 6px; min-width: 250px;">
-                                        <option value="">Selecione categoria...</option>
-                                        <!-- Preenchido via JS -->
-                                    </select>
-                                    <button class="btn-delete-all-ninja" onclick="deleteEntireCategory()" style="padding: 10px 20px;">
-                                        <i class="fas fa-eraser"></i> EXCLUIR TUDO
+                            <!-- Gestão de Categorias Ninja -->
+                            <div class="category-management-v2" style="margin-top: 25px; border-top: 2px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                                <div id="last-update-container"></div>
+                                
+                                <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h3 style="margin: 0; color: var(--accent-color); font-size: 1.1rem;">
+                                        <i class="fas fa-layer-group"></i> Gestão de Categorias Ativas
+                                    </h3>
+                                    <button class="btn-delete-all-ninja" onclick="confirmDeleteAllCategories()">
+                                        <i class="fas fa-skull-crossbones"></i> EXCLUIR TUDO
                                     </button>
                                 </div>
-                            </div>
+                                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 15px;">
+                                    Categorias excluídas não retornarão ao site mesmo após a atualização do robô.
+                                </p>
+                                
+                                <div id="admin-category-manager-list" class="category-manager-list">
+                                    <!-- Preenchido via JS com cards coloridos -->
+                                </div>
 
-                            <!-- Cemitério de Categorias (Restauração) -->
-                            <div id="excluded-categories-area" style="margin-top: 20px; display:none;">
-                                <h4 style="color: #00ff88; font-size: 0.9rem; margin-bottom: 10px;">
-                                    <i class="fas fa-undo"></i> Categorias Excluídas (Clique para Restaurar):
-                                </h4>
-                                <div id="admin-excluded-list" class="category-manager-list" style="margin-bottom: 20px;">
-                                    <!-- Preenchido via JS -->
+                                <!-- Cemitério de Categorias (Restauração) -->
+                                <div id="excluded-categories-area" class="excluded-categories-area" style="display: none;">
+                                    <h3 style="color: #00ff88; font-size: 1rem; margin-bottom: 15px;">
+                                        <i class="fas fa-undo"></i> Categorias Excluídas (Recuperar)
+                                    </h3>
+                                    <div id="admin-excluded-list" class="category-manager-list">
+                                        <!-- Categorias para restaurar -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1462,5 +1900,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
-
