@@ -2210,20 +2210,17 @@ function loadAdminServicesMgmt() {
 }
 
 /**
- * 🔍 Busca Dinâmica de Categorias para Ocultar
+ * 🔍 Busca Dinâmica de Categorias (Mostra tudo ao focar)
  */
 function searchCategoriesToExclude() {
     const input = document.getElementById('cat-search-input');
     const dropdown = document.getElementById('cat-search-results');
     const term = input.value.toLowerCase();
     
-    if (!term) {
-        dropdown.style.display = 'none';
-        return;
-    }
-
-    const allCats = Object.keys(servicesDB).filter(p => !excludedCategories.includes(p));
-    const matches = allCats.filter(c => c.toLowerCase().includes(term));
+    const allCats = Object.keys(servicesDB).filter(p => !excludedCategories.includes(p)).sort();
+    
+    // Se não tiver termo, mostra TODAS. Se tiver, filtra.
+    const matches = term ? allCats.filter(c => c.toLowerCase().includes(term)) : allCats;
 
     if (matches.length > 0) {
         dropdown.innerHTML = matches.map(m => `
@@ -2237,6 +2234,7 @@ function searchCategoriesToExclude() {
         dropdown.style.display = 'none';
     }
 }
+
 
 function selectCategoryToExclude(cat) {
     if (!excludedCategories.includes(cat)) {
