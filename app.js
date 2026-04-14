@@ -362,12 +362,19 @@ function showToast(message, type = 'info') {
 }
 
 // ─── Auth Handlers ───
-function handleLogin(e) {
+async function handleLogin(e) {
     if (e) e.preventDefault();
-    const email = document.getElementById('login-email').value;
-    const pass = document.getElementById('login-password').value;
+    const email = document.getElementById('login-email').value?.trim();
+    const pass = document.getElementById('login-password').value?.trim();
 
-    // Admin Login Check
+    if (!email || !pass) return showToast('Preencha os campos!', 'warning');
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+
+    // 1. Admin Login Check
     if (email === 'admin@socialnexus.com' && pass === 'admin123') {
         currentUser = { name: 'Admin', email: email, role: 'admin', balance: 0 };
         localStorage.setItem('snx_session', JSON.stringify(currentUser));
@@ -376,17 +383,43 @@ function handleLogin(e) {
         return;
     }
 
-    const storedUsers = JSON.parse(localStorage.getItem('snx_users') || '[]');
-    const user = storedUsers.find(u => u.email === email && u.password === pass);
+    try {
+        // 2. Busca Híbrida (Local + Nuvem)
+        let storedUsers = JSON.parse(localStorage.getItem('snx_users') || '[]');
+        
+        // Se não achou local, busca no Firebase direto
+        if (storedUsers.length === 0) {
+            const fbRes = await fetch('https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_users.json');
+            const cloudUsers = await fbRes.json();
+            if (typeof cloudUsers === 'string') {
+                storedUsers = JSON.parse(cloudUsers);
+            } else if (Array.isArray(cloudUsers)) {
+                storedUsers = cloudUsers;
+            }
+            // Atualiza local para a próxima vez
+            localStorage.setItem('snx_users', JSON.stringify(storedUsers));
+        }
 
-    if (user) {
-        currentUser = user;
-        localStorage.setItem('snx_session', JSON.stringify(currentUser));
-        loadDashboard();
-        showPage('dashboard-page');
-        showToast(`Bem-vindo de volta, ${user.name}!`, 'success');
-    } else {
-        showToast('E-mail ou senha incorretos.', 'error');
+        const user = storedUsers.find(u => u.email === email && u.password === pass);
+
+        if (user) {
+            currentUser = user;
+            localStorage.setItem('snx_session', JSON.stringify(currentUser));
+            
+            // Tenta carregar mas abre a página de qualquer jeito
+            try { loadDashboard(); } catch(err) { console.error("Dashboard Load Error:", err); }
+            
+            showPage('dashboard-page');
+            showToast(`Bem-vindo, ${user.name}!`, 'success');
+        } else {
+            showToast('E-mail ou senha incorretos.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    } catch (err) {
+        showToast('Erro de conexão. Tente novamente.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     }
 }
 
