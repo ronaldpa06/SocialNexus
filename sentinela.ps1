@@ -62,22 +62,28 @@ while ($true) {
             }
 
             # 3. Gerar o arquivo services-data.js
-            $now = Get-Date -Format "dd/MM/yyyy HH:mm:ss"
+            $now = Get-Date
+            $lastSyncStr = $now.ToString("HH:mm:ss - dd/MM/yyyy")
+            $nextSyncStr = $now.AddHours($INTERVAL_HOURS).ToString("HH:mm:ss - dd/MM/yyyy")
+            
             $jsonContent = $grouped | ConvertTo-Json -Depth 10
             $jsFileContent = @"
 /**
  * SocialNexus - Servicos GrowFollows (Sincronizacao em Tempo Real)
- * Atualizado pelo Robo Sentinela as: $now
+ * Atualizado pelo Robo Sentinela as: $lastSyncStr
  */
 window.GROWFOLLOWS_SERVICES = {
-    lastSync: "$now",
+    lastSync: "$lastSyncStr",
+    nextSync: "$nextSyncStr",
     data: $jsonContent
 };
 
 (function initServices() {
     if(!window.servicesDB) window.servicesDB = {};
     for (let key in window.servicesDB) delete window.servicesDB[key];
-    Object.assign(window.servicesDB, window.GROWFOLLOWS_SERVICES.data);
+    if(window.GROWFOLLOWS_SERVICES.data) {
+        Object.assign(window.servicesDB, window.GROWFOLLOWS_SERVICES.data);
+    }
 })();
 "@
             $jsFileContent | Out-File -FilePath "services-data.js" -Encoding utf8
