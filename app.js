@@ -1307,12 +1307,14 @@ function copyCrypto() {
 }
 
 async function generatePixPayment() {
-    const amount = document.getElementById('pix-amount').value;
-    if (amount < 1) return showToast('Mínimo R$ 1,00', 'error');
+    let amountStr = document.getElementById('pix-amount').value.replace(/\./g, '').replace(',', '.');
+    const amount = parseFloat(amountStr);
+
+    if (isNaN(amount) || amount < 1) return showToast('Mínimo R$ 1,00', 'error');
 
     const admin = getAdminCredentials();
-    if (!admin.asaasKey) {
-        return showToast('Configure sua Chave API do Asaas no menu Admin!', 'warning');
+    if (!admin.asaasKey || admin.asaasKey.trim() === "") {
+        return showToast('Configure sua Chave API do Asaas no menu Admin para ativar o automático!', 'warning');
     }
 
     const btn = document.querySelector('#pay-area-pix .btn-primary');
@@ -1718,6 +1720,7 @@ function getAdminCredentials() {
  */
 function loadAdminSettings() {
     try {
+        console.log("🛠️ Tentando carregar Central de Comando...");
         const creds = getAdminCredentials();
         const fields = {
             'admin-email-config': creds.email,
@@ -1732,12 +1735,27 @@ function loadAdminSettings() {
 
         for (const [id, value] of Object.entries(fields)) {
             const el = document.getElementById(id);
-            if (el) el.value = value || '';
+            if (el) {
+                el.value = value || '';
+                // Força visibilidade se necessário
+                el.style.opacity = "1";
+            }
         }
         console.log("✅ Configurações carregadas com sucesso.");
     } catch (err) {
-        console.error("❌ Erro ao carregar configurações:", err);
+        console.error("❌ Erro fatal ao carregar configurações:", err);
     }
+}
+
+/**
+ * 🪙 Formatação Automática de Valor (Ex: 1 -> 1,00)
+ */
+function formatDepositValue(input) {
+    let val = input.value.replace(',', '.');
+    if (!val || isNaN(val)) return;
+    
+    let num = parseFloat(val);
+    input.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function saveAdminSettings() {
