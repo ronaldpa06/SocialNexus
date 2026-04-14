@@ -1,12 +1,26 @@
 /**
  * SocialNexus - Gateway de Pagamentos Real (ASAAS)
- * Este servidor invisível protege sua API Key e gera cobranças reais de Pix e Cartão.
  */
 
 const https = require('https');
 
-const ASAAS_API_KEY = process.env.ASAAS_API_KEY || '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi';
-const ASAAS_URL = 'api.asaas.com';
+// Função auxiliar para buscar a chave do Firebase de forma síncrona/async
+async function getCredentialsFromFirebase() {
+    return new Promise((resolve) => {
+        const url = 'https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_config.json';
+        https.get(url, (res) => {
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => {
+                try {
+                    resolve(JSON.parse(body || '{}'));
+                } catch (e) {
+                    resolve({});
+                }
+            });
+        }).on('error', () => resolve({}));
+    });
+}
 
 function asaasRequest(method, path, apiKey, data = null) {
     return new Promise((resolve, reject) => {
@@ -47,13 +61,21 @@ exports.handler = async function(event, context) {
 
     try {
         const payload = JSON.parse(event.body);
-        const { action, amount, userId, userName, userEmail, cardData, apiKey } = payload;
-        const finalApiKey = apiKey || process.env.ASAAS_API_KEY || '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi';
+        const { action, amount, userId, userName, userEmail, cardData } = payload;
+        
+        // 🔍 BUSCA CHAVE CONFIGURADA NO PAINEL
+        const firebaseConfig = await getCredentialsFromFirebase();
+        const finalApiKey = firebaseConfig.asaasKey;
+
+        if (!finalApiKey || finalApiKey.length < 10) {
+            return { 
+                statusCode: 401, 
+                body: JSON.stringify({ success: false, error: "Asaas não configurado no painel Admin!" }) 
+            };
+        }
 
         // --- AÇÃO: GERAR PIX ---
         if (action === 'generate_pix') {
-            // 1. Primeiro criamos/buscamos o cliente (Simplificado: Usando um cliente genérico ou id fixo para agilizar)
-            // Para ser 100% profissional, criamos o cliente no Asaas
             const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
                 name: userName,
                 email: userEmail,
@@ -62,17 +84,15 @@ exports.handler = async function(event, context) {
 
             const customerId = customerRes.data.id;
 
-            // 2. Criar a cobrança PIX
             const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
                 customer: customerId,
                 billingType: 'PIX',
                 value: parseFloat(amount),
-                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 24h
+                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
                 description: `Adicao de Saldo SocialNexus - ${userName}`,
                 externalReference: userId
             });
 
-            // 3. Buscar o QR Code
             const qrRes = await asaasRequest('GET', `/payments/${paymentRes.data.id}/pixQrCode`, finalApiKey);
 
             return {
@@ -94,8 +114,6 @@ exports.handler = async function(event, context) {
             });
 
             const customerId = customerRes.data.id;
-            
-            // Quebrar validade (MM/AA)
             const [expiryMonth, expiryYear] = cardData.expiry.split('/');
 
             const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
@@ -115,7 +133,7 @@ exports.handler = async function(event, context) {
                 creditCardHolderInfo: {
                     name: userName,
                     email: userEmail,
-                    cpfCnpj: cardData.cpf || '00000000000', // Necessário CPF para cartão no Asaas
+                    cpfCnpj: cardData.cpf || '00000000000',
                     postalCode: '69000000',
                     addressNumber: '123',
                     phone: '92999999999'
@@ -142,3 +160,4 @@ exports.handler = async function(event, context) {
         return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
     }
 };
+
