@@ -2750,3 +2750,36 @@ function formatDisplayName(name) {
     
     return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
 }
+
+/**
+ * Atualiza todas as exibições de saldo no painel
+ */
+function updateBalanceDisplay() {
+    if (!currentUser) return;
+    const balance = currentUser.balance || 0;
+    
+    // Suporte a múltiplos IDs encontrados no index.html
+    const elements = [
+        document.getElementById('user-balance'),
+        document.getElementById('user-balance-display'),
+        document.getElementById('profile-balance')
+    ];
+    
+    elements.forEach(el => {
+        if (el) el.textContent = balance.toFixed(2).replace('.', ',');
+    });
+}
+
+/**
+ * Atualiza o sistema de fidelidade/rank
+ */
+function updateLoyalty() {
+    if (!currentUser) return;
+    const rankEl = document.querySelector('.user-rank');
+    if (rankEl) {
+        const balance = currentUser.balance || 0;
+        if (balance > 1000) rankEl.textContent = 'Plano VIP';
+        else if (balance > 500) rankEl.textContent = 'Plano PRO';
+        else rankEl.textContent = 'Plano Starter';
+    }
+}
