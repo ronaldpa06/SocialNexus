@@ -5,6 +5,12 @@
  * sem precisar de um backend tradicional dedicado.
  */
 
+// ⚡ GUARDA LOCAL: Se aberto pelo arquivo (file://), pula o Firebase
+// Isso garante que o login, cadastro e todos os botões funcionem normalmente ao testar localmente
+if (window.location.protocol === 'file:') {
+    console.warn('SocialNexus: Modo local detectado. Firebase desativado. Tudo funciona normalmente!');
+} else {
+
 const firebaseConfig = {
     apiKey: "AIzaSyBq_1F8_RtrgRus2rEs1rAwnPRwemp6um4",
     authDomain: "socialnexus-58290.firebaseapp.com",
@@ -149,3 +155,5 @@ window.handleGoogleAuthReal = function() {
             alert(errMsg);
         });
 };
+
+} // fim do bloco: else (não é file://)
