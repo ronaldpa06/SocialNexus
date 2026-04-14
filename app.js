@@ -1696,8 +1696,10 @@ function getAdminCredentials() {
     const defaults = {
         email: "admin@socialnexus.com",
         password: "admin123",
-        asaasKey: "aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi",
+        asaasKey: "",
         asaasEnv: "production",
+        smmKey: "",
+        dollarRate: "5.50",
         panelName: "SocialNexus",
         whatsapp: "5592991054215"
     };
@@ -1843,8 +1845,11 @@ function showAdminTab(tabId, linkEl) {
     if (tab) tab.classList.add('active');
     if (linkEl) linkEl.classList.add('active');
 
-    // Refresh data
-    loadAdminDashboard();
+    // Refresh data based on tab
+    if (tabId === 'admin-dashboard') loadAdminDashboard();
+    if (tabId === 'admin-settings') loadAdminSettings();
+    if (tabId === 'admin-services-mgmt') loadAdminServicesMgmt();
+    if (tabId === 'admin-revenue') loadAdminDashboard(); // Fits revenue too
 
     // Close sidebar on mobile
     const sidebar = document.getElementById('admin-sidebar');
@@ -1852,6 +1857,7 @@ function showAdminTab(tabId, linkEl) {
         sidebar.classList.remove('open');
     }
 }
+
 
 function toggleAdminSidebar() {
     document.getElementById('admin-sidebar').classList.toggle('open');
