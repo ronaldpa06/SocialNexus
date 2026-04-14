@@ -1775,47 +1775,32 @@
                                     </div>
                                 </div>
                             </div>
+
                             <div class="orders-table-wrapper" style="margin-top: 30px;">
-                                <table class="orders-table">
                                 <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 15px;">
-                                    Categorias excluídas não retornarão ao site mesmo após a atualização do robô.
+                                    Categorias ocultas não retornarão ao site mesmo após a atualização do robô.
                                 </p>
                                 
-                                <div id="admin-category-manager-list" class="category-manager-list">
-                                    <!-- Preenchido via JS com cards coloridos -->
-                                </div>
-
-                                <!-- Cemitério de Categorias (Restauração) -->
-                                <div id="excluded-categories-area" class="excluded-categories-area" style="display: none;">
-                                    <h3 style="color: #00ff88; font-size: 1rem; margin-bottom: 15px;">
-                                        <i class="fas fa-undo"></i> Categorias Excluídas (Recuperar)
-                                    </h3>
-                                    <div id="admin-excluded-list" class="category-manager-list">
-                                        <!-- Categorias para restaurar -->
-                                    </div>
-                                </div>
+                                <table class="orders-table admin-svc-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Categoria</th>
+                                            <th>Serviço</th>
+                                            <th>Custo (GF)</th>
+                                            <th>Revenda (Você)</th>
+                                            <th>Lucro %</th>
+                                            <th>Status</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-services-tbody">
+                                        <!-- Injetado por JS -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        <div class="orders-table-wrapper">
-                            <table class="orders-table admin-svc-table">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Categoria</th>
-                                        <th>Serviço</th>
-                                        <th>Custo (GF)</th>
-                                        <th>Revenda (Você)</th>
-                                        <th>Lucro %</th>
-                                        <th>Status</th>
-                                        <th>Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-services-tbody">
-                                    <!-- Injetado por JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+
 
                     <!-- Admin Settings Tab -->
                     <div class="dash-tab" id="admin-settings">
