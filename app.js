@@ -1321,6 +1321,8 @@ async function generatePixPayment() {
     showToast('Conectando ao Asaas...', 'info');
 
     try {
+        const admin = getAdminCredentials();
+        
         const response = await fetch('https://socialnexuss.netlify.app/.netlify/functions/asaas-api', {
             method: 'POST',
             body: JSON.stringify({
@@ -1328,7 +1330,8 @@ async function generatePixPayment() {
                 amount: amount,
                 userId: currentUser.id,
                 userName: currentUser.name || currentUser.username,
-                userEmail: currentUser.email
+                userEmail: currentUser.email,
+                apiKey: admin.asaasKey
             })
         });
 
