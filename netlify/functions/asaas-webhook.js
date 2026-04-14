@@ -68,28 +68,16 @@ exports.handler = async function(event, context) {
             console.log(`💰 Pix / Cartão aprovado! Valor: R$${amountPaid} para Usuário ID: ${userId}`);
 
             // 3. Resgata todos os usuários do Firebase DB
-            let rawUsers = await fetchFirebaseData('GET');
-            let users = [];
-            
-            // Desenbrulha a String ou Array
-            if (typeof rawUsers === 'string' && rawUsers.trim() !== "") {
-                try { users = JSON.parse(rawUsers); } catch(e) { users = []; }
-            } else if (Array.isArray(rawUsers)) {
-                users = rawUsers;
-            }
-
-            // Garante que users seja sempre um array para não dar erro no .length
-            if (!Array.isArray(users)) users = [];
+            const users = await fetchFirebaseData('GET') || [];
             
             // 4. Encontra o usuário específico
             let orderFoundAndUpdated = false;
             for (let i = 0; i < users.length; i++) {
-                if (users[i] && users[i].id && users[i].id.toString() === userId.toString()) {
+                if (users[i] && users[i].id.toString() === userId.toString()) {
                     
                     // 5. Adiciona o saldo na conta dele!
-                    let currentBalance = parseFloat(users[i].balance || 0);
-                    users[i].balance = currentBalance + amountPaid;
-                    console.log(`✅ Saldo atualizado: R$ ${currentBalance} -> R$ ${users[i].balance}`);
+                    users[i].balance = parseFloat(users[i].balance || 0) + amountPaid;
+                    console.log(`✅ Saldo atualizado com sucesso. Novo saldo: R$ ${users[i].balance}`);
                     
                     orderFoundAndUpdated = true;
                     break;
@@ -98,8 +86,7 @@ exports.handler = async function(event, context) {
 
             // 6. Atualiza e Salva o banco de dados inteiro no Firebase
             if (orderFoundAndUpdated) {
-                 // Embrulha de volta em String para manter a compatibilidade com o site
-                 await fetchFirebaseData('PUT', JSON.stringify(users));
+                 await fetchFirebaseData('PUT', users);
                  console.log("☁️ Firebase sincronizado com sucesso!");
                  return { statusCode: 200, body: "Saldo creditado com sucesso!" };
             } else {
@@ -114,13 +101,6 @@ exports.handler = async function(event, context) {
 
     } catch (error) {
         console.error("❌ ERRO GRAVE NO WEBHOOK:", error);
-        return { 
-            statusCode: 500, 
-            body: JSON.stringify({ 
-                success: false, 
-                message: "Erro interno no servidor do Webhook",
-                error: error.message 
-            }) 
-        };
+        return { statusCode: 500, body: "Erro interno do servidor Webhook" };
     }
 };
