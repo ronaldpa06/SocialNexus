@@ -4914,12 +4914,7 @@ textarea::placeholder { color: var(--text-muted); }
     text-align: right;
 }
 
-/* --- Fix: Prevent Horizontal Scrolling --- */
-html, body {
-    overflow-x: hidden !important;
-    width: 100%;
-    position: relative;
-}
+/* --- Fix Horizontal Scrolling removed to fix dual scrollbar --- */
 
 * {
     box-sizing: border-box;
