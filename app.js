@@ -2749,3 +2749,38 @@ function formatDisplayName(name) {
     
     return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
 }
+
+// ─── 🤖 MOTOR DO ROBÔ (STATUS & RELÓGIO) ───
+document.addEventListener('DOMContentLoaded', () => {
+    setInterval(updateRobotClock, 1000);
+    // Simula ciclo do robô (Trabalhando / Dormindo)
+    setInterval(toggleRobotStatus, 15000);
+});
+
+function updateRobotClock() {
+    const clockEl = document.getElementById('robot-clock');
+    if (!clockEl) return;
+    
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('pt-BR');
+    const dateStr = now.toLocaleDateString('pt-BR');
+    clockEl.textContent = `${timeStr} - ${dateStr}`;
+}
+
+function toggleRobotStatus() {
+    const stateEl = document.getElementById('robot-state');
+    const iconEl = document.getElementById('robot-icon');
+    if (!stateEl || !iconEl) return;
+
+    const isWorking = Math.random() > 0.3;
+    if (isWorking) {
+        stateEl.textContent = 'TRABALHANDO';
+        stateEl.className = 'robot-state working';
+        iconEl.textContent = '⚙️';
+    } else {
+        stateEl.textContent = 'DORMINDO';
+        stateEl.className = 'robot-state sleeping';
+        iconEl.textContent = '🤖';
+    }
+}
+
