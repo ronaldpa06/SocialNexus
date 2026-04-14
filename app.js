@@ -2132,14 +2132,25 @@ function loadAdminTransactions() {
  * Gestão de Serviços & Lucros (Admin)
  **/
 let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
+let lastAutoSyncTime = 0;
 
-function loadAdminServicesMgmt() {
+async function loadAdminServicesMgmt() {
     const tbody = document.getElementById('admin-services-tbody');
     const updateContainer = document.getElementById('last-update-container');
     const catDeleteSelect = document.getElementById('admin-delete-cat-select');
     const excludedArea = document.getElementById('excluded-categories-area');
     const excludedList = document.getElementById('admin-excluded-list');
     
+    // Auto-Sincronização (Plano B: Quando o administrador entra na página)
+    const nowSync = Date.now();
+    if (nowSync - lastAutoSyncTime > 300000) { // Sincroniza apenas uma vez a cada 5 minutos ao entrar
+        lastAutoSyncTime = nowSync;
+        console.log('SocialNexus: Iniciando auto-sincronia de segurança...');
+        if (typeof syncGrowFollowsServices === 'function') {
+            syncGrowFollowsServices(); 
+        }
+    }
+
     const searchTerm = document.getElementById('admin-search-services').value.toLowerCase();
     
     // 1. Mostrar Monitor de Status do Robo (NASA Style)
