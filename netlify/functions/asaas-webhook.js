@@ -71,21 +71,25 @@ exports.handler = async function(event, context) {
             let rawUsers = await fetchFirebaseData('GET');
             let users = [];
             
-            // Desenbrulha a String (como o site salva no Firebase)
-            if (typeof rawUsers === 'string') {
-                users = JSON.parse(rawUsers);
+            // Desenbrulha a String ou Array
+            if (typeof rawUsers === 'string' && rawUsers.trim() !== "") {
+                try { users = JSON.parse(rawUsers); } catch(e) { users = []; }
             } else if (Array.isArray(rawUsers)) {
                 users = rawUsers;
             }
+
+            // Garante que users seja sempre um array para não dar erro no .length
+            if (!Array.isArray(users)) users = [];
             
             // 4. Encontra o usuário específico
             let orderFoundAndUpdated = false;
             for (let i = 0; i < users.length; i++) {
-                if (users[i] && users[i].id.toString() === userId.toString()) {
+                if (users[i] && users[i].id && users[i].id.toString() === userId.toString()) {
                     
                     // 5. Adiciona o saldo na conta dele!
-                    users[i].balance = parseFloat(users[i].balance || 0) + amountPaid;
-                    console.log(`✅ Saldo atualizado com sucesso. Novo saldo: R$ ${users[i].balance}`);
+                    let currentBalance = parseFloat(users[i].balance || 0);
+                    users[i].balance = currentBalance + amountPaid;
+                    console.log(`✅ Saldo atualizado: R$ ${currentBalance} -> R$ ${users[i].balance}`);
                     
                     orderFoundAndUpdated = true;
                     break;
