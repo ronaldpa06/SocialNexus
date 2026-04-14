@@ -2142,13 +2142,25 @@ function loadAdminServicesMgmt() {
     
     const searchTerm = document.getElementById('admin-search-services').value.toLowerCase();
     
-    // 1. Mostrar Horário da Última Atualização
+    // 1. Mostrar Monitor de Status do Robo (NASA Style)
     if (updateContainer) {
-        const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? 
-                         window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Robô...';
+        const hasData = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync);
+        const lastSync = hasData ? window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Sincro...';
+        const nextSync = hasData ? window.GROWFOLLOWS_SERVICES.nextSync : '--:--:--';
+        
         updateContainer.innerHTML = `
-            <div class="last-sync-badge">
-                <i class="fas fa-history"></i> Última sincronização do robô: <strong>${lastSync}</strong>
+            <div class="robot-monitor-card" style="margin-bottom: 25px;">
+                <div class="last-sync-badge">
+                    <i class="fas fa-clock"></i> Última Atualização: <span style="color: #ffffff; margin-left:8px;">${lastSync}</span>
+                </div>
+                <div class="robot-status-line" style="display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 0.9rem;">
+                    <span class="status-pulse-green"></span>
+                    <span style="color: var(--text-secondary);">Status do Robô:</span>
+                    <strong style="color: #00ff88;">💤 DORMINDO (Restaurando energia)</strong>
+                    <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 10px;">
+                        Próxima vigília automática: <strong style="color: #00ffff;">${nextSync}</strong>
+                    </span>
+                </div>
             </div>
         `;
     }
