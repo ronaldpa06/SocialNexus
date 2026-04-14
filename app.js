@@ -1361,30 +1361,15 @@ async function generatePixPayment() {
     const btn = document.querySelector('#pay-area-pix .btn-submit');
     const originalText = btn.innerHTML;
     
-    // ⏱️ TIMER DE SEGURANÇA (15 segundos)
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Integrando com Gateway...';
+
+    // ⏱️ TIMER DE SEGURANÇA (20 segundos para gateways externos)
     const timeoutMsg = setTimeout(() => {
         btn.disabled = false;
         btn.innerHTML = originalText;
-        showToast('Servidor demorou a responder. Tente novamente!', 'warning');
-    }, 15000);
-
-    let finalApiKey = "";
-    try {
-        const configUrl = 'https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_config.json';
-        const response = await fetch(configUrl);
-        const config = await response.json();
-        finalApiKey = config.asaasKey;
-    } catch (e) {
-        console.error("Firebase Config Error:", e);
-    }
-
-    if (!finalApiKey || finalApiKey.trim() === "") {
-        clearTimeout(timeoutMsg);
-        return showToast('Sistema em manutenção. API não configurada!', 'warning');
-    }
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Pix...';
+        showToast('Gateway demorou a responder. Tente novamente!', 'warning');
+    }, 20000);
 
     try {
         const response = await fetch('/.netlify/functions/asaas-api', {
@@ -1404,60 +1389,69 @@ async function generatePixPayment() {
         if (result.success) {
             renderPixResult(result);
         } else {
-            showToast('Erro: ' + (result.error || 'Falha ao gerar QR Code'), 'error');
+            showToast('Erro: ' + (result.error || 'Configure sua Chave Asaas no Admin!'), 'error');
             btn.disabled = false;
             btn.innerHTML = originalText;
         }
     } catch (err) {
         clearTimeout(timeoutMsg);
-        console.error("Asaas API Error:", err);
-        showToast('Erro de conexão com o servidor.', 'error');
+        console.error("Payment API Error:", err);
+        showToast('Erro de comunicação. Verifique sua Chave no Admin.', 'error');
         btn.disabled = false;
         btn.innerHTML = originalText;
     }
 }
 
-function processCardPayment() {
-    const amount = document.getElementById('card-amount').value;
+async function processCardPayment() {
+    const amountStr = document.getElementById('card-amount').value.replace(/\./g, '').replace(',', '.');
+    const amount = parseFloat(amountStr);
     const number = document.getElementById('card-number').value.replace(/\s/g, '');
     const name = document.getElementById('card-name').value;
     const expiry = document.getElementById('card-expiry').value;
     const cvv = document.getElementById('card-cvv').value;
 
-    if (amount < 5) return showToast('Mínimo R$ 5,00 para cartão', 'error');
+    if (isNaN(amount) || amount < 5) return showToast('Mínimo R$ 5,00 para cartão', 'error');
     if (number.length < 16) return showToast('Número de cartão inválido', 'error');
     if (name.length < 5) return showToast('Digite o nome impresso no cartão', 'error');
     if (!expiry.includes('/')) return showToast('Validade inválida (MM/AA)', 'error');
     if (cvv.length < 3) return showToast('CVV inválido', 'error');
 
-    const admin = getAdminCredentials();
-    if (!admin.asaasKey) {
-        return showToast('Configure sua Chave API do Asaas no menu Admin!', 'warning');
-    }
-
     const btn = document.querySelector('#pay-area-card .btn-submit');
     const originalText = btn.innerHTML;
+    
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando Cartão...';
 
-    showToast('Enviando dados seguros ao Asaas...', 'info');
+    try {
+        const response = await fetch('/.netlify/functions/asaas-api', {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'generate_card',
+                amount: amount,
+                userId: currentUser.id,
+                userName: currentUser.name,
+                userEmail: currentUser.email,
+                cardData: { number, name, expiry, cvv }
+            })
+        });
 
-    // Simulação de processamento (Igual ao Pix, em produção requer Backend seguro)
-    setTimeout(() => {
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Pagamento processado! Seu saldo será atualizado em instantes.', 'success');
+            showPage('dashboard-page');
+            loadDashboard();
+        } else {
+            showToast('Erro: ' + (result.error || 'Cartão Recusado ou Inválido'), 'error');
+        }
+    } catch (err) {
+        console.error("Card Payment Error:", err);
+        showToast('Erro ao processar cartão. Tente Pix!', 'error');
+    } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
-        
-        // Simulação de erro de CORS (como esperado em local)
-        const msg = 'Cartão via Asaas: A integração direta requer um Backend para proteger sua chave de API. \n\nSimulando sucesso para teste visual...';
-        console.warn(msg);
-        
-        // Simular sucesso para o usuário ver o fluxo
-        showToast('Pagamento aprovado com sucesso! (Simulado)', 'success');
-        
-        // Adiciona saldo (Simulação)
-        if (currentUser) {
-            currentUser.balance += parseFloat(amount);
-            localStorage.setItem('snx_session', JSON.stringify(currentUser));
+    }
+}
             
             // Salva na lista global de usuários
             const users = JSON.parse(localStorage.getItem('snx_users') || '[]');
