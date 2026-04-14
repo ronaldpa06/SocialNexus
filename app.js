@@ -2623,7 +2623,7 @@ function showManualDeposit(amount) {
             <div class="manual-instructions">
                 <p>Para adicionar saldo agora, faça o PIX para a chave abaixo e envie o comprovante no suporte:</p>
                 <div class="api-key-display">
-                    <span>chave@pix.com.br</span>
+                    <span style="font-weight: 800; color: #43e97b;">0010ecf7-9477-4281-bc47-37576d1a20f8</span>
                 </div>
             </div>
 
