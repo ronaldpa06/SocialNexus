@@ -1354,94 +1354,26 @@ function copyCrypto() {
 async function generatePixPayment() {
     const amountInput = document.getElementById("pix-amount");
     const amount = parseFloat(amountInput.value);
-    
     if (!amount || amount < 1) { return showToast("O valor mínimo é R$ 1,00", "warning"); }
     if (amount > 50000) { return showToast("O valor máximo é R$ 50.000,00", "warning"); }
-
     const btn = document.querySelector("#pay-area-pix .btn-submit") || document.querySelector("#pay-area-pix .btn-primary");
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = "<i class=\"fas fa-spinner fa-spin\"></i> Gerando...";
-
     try {
         const res = await fetch("/.netlify/functions/asaas-api", {
-            method: "POST",
-            body: JSON.stringify({
-                action: "generate_pix",
-                amount: amount,
-                userId: currentUser.id,
-                userName: currentUser.name || currentUser.username,
-                userEmail: currentUser.email
-            })
+            method: "POST", messenger: "internal",
+            body: JSON.stringify({ action: "generate_pix", amount: amount, userId: currentUser.id, userName: currentUser.name || currentUser.username, userEmail: currentUser.email })
         });
         const data = await res.json();
         if (data.success) {
-            // "image" é o nome correto vindo do servidor asaas-api.js
             document.getElementById("qr-image").src = "data:image/png;base64," + data.image;
             document.getElementById("pix-copy-code").value = data.payload;
             document.getElementById("pix-qr-container").style.display = "block";
             showToast("QR Code Gerado!", "success");
-        } else {
-            showToast("Erro: " + (data.error || "Tente novamente"), "error");
-        }
-    } catch (e) {
-        showToast("Erro de conexão", "error");
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-}
-    if (amount > 50000) { return showToast("O valor máximo é R$ 50.000,00", "warning"); }
-
-    const btn = document.querySelector("#pay-area-pix .btn-submit") || document.querySelector("#pay-area-pix .btn-primary");
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = "<i class=\"fas fa-spinner fa-spin\"></i> Gerando...";
-
-    try {
-        const res = await fetch("/.netlify/functions/asaas-api", {
-            method: "POST",
-            body: JSON.stringify({
-                action: "generate_pix",
-                amount: amount,
-                userId: currentUser.id,
-                userName: currentUser.name || currentUser.username,
-                userEmail: currentUser.email
-            })
-        });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById("qr-image").src = "data:image/png;base64," + data.encodedImage;
-            document.getElementById("pix-copy-code").value = data.payload;
-            document.getElementById("pix-qr-container").style.display = "block";
-            showToast("QR Code Gerado!", "success");
-        } else {
-            showToast("Erro: " + (data.error || "Tente novamente"), "error");
-        }
-    } catch (e) {
-        showToast("Erro de conexão", "error");
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
-})
-        });
-
-        const data = await response.json();
-        
-        if (data.success) {
-            showPixDisplay(amount, data.payload, data.image);
-            showToast('Pix gerado com sucesso!', 'success');
-        } else {
-            throw new Error(data.error || 'Erro na API');
-        }
-
-    } catch (error) {
-        console.error('Payment Error:', error);
-        showToast('Erro ao gerar Pix Real. Verifique se o site está online na Netlify.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    }
+        } else { showToast("Erro: " + (data.error || "Tente novamente"), "error"); }
+    } catch (e) { showToast("Erro de conexão", "error"); }
+    finally { btn.disabled = false; btn.innerHTML = originalText; }
 }
 
 async function processCardPayment() {
