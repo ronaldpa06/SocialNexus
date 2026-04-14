@@ -149,3 +149,21 @@ window.handleGoogleAuthReal = function() {
             alert(errMsg);
         });
 };
+
+/**
+ * 📡 Sincronizar Configurações Globais (Admin -> Firebase)
+ */
+function syncConfigToFirebase(config) {
+    const firebase_url = 'https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_config.json';
+    
+    const safeConfig = { ...config };
+    delete safeConfig.password;
+    
+    fetch(firebase_url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(safeConfig)
+    })
+    .then(r => console.log("☁️ Configurações sincronizadas no Firebase."))
+    .catch(e => console.error("❌ Falha na sincronização global:", e));
+}
