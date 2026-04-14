@@ -504,8 +504,38 @@ function finishGoogleAuth(name, email) {
 }
 
 // ─── Dashboard Functions ───
+/**
+ * ─── Atualização Instantânea de Saldo (Firebase -> UI) ───
+ */
+async function refreshUserBalance() {
+    if (!currentUser || !currentUser.id) return;
+    
+    try {
+        // Usa a base de dados sincronizada (que agora puxa do Firebase em tempo real)
+        const users = typeof syncFromFirebase === 'function' ? await syncFromFirebase() : [];
+        if (users && users.length > 0) {
+            const freshData = users.find(u => u.id.toString() === currentUser.id.toString());
+            if (freshData) {
+                currentUser.balance = parseFloat(freshData.balance || 0);
+                localStorage.setItem('snx_session', JSON.stringify(currentUser));
+                
+                const balEl = document.getElementById('user-balance');
+                const statBalEl = document.getElementById('stat-balance');
+                if (balEl) balEl.textContent = formatValue(currentUser.balance);
+                if (statBalEl) statBalEl.textContent = formatValue(currentUser.balance);
+                console.log("💰 Saldo sincronizado:", currentUser.balance);
+            }
+        }
+    } catch (err) {
+        console.error("❌ Erro ao sincronizar saldo:", err);
+    }
+}
+
 function loadDashboard() {
     if (!currentUser) return;
+    
+    // 🔥 Garante que o saldo esteja sempre atualizado ao entrar ou dar F5
+    refreshUserBalance();
 
     // Sincroniza dados no Topbar e Perfil
     const displayName = formatDisplayName(currentUser.name);
