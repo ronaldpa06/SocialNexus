@@ -1452,21 +1452,6 @@ async function processCardPayment() {
         btn.innerHTML = originalText;
     }
 }
-            
-            // Salva na lista global de usuários
-            const users = JSON.parse(localStorage.getItem('snx_users') || '[]');
-            const uIdx = users.findIndex(u => u.id === currentUser.id);
-            if (uIdx !== -1) {
-                users[uIdx].balance = currentUser.balance;
-                localStorage.setItem('snx_users', JSON.stringify(users));
-            }
-            
-            saveTransaction(currentUser.name, 'Entrada', parseFloat(amount), 'Cartão');
-            loadDashboard();
-            showPage('dashboard-page');
-        }
-    }, 2500);
-}
 
 // Inicializar Máscaras de Cartão
 function initCardMasks() {
