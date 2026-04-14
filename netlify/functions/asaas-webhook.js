@@ -110,6 +110,13 @@ exports.handler = async function(event, context) {
 
     } catch (error) {
         console.error("❌ ERRO GRAVE NO WEBHOOK:", error);
-        return { statusCode: 500, body: "Erro interno do servidor Webhook" };
+        return { 
+            statusCode: 500, 
+            body: JSON.stringify({ 
+                success: false, 
+                message: "Erro interno no servidor do Webhook",
+                error: error.message 
+            }) 
+        };
     }
 };
