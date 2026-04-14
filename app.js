@@ -11,6 +11,7 @@ const servicesDB = window.servicesDB;
 let currentUser = null;
 let orders = [];
 let selectedPaymentMethod = null;
+let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
 
 // Multi-language configuration
 const i18n = {
@@ -1307,42 +1308,13 @@ function copyCrypto() {
 }
 
 async function generatePixPayment() {
-    const amountInput = document.getElementById('pix-amount');
-    const amount = parseFloat(amountInput.value);
-    if (!amount || amount < 1) return showToast('Mínimo R$ 1,00', 'warning');
-    
-    const btn = document.querySelector('#pay-area-pix .btn-submit');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+    const amount = document.getElementById('pix-amount').value;
+    if (amount < 1) return showToast('Mínimo R$ 1,00', 'error');
 
-    try {
-        const admin = { asaasKey: localStorage.getItem('snx_asaas_key') || '' };
-        const response = await fetch('https://socialnexuss.netlify.app/.netlify/functions/asaas-api', {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'generate_pix',
-                amount: amount,
-                userId: currentUser.id,
-                userName: currentUser.name || currentUser.username,
-                userEmail: currentUser.email,
-                apiKey: admin.asaasKey
-            })
-        });
-        const data = await response.json();
-        if (data.success) {
-            showPixDisplay(amount, data.payload, data.image);
-            showToast('Pix gerado!', 'success');
-        } else {
-            showToast('Erro: ' + (data.error || 'Falha'), 'error');
-        }
-    } catch (error) {
-        showToast('Erro de conexão.', 'error');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+    const admin = getAdminCredentials();
+    if (!admin.asaasKey) {
+        return showToast('Configure sua Chave API do Asaas no menu Admin!', 'warning');
     }
-}
 
     const btn = document.querySelector('#pay-area-pix .btn-primary');
     const originalText = btn.innerHTML;
@@ -2167,19 +2139,6 @@ function loadAdminServicesMgmt() {
     const excludedList = document.getElementById('admin-excluded-list');
     
     const searchTerm = document.getElementById('admin-search-services').value.toLowerCase();
-    // 1. Inteligência do Robô
-    if (updateContainer) {
-        const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Robô...';
-        const hour = new Date().getHours();
-        const robotState = (Math.floor(hour / 3) % 2 === 0) 
-            ? '<span style="color: #43e97b;"><i class="fas fa-cog fa-spin"></i> Robô Rodando... ⚒️</span>' 
-            : '<span style="color: #fa709a;"><i class="fas fa-moon"></i> Robô Dormindo... 😴</span>';
-        updateContainer.innerHTML = `
-            <div class="last-sync-badge" style="background:rgba(0,0,0,0.3); padding:15px; border-radius:12px; border-left:4px solid #f5576c; margin-bottom:20px;">
-                <div style="font-size:14px; margin-bottom:5px;"><strong>STATUS:</strong> ${robotState}</div>
-                <div style="font-size:11px; opacity:0.7;"><i class="fas fa-clock"></i> Última Atualização: ${lastSync}</div>
-            </div>`;
-    }
     
     // 1. Mostrar Horário da Última Atualização
     if (updateContainer) {
