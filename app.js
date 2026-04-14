@@ -11,7 +11,6 @@ const servicesDB = window.servicesDB;
 let currentUser = null;
 let orders = [];
 let selectedPaymentMethod = null;
-let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
 
 // Multi-language configuration
 const i18n = {
@@ -1310,20 +1309,15 @@ function copyCrypto() {
 async function generatePixPayment() {
     const amountInput = document.getElementById('pix-amount');
     const amount = parseFloat(amountInput.value);
+    if (!amount || amount < 1) return showToast('Mínimo R$ 1,00', 'warning');
     
-    if (!amount || amount < 1) return showToast('O valor mínimo é R$ 1,00', 'warning');
-    if (amount > 50000) return showToast('O valor máximo é R$ 50.000,00', 'warning');
-
     const btn = document.querySelector('#pay-area-pix .btn-submit');
     const originalText = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
 
-    showToast('Conectando ao Asaas...', 'info');
-
     try {
-        const admin = getAdminCredentials();
-        
+        const admin = { asaasKey: localStorage.getItem('snx_asaas_key') || '' };
         const response = await fetch('https://socialnexuss.netlify.app/.netlify/functions/asaas-api', {
             method: 'POST',
             body: JSON.stringify({
@@ -1335,21 +1329,89 @@ async function generatePixPayment() {
                 apiKey: admin.asaasKey
             })
         });
-
         const data = await response.json();
-        
         if (data.success) {
             showPixDisplay(amount, data.payload, data.image);
-            showToast('Pix gerado com sucesso!', 'success');
+            showToast('Pix gerado!', 'success');
         } else {
-            showToast('Erro: ' + (data.error || 'Falha na comunicação'), 'error');
+            showToast('Erro: ' + (data.error || 'Falha'), 'error');
         }
     } catch (error) {
-        console.error('Pix Error:', error);
-        showToast('Erro de conexão ao gerar Pix.', 'error');
+        showToast('Erro de conexão.', 'error');
     } finally {
         btn.disabled = false;
         btn.innerHTML = originalText;
+    }
+}
+
+    const btn = document.querySelector('#pay-area-pix .btn-primary');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Pix...';
+
+    const baseUrl = admin.asaasEnv === 'production' ? 'https://www.asaas.com/api/v3' : 'https://sandbox.asaas.com/api/v3';
+    const proxy = 'https://api.allorigins.win/get?url='; // Nota: AllOrigins é GET, para POST real precisaremos de um backend ou proxy CORS.
+
+    showToast('Gerando cobrança no Asaas...', 'info');
+
+    try {
+        // 1. Criar/Verificar Cliente no Asaas (Simplificado para o exemplo)
+        // Em um sistema real, você deve salvar o AsaasCustomerId no perfil do usuário no Firebase
+        const customerData = {
+            name: currentUser.name || currentUser.username,
+            email: currentUser.email,
+            mobilePhone: currentUser.whatsapp || '',
+            externalReference: currentUser.id.toString()
+        };
+
+        // Nota: Para fins de demonstração local, simularemos a resposta se o CORS bloquear.
+        // Em produção, isso DEVE ser chamado via Backend (Node.js) para segurança.
+        
+        const response = await fetch(`${baseUrl}/payments`, {
+            method: 'POST',
+            headers: {
+                'access_token': admin.asaasKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                customer: 'customer_id_placeholder', // Idealmente buscado antes
+                billingType: 'PIX',
+                value: parseFloat(amount),
+                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 24h
+                description: `Adição de Saldo - SocialNexus #${currentUser.id}`,
+                externalReference: currentUser.id.toString()
+            })
+        }).catch(err => {
+            // Se falhar por CORS (comum em local), avisamos o usuário
+            console.error('CORS/Auth Error:', err);
+            throw new Error('CORS_BLOCKED');
+        });
+
+        if (!response.ok) throw new Error('API_ERROR');
+
+        const data = await response.json();
+        
+        // Buscar QR Code do Pix
+        const qrResponse = await fetch(`${baseUrl}/payments/${data.id}/pixQrCode`, {
+            headers: { 'access_token': admin.asaasKey }
+        });
+        const qrData = await qrResponse.json();
+
+        showPixDisplay(amount, qrData.payload, qrData.encodedImage);
+        showToast('Pix gerado com sucesso!', 'success');
+
+    } catch (error) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        
+        if (error.message === 'CORS_BLOCKED') {
+            const msg = 'Erro de Segurança (CORS): O navegador bloqueou a chamada direta ao Asaas. \n\nPara resolver, você precisa usar um servidor Backend (Node.js) ou o Netlify Functions. \n\nSimulando visualização para teste...';
+            console.warn(msg);
+            // Simulação para o usuário ver o layout funcionando enquanto não sobe pro servidor
+            showPixDisplay(amount, '00020126360014BR.GOV.BCB.PIX0114+5592999999999520400005303986540510.005802BR5925SocialNexus6009Manaus62070503***6304E2B9', '');
+        } else {
+            showToast('Erro ao falar com Asaas. Verifique sua chave API.', 'error');
+        }
     }
 }
 
@@ -2105,26 +2167,27 @@ function loadAdminServicesMgmt() {
     const excludedList = document.getElementById('admin-excluded-list');
     
     const searchTerm = document.getElementById('admin-search-services').value.toLowerCase();
-    
-    // 1. Mostrar Inteligência do Robô e Horário de Precisão
+    // 1. Inteligência do Robô
     if (updateContainer) {
-        const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? 
-                         window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Robô...';
-        
-        // Lógica de Ciclo: Trabalha 3h, Dorme 3h
+        const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Robô...';
         const hour = new Date().getHours();
         const robotState = (Math.floor(hour / 3) % 2 === 0) 
-            ? '<span style="color: #43e97b;"><i class="fas fa-cog fa-spin"></i> Robô está Rodando agora... ⚒️</span>' 
-            : '<span style="color: #fa709a;"><i class="fas fa-moon"></i> Robô está Dormindo... 😴</span>';
-
+            ? '<span style="color: #43e97b;"><i class="fas fa-cog fa-spin"></i> Robô Rodando... ⚒️</span>' 
+            : '<span style="color: #fa709a;"><i class="fas fa-moon"></i> Robô Dormindo... 😴</span>';
         updateContainer.innerHTML = `
-            <div class="last-sync-badge" style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 20px;">
-                <div style="font-size: 14px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px;">
-                    <i class="fas fa-robot"></i> <strong>STATUS:</strong> ${robotState}
-                </div>
-                <div style="font-size: 11px; opacity: 0.7; display: flex; items-center; gap: 15px;">
-                    <span><i class="fas fa-clock"></i> Última Sincronização: <strong style="color: #fff;">${lastSync}</strong></span>
-                </div>
+            <div class="last-sync-badge" style="background:rgba(0,0,0,0.3); padding:15px; border-radius:12px; border-left:4px solid #f5576c; margin-bottom:20px;">
+                <div style="font-size:14px; margin-bottom:5px;"><strong>STATUS:</strong> ${robotState}</div>
+                <div style="font-size:11px; opacity:0.7;"><i class="fas fa-clock"></i> Última Atualização: ${lastSync}</div>
+            </div>`;
+    }
+    
+    // 1. Mostrar Horário da Última Atualização
+    if (updateContainer) {
+        const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? 
+                         window.GROWFOLLOWS_SERVICES.lastSync : 'Sincronize para ver';
+        updateContainer.innerHTML = `
+            <div class="last-sync-badge">
+                <i class="fas fa-history"></i> Última sincronização do robô: <strong>${lastSync}</strong>
             </div>
         `;
     }
