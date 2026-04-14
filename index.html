@@ -1174,7 +1174,31 @@
                                     </button>
                                 </div>
 
+                                <div id="pay-area-crypto" class="pay-area">
+                                    <div class="pay-header">
+                                        <h3>Pagar com Criptomoedas</h3>
+                                        <p class="pay-warning"><i class="fas fa-clock"></i> O saldo será creditado após 2 confirmações (15-60 min).</p>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Selecionar Moeda</label>
+                                        <select id="crypto-currency" onchange="updateCryptoAddress()">
+                                            <option value="btc">Bitcoin (BTC)</option>
+                                            <option value="usdt">USDT (TRC-20)</option>
+                                            <option value="eth">Ethereum (ETH)</option>
+                                        </select>
+                                    </div>
+                                    <div class="crypto-display">
+                                        <div id="crypto-address-area">
+                                            <p id="crypto-label">Endereço de Depósito:</p>
+                                            <code id="crypto-address">Selecione uma moeda...</code>
+                                            <button class="btn-copy" onclick="copyCrypto()"><i class="fas fa-copy"></i> Copiar</button>
+                                        </div>
+                                    </div>
+                                    <button class="btn-submit" onclick="confirmCryptoPayment()">
+                                        <i class="fas fa-check"></i> Já realizei o envio
+                                    </button>
                                 </div>
+                            </div>
                         </div>
                     </div>
 
