@@ -6,9 +6,8 @@
  */
 
 // ⚡ GUARDA LOCAL: Se aberto pelo arquivo (file://), pula o Firebase
-// Isso garante que o login, cadastro e todos os botões funcionem normalmente ao testar localmente
 if (window.location.protocol === 'file:') {
-    console.warn('SocialNexus: Modo local detectado. Firebase desativado. Tudo funciona normalmente!');
+    console.warn('SocialNexus: Modo local detectado. Firebase desativado para evitar travamentos.');
 } else {
 
 const firebaseConfig = {
@@ -156,4 +155,4 @@ window.handleGoogleAuthReal = function() {
         });
 };
 
-} // fim do bloco: else (não é file://)
+} // Fim da Trava Local
