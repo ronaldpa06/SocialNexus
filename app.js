@@ -2133,10 +2133,8 @@ let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') ||
 function loadAdminServicesMgmt() {
     const tbody = document.getElementById('admin-services-tbody');
     const updateContainer = document.getElementById('last-update-container');
-    const catManagerList = document.getElementById('admin-category-manager-list');
     const excludedArea = document.getElementById('excluded-categories-area');
     const excludedList = document.getElementById('admin-excluded-list');
-    
     const searchTerm = document.getElementById('admin-search-services').value.toLowerCase();
     
     // 1. Mostrar Horário da Última Atualização
@@ -2144,7 +2142,7 @@ function loadAdminServicesMgmt() {
         const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? 
                          window.GROWFOLLOWS_SERVICES.lastSync : 'Sincronize para ver';
         updateContainer.innerHTML = `
-            <div class="last-sync-badge">
+            <div class="last-sync-badge" style="background: rgba(79, 172, 254, 0.1); color: #4facfe; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
                 <i class="fas fa-history"></i> Última sincronização do robô: <strong>${lastSync}</strong>
             </div>
         `;
@@ -2174,7 +2172,7 @@ function loadAdminServicesMgmt() {
                                onchange="updateSvcResale('${platform}', ${svc.id}, this.value)">
                     </div>
                 </td>
-                <td style="color: var(--accent-secondary); font-weight: 700;">${profitPercent}%</td>
+                <td style="color: #43e97b; font-weight: 700;">${profitPercent}%</td>
                 <td>
                     <span class="status-badge ${statusClass}" onclick="toggleSvcStatus('${platform}', ${svc.id})" style="cursor:pointer">
                         ${svc.status === 'available' ? 'Ativo' : 'Pausado'}
@@ -2190,30 +2188,15 @@ function loadAdminServicesMgmt() {
         });
     });
 
-    // 3. Renderizar Gestor de Categorias Ativas (Cards)
-    if (catManagerList) {
-        catManagerList.innerHTML = platforms.map(p => `
-            <div class="cat-manage-item">
-                <div class="cat-info">
-                    <i class="fas fa-layer-group"></i>
-                    <span class="cat-name">${p}</span>
-                </div>
-                <button class="btn-delete-cat" onclick="deleteEntireCategory('${p}')" title="Ocultar Categoria">
-                    <i class="fas fa-eye-slash"></i>
-                </button>
-            </div>
-        `).join('');
-    }
-
-    // 4. Renderizar Categorias Excluídas (Cemitério)
+    // 3. Gerenciar Cemitério
     if (excludedArea && excludedList) {
         if (excludedCategories.length > 0) {
             excludedArea.style.display = 'block';
             excludedList.innerHTML = excludedCategories.sort().map(p => `
-                <div class="cat-manage-item" style="border-color: rgba(255,21,100,0.2);">
+                <div class="cat-manage-item">
                     <div class="cat-info">
-                        <i class="fas fa-ghost" style="color: #ff4b2b;"></i>
-                        <span class="cat-name" style="color: rgba(255,255,255,0.5);">${p}</span>
+                        <i class="fas fa-eye-slash"></i>
+                        <span class="cat-name">${p}</span>
                     </div>
                     <button class="btn-restore-cat" onclick="restoreCategory('${p}')">
                         <i class="fas fa-undo"></i> Restaurar
@@ -2226,18 +2209,52 @@ function loadAdminServicesMgmt() {
     }
 }
 
-function deleteEntireCategory(cat) {
-    if (!confirm(`Deseja ocultar a categoria "${cat}"? Ela não aparecerá para os clientes mesmo após as atualizações do robô.`)) return;
+/**
+ * 🔍 Busca Dinâmica de Categorias para Ocultar
+ */
+function searchCategoriesToExclude() {
+    const input = document.getElementById('cat-search-input');
+    const dropdown = document.getElementById('cat-search-results');
+    const term = input.value.toLowerCase();
     
+    if (!term) {
+        dropdown.style.display = 'none';
+        return;
+    }
+
+    const allCats = Object.keys(servicesDB).filter(p => !excludedCategories.includes(p));
+    const matches = allCats.filter(c => c.toLowerCase().includes(term));
+
+    if (matches.length > 0) {
+        dropdown.innerHTML = matches.map(m => `
+            <div class="cat-result-item" onclick="selectCategoryToExclude('${m}')">
+                <span class="cat-name">${m}</span>
+                <i class="fas fa-plus-circle plus-icon"></i>
+            </div>
+        `).join('');
+        dropdown.style.display = 'block';
+    } else {
+        dropdown.style.display = 'none';
+    }
+}
+
+function selectCategoryToExclude(cat) {
     if (!excludedCategories.includes(cat)) {
         excludedCategories.push(cat);
         localStorage.setItem('snx_excluded_cats', JSON.stringify(excludedCategories));
     }
     
+    document.getElementById('cat-search-input').value = '';
+    document.getElementById('cat-search-results').style.display = 'none';
     loadAdminServicesMgmt();
     renderCategories();
     showToast(`Categoria "${cat}" ocultada com sucesso.`, 'info');
 }
+
+function deleteEntireCategory(cat) {
+    selectCategoryToExclude(cat);
+}
+
 
 function restoreCategory(cat) {
     excludedCategories = excludedCategories.filter(c => c !== cat);
