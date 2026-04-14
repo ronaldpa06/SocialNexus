@@ -1737,34 +1737,32 @@
                             </div>
                             
                             <!-- Nova Ferramenta: Excluir Categorias em Massa -->
-                            <!-- Gestão de Categorias Ninja -->
-                            <div class="category-management-v2" style="margin-top: 25px; border-top: 2px solid rgba(255,255,255,0.05); padding-top: 20px;">
-                                <div id="last-update-container"></div>
-                                
-                                <div class="admin-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                    <h3 style="margin: 0; color: var(--accent-color); font-size: 1.1rem;">
-                                        <i class="fas fa-layer-group"></i> Gestão de Categorias Ativas
-                                    </h3>
-                                    <button class="btn-delete-all-ninja" onclick="confirmDeleteAllCategories()">
-                                        <i class="fas fa-skull-crossbones"></i> EXCLUIR TUDO
+                            <!-- Barra de Sincronizao Profissional -->
+                            <div id="last-update-container"></div>
+
+                            <div class="profit-config-group" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                                <div class="profit-label">
+                                    <i class="fas fa-trash-alt" style="color: #ff4b2b;"></i>
+                                    <span>Remover Categoria Inteira:</span>
+                                </div>
+                                <div class="profit-controls">
+                                    <select id="admin-delete-cat-select" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px; border-radius: 6px; min-width: 250px;">
+                                        <option value="">Selecione categoria...</option>
+                                        <!-- Preenchido via JS -->
+                                    </select>
+                                    <button class="btn-delete-all-ninja" onclick="deleteEntireCategory()" style="padding: 10px 20px;">
+                                        <i class="fas fa-eraser"></i> EXCLUIR TUDO
                                     </button>
                                 </div>
-                                <p style="font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 15px;">
-                                    Categorias excluídas não retornarão ao site mesmo após a atualização do robô.
-                                </p>
-                                
-                                <div id="admin-category-manager-list" class="category-manager-list">
-                                    <!-- Preenchido via JS com cards coloridos -->
-                                </div>
+                            </div>
 
-                                <!-- Cemitério de Categorias (Restauração) -->
-                                <div id="excluded-categories-area" class="excluded-categories-area" style="display: none;">
-                                    <h3 style="color: #00ff88; font-size: 1rem; margin-bottom: 15px;">
-                                        <i class="fas fa-undo"></i> Categorias Excluídas (Recuperar)
-                                    </h3>
-                                    <div id="admin-excluded-list" class="category-manager-list">
-                                        <!-- Categorias para restaurar -->
-                                    </div>
+                            <!-- Cemitério de Categorias (Restauração) -->
+                            <div id="excluded-categories-area" style="margin-top: 20px; display:none;">
+                                <h4 style="color: #00ff88; font-size: 0.9rem; margin-bottom: 10px;">
+                                    <i class="fas fa-undo"></i> Categorias Excluídas (Clique para Restaurar):
+                                </h4>
+                                <div id="admin-excluded-list" class="category-manager-list" style="margin-bottom: 20px;">
+                                    <!-- Preenchido via JS -->
                                 </div>
                             </div>
                         </div>
