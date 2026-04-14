@@ -65,6 +65,7 @@
 
 html {
     font-size: 16px;
+    scroll-snap-type: none !important;
 }
 
 body {
@@ -77,6 +78,13 @@ body {
     -moz-osx-font-smoothing: grayscale;
     touch-action: pan-y; /* Destrava o scroll no celular */
     scroll-behavior: auto !important; /* Estabilidade total */
+    scroll-snap-type: none !important;
+}
+
+/* Garante que nada trave a rolagem */
+.page, section, section div {
+    scroll-snap-type: none !important;
+    scroll-snap-align: none !important;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -87,7 +95,7 @@ img { max-width: 100%; height: auto; }
 /* ─── Page System ─── */
 .page {
     display: none;
-    min-height: 100vh;
+    min-height: auto;
 }
 .page.active {
     display: block;
@@ -252,9 +260,6 @@ img { max-width: 100%; height: auto; }
    ============================================ */
 .hero {
     position: relative;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
     padding: 120px 0 60px;
 }
 
