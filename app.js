@@ -1342,13 +1342,26 @@ async function generatePixPayment() {
 
     if (isNaN(amount) || amount < 1) return showToast('Mínimo R$ 1,00', 'error');
 
-    const admin = getAdminCredentials();
-    if (!admin.asaasKey || admin.asaasKey.trim() === "") {
-        return showToast('Configure sua Chave API do Asaas no menu Admin para ativar o automático!', 'warning');
+    const btn = document.querySelector('#pay-area-pix .btn-submit');
+    const originalText = btn.innerHTML;
+    
+    // 🔍 BUSCA CHAVE DO COFRE NO FIREBASE (Para funcionar para o cliente)
+    showToast('Validando configuração de pagamento...', 'info');
+    
+    let finalApiKey = "";
+    try {
+        const configUrl = 'https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_config.json';
+        const response = await fetch(configUrl);
+        const config = await response.json();
+        finalApiKey = config.asaasKey;
+    } catch (e) {
+        console.error("Erro ao buscar config:", e);
     }
 
-    const btn = document.querySelector('#pay-area-pix .btn-primary');
-    const originalText = btn.innerHTML;
+    if (!finalApiKey || finalApiKey.trim() === "") {
+        return showToast('Sistema de pagamento em manutenção. Avise o Admin!', 'warning');
+    }
+
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Pix...';
 
@@ -2010,6 +2023,9 @@ function addClientBalance(userId) {
     if (user) {
         user.balance = (user.balance || 0) + parseFloat(amount);
         localStorage.setItem('snx_users', JSON.stringify(users));
+        
+        // 📡 SINCRONIZA COM CLOUD
+        if (typeof syncToFirebase === 'function') syncToFirebase(users);
 
         // Save transaction
         saveTransaction(user.name, 'Adição de Saldo', parseFloat(amount), 'Admin');
@@ -2029,6 +2045,10 @@ function editClientBalance(userId) {
 
     user.balance = parseFloat(newBalance);
     localStorage.setItem('snx_users', JSON.stringify(users));
+    
+    // 📡 SINCRONIZA COM CLOUD
+    if (typeof syncToFirebase === 'function') syncToFirebase(users);
+
     loadAdminDashboard();
     showToast(`Saldo de ${user.name} atualizado para ${formatValue(user.balance)}`, 'success');
 }
