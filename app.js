@@ -543,7 +543,10 @@ function loadDashboard() {
     
     // Stats de pedidos
     const totalOrdersEl = document.getElementById('stat-total-orders');
-    if (totalOrdersEl) totalOrdersEl.textContent = (orders || []).length;
+    if (totalOrdersEl) {
+        const storedOrders = JSON.parse(localStorage.getItem(`snx_orders_${currentUser.id}`) || '[]');
+        totalOrdersEl.textContent = storedOrders.length;
+    }
     
     // Fallback para o topbar
     const topBalance = document.getElementById('user-balance');
