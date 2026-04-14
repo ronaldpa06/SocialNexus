@@ -1717,6 +1717,8 @@ function loadAdminSettings() {
     const passInput = document.getElementById('admin-pass-config');
     const asaasKeyInput = document.getElementById('asaas-key-config');
     const asaasEnvInput = document.getElementById('asaas-env-config');
+    const smmKeyInput = document.getElementById('smm-key-config');
+    const dollarRateInput = document.getElementById('dollar-rate-config');
     const panelNameInput = document.getElementById('panel-name-config');
     const whatsappInput = document.getElementById('whatsapp-config');
 
@@ -1724,6 +1726,8 @@ function loadAdminSettings() {
     if (passInput) passInput.value = creds.password;
     if (asaasKeyInput) asaasKeyInput.value = creds.asaasKey || '';
     if (asaasEnvInput) asaasEnvInput.value = creds.asaasEnv || 'sandbox';
+    if (smmKeyInput) smmKeyInput.value = creds.smmKey || '';
+    if (dollarRateInput) dollarRateInput.value = creds.dollarRate || '5.50';
     if (panelNameInput) panelNameInput.value = creds.panelName || 'SocialNexus';
     if (whatsappInput) whatsappInput.value = creds.whatsapp || '';
 }
@@ -1733,6 +1737,8 @@ function saveAdminSettings() {
     const password = document.getElementById('admin-pass-config').value;
     const asaasKey = document.getElementById('asaas-key-config').value;
     const asaasEnv = document.getElementById('asaas-env-config').value;
+    const smmKey = document.getElementById('smm-key-config').value;
+    const dollarRate = document.getElementById('dollar-rate-config').value;
     const panelName = document.getElementById('panel-name-config').value;
     const whatsapp = document.getElementById('whatsapp-config').value;
 
@@ -1741,15 +1747,16 @@ function saveAdminSettings() {
         return;
     }
 
-    const setts = { email, password, asaasKey, asaasEnv, panelName, whatsapp };
+    const setts = { email, password, asaasKey, asaasEnv, smmKey, dollarRate, panelName, whatsapp };
     localStorage.setItem('snx_admin', JSON.stringify(setts));
     
     // Atualiza nome do painel na UI imediatamente se houver elementos
-    const brandLabel = document.querySelector('.sidebar-brand span');
-    if (brandLabel) brandLabel.textContent = panelName;
+    const brandLabels = document.querySelectorAll('.logo-text');
+    brandLabels.forEach(el => el.innerHTML = `${panelName}<span class="logo-accent">Panel</span>`);
     
     showToast('Configurações salvas com sucesso!', 'success');
 }
+
 
 // Admin Dashboard
 function loadAdminDashboard() {
@@ -2798,4 +2805,13 @@ function toggleRobotStatus() {
         iconEl.textContent = '🤖';
     }
 }
-
+/**
+ * Fecha o dropdown se clicar fora
+ */
+document.addEventListener('mousedown', (e) => {
+    const dropdown = document.getElementById('cat-search-results');
+    const searchArea = document.querySelector('.cat-search-bar');
+    if (dropdown && searchArea && !searchArea.contains(e.target) && !dropdown.contains(e.target)) {
+        dropdown.style.display = 'none';
+    }
+});
