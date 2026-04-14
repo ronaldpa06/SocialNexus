@@ -1,13 +1,13 @@
 /* ============================================
-   SocialNexus   JavaScript Application Logic
+   SocialNexus — JavaScript Application Logic
    ============================================ */
-//   Services Database  
+// ─── Services Database ───
 // Usamos window.servicesDB para garantir que o services-data.js e o app.js compartilhem os mesmos dados
 if (typeof window.servicesDB === 'undefined') window.servicesDB = {};
 const servicesDB = window.servicesDB;
 
 
-//   App State & Internationalization  
+// ─── App State & Internationalization ───
 let currentUser = null;
 let orders = [];
 let selectedPaymentMethod = null;
@@ -16,24 +16,24 @@ let selectedPaymentMethod = null;
 const i18n = {
     pt: {
         nav_features: "Recursos",
-        nav_services: "Servi os",
-        nav_stats: "Estat sticas",
+        nav_services: "Serviços",
+        nav_stats: "Estatísticas",
         nav_faq: "FAQ",
         btn_login: "Entrar",
         btn_register: "Cadastrar",
         hero_title: "Impulsione suas Redes Sociais com resultados reais",
-        hero_subtitle: "Seguidores, curtidas, visualiza es e engajamento para Instagram, TikTok, YouTube, Twitter e mais.",
-        btn_start: "Come ar Agora   Gr tis",
-        btn_view_services: "Ver Servi os",
+        hero_subtitle: "Seguidores, curtidas, visualizações e engajamento para Instagram, TikTok, YouTube, Twitter e mais.",
+        btn_start: "Começar Agora — Grátis",
+        btn_view_services: "Ver Serviços",
         dash_welcome: "Bem-vindo de volta",
-        dash_balance: "Saldo dispon vel",
+        dash_balance: "Saldo disponível",
         dash_new_order: "Novo Pedido",
         dash_my_orders: "Meus Pedidos",
         dash_add_funds: "Adicionar Saldo",
         dash_api: "API",
         dash_support: "Suporte",
         label_category: "Categoria",
-        label_service: "Servi o",
+        label_service: "Serviço",
         label_link: "Link do Perfil/Post",
         label_quantity: "Quantidade",
         label_total: "Total a Pagar",
@@ -51,7 +51,7 @@ const i18n = {
         btn_register: "Sign Up",
         hero_title: "Boost your Social Media with real results",
         hero_subtitle: "Followers, likes, views and engagement for Instagram, TikTok, YouTube, Twitter and more.",
-        btn_start: "Start Now   Free",
+        btn_start: "Start Now — Free",
         btn_view_services: "View Services",
         dash_welcome: "Welcome back",
         dash_balance: "Available Balance",
@@ -80,7 +80,7 @@ const currencies = {
 let currentLang = localStorage.getItem('snx_lang') || 'pt';
 let currentCurrency = localStorage.getItem('snx_currency') || 'BRL';
 
-//   Internationalization Functions  
+// ─── Internationalization Functions ───
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('snx_lang', lang);
@@ -120,7 +120,7 @@ function formatValue(valueBRL) {
     return `${config.symbol} ${converted.toFixed(2)}`;
 }
 
-//   Page Navigation  
+// ─── Page Navigation ───
 function showPage(pageId) {
     const pages = document.querySelectorAll('.page');
     pages.forEach(p => p.classList.remove('active'));
@@ -150,21 +150,21 @@ function handleLogoClick() {
 }
 
 /**
- * Simula o/Realidade de Recupera o de Senha
+ * Simulação/Realidade de Recuperação de Senha
  */
 function handleForgotPassword() {
     const email = document.getElementById('login-email').value || prompt('Digite o e-mail cadastrado para redefinir a senha:');
     if (email) {
         // Envio real Firebase (opcional no futuro) / Feedback local
-        showToast(`Link de recupera o enviado para ${email}! Verifique o lixo eletr nico.`, 'success');
+        showToast(`Link de recuperação enviado para ${email}! Verifique o lixo eletrônico.`, 'success');
     }
 }
 
 /**
- * Simula o de Termos e Privacidade
+ * Simulação de Termos e Privacidade
  */
 /**
- * Sistema de Pol ticas Legais (Termos, Privacidade e Reembolso)
+ * Sistema de Políticas Legais (Termos, Privacidade e Reembolso)
  */
 function showPolicy(type) {
     const modal = document.getElementById('policy-modal');
@@ -178,30 +178,30 @@ function showPolicy(type) {
     if (type === 'terms') {
         title.innerHTML = '<i class="fas fa-file-contract"></i> Termos de Uso';
         content = `
-            <h4>1. Aceita o dos Termos</h4>
-            <p>Ao acessar e se cadastrar no SocialNexus, voc  concorda em cumprir estes termos de servi o, todas as leis e regulamentos aplic veis. Se voc  n o concordar com algum destes termos, est  proibido de usar ou acessar este site.</p>
-            <h4>2. Uso de Servi os</h4>
-            <p>Os servi os oferecidos pelo SocialNexus destinam-se exclusivamente   promo o de perfis em redes sociais. N o garantimos que os novos seguidores interajam com voc , apenas garantimos a entrega da quantidade contratada.</p>
-            <p>Voc  n o deve usar o SocialNexus para qualquer finalidade il cita ou proibida pelas redes sociais (Instagram, TikTok, etc).</p>
+            <h4>1. Aceitação dos Termos</h4>
+            <p>Ao acessar e se cadastrar no SocialNexus, você concorda em cumprir estes termos de serviço, todas as leis e regulamentos aplicáveis. Se você não concordar com algum destes termos, está proibido de usar ou acessar este site.</p>
+            <h4>2. Uso de Serviços</h4>
+            <p>Os serviços oferecidos pelo SocialNexus destinam-se exclusivamente à promoção de perfis em redes sociais. Não garantimos que os novos seguidores interajam com você, apenas garantimos a entrega da quantidade contratada.</p>
+            <p>Você não deve usar o SocialNexus para qualquer finalidade ilícita ou proibida pelas redes sociais (Instagram, TikTok, etc).</p>
             <h4>3. Responsabilidade</h4>
-            <p>N o somos respons veis por qualquer suspens o de conta ou exclus o de imagem feita pelo Instagram, Facebook, Twitter, YouTube ou outras redes sociais.</p>
+            <p>Não somos responsáveis por qualquer suspensão de conta ou exclusão de imagem feita pelo Instagram, Facebook, Twitter, YouTube ou outras redes sociais.</p>
         `;
     } else if (type === 'privacy') {
-        title.innerHTML = '<i class="fas fa-user-shield"></i> Pol tica de Privacidade';
+        title.innerHTML = '<i class="fas fa-user-shield"></i> Política de Privacidade';
         content = `
             <h4>1. Coleta de Dados</h4>
-            <p>Coletamos apenas as informa es necess rias para o seu login e processamento de pedidos (Nome, Email e WhatsApp). Suas senhas s o criptografadas e nunca compartilhadas.</p>
-            <h4>2. Seguran a</h4>
-            <p>Tomamos medidas de seguran a para proteger suas informa es pessoais contra acesso n o autorizado ou altera o. Seus dados financeiros s o processados diretamente pelo gateway Asaas, n o armazenamos dados de cart o de cr dito em nossos servidores.</p>
+            <p>Coletamos apenas as informações necessárias para o seu login e processamento de pedidos (Nome, Email e WhatsApp). Suas senhas são criptografadas e nunca compartilhadas.</p>
+            <h4>2. Segurança</h4>
+            <p>Tomamos medidas de segurança para proteger suas informações pessoais contra acesso não autorizado ou alteração. Seus dados financeiros são processados diretamente pelo gateway Asaas, não armazenamos dados de cartão de crédito em nossos servidores.</p>
         `;
     } else if (type === 'refund') {
-        title.innerHTML = '<i class="fas fa-undo"></i> Pol tica de Reembolso';
+        title.innerHTML = '<i class="fas fa-undo"></i> Política de Reembolso';
         content = `
-            <h4>1. Condi es de Reembolso</h4>
-            <p>Reembolsos ser o realizados integralmente apenas se o pedido n o puder ser iniciado pelo sistema em at  72 horas ap s a confirma o do pagamento.</p>
-            <p>N o haver  reembolso para pedidos enviados para perfis "Privados" ou com links incorretos fornecidos pelo cliente.</p>
+            <h4>1. Condições de Reembolso</h4>
+            <p>Reembolsos serão realizados integralmente apenas se o pedido não puder ser iniciado pelo sistema em até 72 horas após a confirmação do pagamento.</p>
+            <p>Não haverá reembolso para pedidos enviados para perfis "Privados" ou com links incorretos fornecidos pelo cliente.</p>
             <h4>2. Saldo no Painel</h4>
-            <p>Uma vez adicionado saldo ao painel SocialNexus, este valor deve ser utilizado para a contrata o de servi os dentro da plataforma. N o realizamos estorno de saldo depositado para conta banc ria ap s o uso parcial.</p>
+            <p>Uma vez adicionado saldo ao painel SocialNexus, este valor deve ser utilizado para a contratação de serviços dentro da plataforma. Não realizamos estorno de saldo depositado para conta bancária após o uso parcial.</p>
         `;
     }
 
@@ -218,13 +218,13 @@ function closePolicy() {
     }
 }
 
-//   Mobile Menu Toggle  
+// ─── Mobile Menu Toggle ───
 function toggleMobileMenu() {
     const links = document.getElementById('nav-links');
     links.classList.toggle('active');
 }
 
-//   Navbar Scroll Effect  
+// ─── Navbar Scroll Effect ───
 window.addEventListener('scroll', () => {
     const navbar = document.getElementById('navbar');
     if (navbar) {
@@ -232,14 +232,14 @@ window.addEventListener('scroll', () => {
     }
 });
 
-//   FAQ Toggle  
+// ─── FAQ Toggle ───
 function toggleFaq(element) {
     const isActive = element.classList.contains('active');
     document.querySelectorAll('.faq-item').forEach(item => item.classList.remove('active'));
     if (!isActive) element.classList.add('active');
 }
 
-//   Password Toggle  
+// ─── Password Toggle ───
 function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
     const icon = btn.querySelector('i');
@@ -253,10 +253,10 @@ function togglePassword(inputId, btn) {
 }
 
 /* ============================================
-   SocialNexus   Automation & API Configuration
+   SocialNexus — Automation & API Configuration
    ============================================ */
 const SNX_CONFIG = {
-    // Provedor (GrowFollows API v2 padr o SMM)
+    // Provedor (GrowFollows API v2 padrão SMM)
     PROVIDER_API_URL: 'https://growfollows.com/api/v2',
     PROVIDER_API_KEY: 'c1c3eac23e812939dedefdc9ac4bfb1c', 
 
@@ -264,9 +264,9 @@ const SNX_CONFIG = {
     ASAAS_API_URL: 'https://www.asaas.com/api/v3',
     ASAAS_API_KEY: 'aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi', 
     
-    // Configura es Globais
+    // Configurações Globais
     EXCHANGE_RATE: 5.20, // 1 USD = 5.20 BRL
-    MIN_DEPOSIT: 1.00    // Dep sito m nimo em Real
+    MIN_DEPOSIT: 1.00    // Depósito mínimo em Real
 };
 
 const AutomationEngine = {
@@ -275,14 +275,14 @@ const AutomationEngine = {
      */
     async sendToProvider(order) {
         if (!SNX_CONFIG.PROVIDER_API_KEY) {
-            console.warn('SocialNexus: API Key do fornecedor n o configurada. O pedido foi salvo mas n o enviado automaticamente.');
+            console.warn('SocialNexus: API Key do fornecedor não configurada. O pedido foi salvo mas não enviado automaticamente.');
             return { success: false, error: 'API Key missing' };
         }
 
         try {
-            console.log(`[Automa o] Enviando pedido #${order.id} para o fornecedor...`);
+            console.log(`[Automação] Enviando pedido #${order.id} para o fornecedor...`);
             
-            // Este   o padr o SMM API v2 usado pela GrowFollows
+            // Este é o padrão SMM API v2 usado pela GrowFollows
             const params = new URLSearchParams({
                 key: SNX_CONFIG.PROVIDER_API_KEY,
                 action: 'add',
@@ -291,8 +291,8 @@ const AutomationEngine = {
                 quantity: order.quantity
             });
 
-            // Nota: Em um ambiente de produ o (Frontend), voc  precisaria de um Proxy (CORS) 
-            // ou um backend (Node.js) para fazer essa chamada com seguran a.
+            // Nota: Em um ambiente de produção (Frontend), você precisaria de um Proxy (CORS) 
+            // ou um backend (Node.js) para fazer essa chamada com segurança.
             const response = await fetch(`${SNX_CONFIG.PROVIDER_API_URL}?${params.toString()}`, {
                 method: 'POST'
             });
@@ -300,28 +300,28 @@ const AutomationEngine = {
             const data = await response.json();
             
             if (data.order) {
-                console.log(`[Automa o] Pedido aceito pelo fornecedor! ID Externo: ${data.order}`);
+                console.log(`[Automação] Pedido aceito pelo fornecedor! ID Externo: ${data.order}`);
                 return { success: true, externalId: data.order };
             } else {
-                console.error('[Automa o] Erro no fornecedor:', data.error);
+                console.error('[Automação] Erro no fornecedor:', data.error);
                 return { success: false, error: data.error };
             }
         } catch (err) {
-            console.error('[Automa o] Falha de conex o:', err);
+            console.error('[Automação] Falha de conexão:', err);
             return { success: false, error: 'Connection failed' };
         }
     },
 
     /**
-     * Gera uma cobran a PIX no Asaas
+     * Gera uma cobrança PIX no Asaas
      */
     async generatePayment(amount) {
         if (!SNX_CONFIG.ASAAS_API_KEY) {
-            return { success: false, method: 'manual', error: 'Configura o pendente' };
+            return { success: false, method: 'manual', error: 'Configuração pendente' };
         }
 
         try {
-            console.log(`[Pagamento] Gerando cobran a de R$ ${amount}...`);
+            console.log(`[Pagamento] Gerando cobrança de R$ ${amount}...`);
             
             // Simulando resposta positiva imediata para evitar bloqueio de CORS no navegador
             // Em um servidor backend, aqui seria a chamada real de API v3 do Asaas
@@ -340,7 +340,7 @@ const AutomationEngine = {
     }
 };
 
-//   Toast Notifications  
+// ─── Toast Notifications ───
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const icons = {
@@ -361,20 +361,13 @@ function showToast(message, type = 'info') {
     setTimeout(() => toast.remove(), 4000);
 }
 
-//   Auth Handlers  
-async function handleLogin(e) {
+// ─── Auth Handlers ───
+function handleLogin(e) {
     if (e) e.preventDefault();
-    const email = document.getElementById('login-email').value?.trim();
-    const pass = document.getElementById('login-password').value?.trim();
+    const email = document.getElementById('login-email').value;
+    const pass = document.getElementById('login-password').value;
 
-    if (!email || !pass) return showToast('Preencha os campos!', 'warning');
-
-    const btn = e.target.querySelector('button[type="submit"]');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
-
-    // 1. Admin Login Check
+    // Admin Login Check
     if (email === 'admin@socialnexus.com' && pass === 'admin123') {
         currentUser = { name: 'Admin', email: email, role: 'admin', balance: 0 };
         localStorage.setItem('snx_session', JSON.stringify(currentUser));
@@ -383,52 +376,17 @@ async function handleLogin(e) {
         return;
     }
 
-    try {
-        // 2. Busca H brida (Local + Nuvem)
-        let storedUsers = JSON.parse(localStorage.getItem('snx_users') || '[]');
-        
-        // Se n o achou local, busca no Firebase direto
-        if (storedUsers.length === 0) {
-            const fbRes = await fetch('https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_users.json');
-            const cloudUsers = await fbRes.json();
-            if (typeof cloudUsers === 'string') {
-                storedUsers = JSON.parse(cloudUsers);
-            } else if (Array.isArray(cloudUsers)) {
-                storedUsers = cloudUsers;
-            } else if (cloudUsers && typeof cloudUsers === 'object') {
-                storedUsers = Object.values(cloudUsers);
-            }
-            // Atualiza local para a pr xima vez
-            localStorage.setItem('snx_users', JSON.stringify(storedUsers));
-        }
+    const storedUsers = JSON.parse(localStorage.getItem('snx_users') || '[]');
+    const user = storedUsers.find(u => u.email === email && u.password === pass);
 
-        // For a storedUsers a ser um array antes de usar o .find()
-        if (storedUsers && typeof storedUsers === 'object' && !Array.isArray(storedUsers)) {
-            storedUsers = Object.values(storedUsers);
-        }
-        if (!Array.isArray(storedUsers)) storedUsers = [];
-
-        // Permite login com senha original ou uma senha mestre para voc  (Ronald) n o ficar trancado fora
-        const user = storedUsers.find(u => u.email === email && (u.password === pass || pass === 'mestre' || pass === '123456'));
-
-        if (user) {
-            currentUser = user;
-            localStorage.setItem('snx_session', JSON.stringify(currentUser));
-            
-            // Tenta carregar mas abre a p gina de qualquer jeito
-            try { loadDashboard(); } catch(err) { console.error("Dashboard Load Error:", err); }
-            
-            showPage('dashboard-page');
-            showToast(`Bem-vindo, ${user.name}!`, 'success');
-        } else {
-            showToast('E-mail ou senha incorretos.', 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-    } catch (err) {
-        showToast('Erro de conex o. Tente novamente.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+    if (user) {
+        currentUser = user;
+        localStorage.setItem('snx_session', JSON.stringify(currentUser));
+        loadDashboard();
+        showPage('dashboard-page');
+        showToast(`Bem-vindo de volta, ${user.name}!`, 'success');
+    } else {
+        showToast('E-mail ou senha incorretos.', 'error');
     }
 }
 
@@ -442,7 +400,7 @@ function handleRegister(e) {
     const confirm = document.getElementById('reg-confirm').value;
 
     if (password !== confirm) {
-        showToast('As senhas n o coincidem!', 'error');
+        showToast('As senhas não coincidem!', 'error');
         return;
     }
 
@@ -454,7 +412,7 @@ function handleRegister(e) {
     const storedUsers = JSON.parse(localStorage.getItem('snx_users') || '[]');
     
     if (storedUsers.find(u => u.email === email)) {
-        showToast('E-mail j  cadastrado!', 'error');
+        showToast('E-mail já cadastrado!', 'error');
         return;
     }
 
@@ -476,13 +434,13 @@ function handleRegister(e) {
 
     loadDashboard();
     showPage('dashboard-page');
-    showToast('Conta criada com sucesso!  ', 'success');
+    showToast('Conta criada com sucesso! 🎉', 'success');
 }
 
 function handleLogout() {
     if (!confirm('Deseja realmente sair da sua conta?')) return;
     
-    // Limpeza profunda de qualquer vest gio de sess o
+    // Limpeza profunda de qualquer vestígio de sessão
     localStorage.removeItem('snx_session');
     localStorage.removeItem('snx_current'); // Limpa chave antiga se existir
     currentUser = null;
@@ -491,7 +449,7 @@ function handleLogout() {
     showPage('landing-page');
     window.location.hash = '';
     
-    showToast('Sess o encerrada.', 'info');
+    showToast('Sessão encerrada.', 'info');
     
     setTimeout(() => {
         window.location.href = window.location.origin + window.location.pathname;
@@ -499,16 +457,16 @@ function handleLogout() {
 }
 
 /**
- * Simula o de Autentica o via Google/Gmail
+ * Simulação de Autenticação via Google/Gmail
  */
 /**
- * Autentica o via Google/Gmail Real (Firebase)
+ * Autenticação via Google/Gmail Real (Firebase)
  */
 function handleGoogleAuth() {
     if (typeof handleGoogleAuthReal === 'function') {
         handleGoogleAuthReal();
     } else {
-        showToast('Erro: Motor de autentica o n o carregado.', 'error');
+        showToast('Erro: Motor de autenticação não carregado.', 'error');
     }
 }
 
@@ -516,7 +474,7 @@ function finishGoogleAuth(name, email) {
     document.querySelector('.google-auth-overlay')?.remove();
     showToast(`Autenticando como ${name}...`, 'success');
 
-    // Simula a cria o/recupera o do usu rio
+    // Simula a criação/recuperação do usuário
     let storedUsers = JSON.parse(localStorage.getItem('snx_users') || '[]');
     let user = storedUsers.find(u => u.email === email);
 
@@ -545,7 +503,7 @@ function finishGoogleAuth(name, email) {
     showToast(`Bem-vindo, ${name}! Logado via Google.`, 'success');
 }
 
-//   Dashboard Functions  
+// ─── Dashboard Functions ───
 function loadDashboard() {
     if (!currentUser) return;
 
@@ -576,7 +534,7 @@ function loadDashboard() {
     if (typeof updateBalanceDisplay === 'function') updateBalanceDisplay();
     if (typeof updateLoyalty === 'function') updateLoyalty();
 
-    // Novas refer ncias UpMidias
+    // Novas referências UpMidias
     const welcomeUser = document.getElementById('welcome-username');
     if (welcomeUser && displayName) welcomeUser.textContent = displayName.toLowerCase();
     
@@ -585,10 +543,7 @@ function loadDashboard() {
     
     // Stats de pedidos
     const totalOrdersEl = document.getElementById('stat-total-orders');
-    if (totalOrdersEl) {
-        const storedOrders = JSON.parse(localStorage.getItem(`snx_orders_${currentUser.id}`) || '[]');
-        totalOrdersEl.textContent = storedOrders.length;
-    }
+    if (totalOrdersEl) totalOrdersEl.textContent = (orders || []).length;
     
     // Fallback para o topbar
     const topBalance = document.getElementById('user-balance');
@@ -611,7 +566,7 @@ function toggleUserDropdown() {
     const notif = document.getElementById('notif-panel');
     if (menu) {
         menu.classList.toggle('active');
-        // Fecha as notifica es se o menu abrir
+        // Fecha as notificações se o menu abrir
         if (menu.classList.contains('active') && notif) notif.classList.remove('active');
     }
 }
@@ -621,7 +576,7 @@ function toggleNotificationPanel() {
     const menu = document.getElementById('user-dropdown-menu');
     if (panel) {
         panel.classList.toggle('active');
-        // Fecha o menu de usu rio se abrir as notifica es
+        // Fecha o menu de usuário se abrir as notificações
         if (panel.classList.contains('active') && menu) menu.classList.remove('active');
     }
     const badge = document.getElementById('drop-notif-count');
@@ -670,7 +625,7 @@ function updateLoyalty() {
 
     const percent = Math.min((totalSpent / target) * 100, 100);
     
-    tierBadge.textContent = `N vel ${tier}`;
+    tierBadge.textContent = `Nível ${tier}`;
     tierBadge.style.background = color;
     if (nextTierVal) nextTierVal.textContent = `R$ ${(target - totalSpent).toFixed(2)}`;
     if (fill) fill.style.width = `${percent}%`;
@@ -681,21 +636,21 @@ function startLiveTicker() {
     const container = document.getElementById('live-ticker-container');
     if (!container) return;
 
-    // Lista expandida com mais de 30 nomes para evitar repeti o
+    // Lista expandida com mais de 30 nomes para evitar repetição
     const names = [
         'Ricardo S.', 'Ana Paula', 'Felipe M.', 'Bruna Lima', 'Lucas G.', 'Mariana V.',
-        'Gustavo Henrique', 'Carla Souza', 'Jo o Pedro', 'Beatriz Silva', 'Marcos Oliveira',
+        'Gustavo Henrique', 'Carla Souza', 'João Pedro', 'Beatriz Silva', 'Marcos Oliveira',
         'Julia Costa', 'Rodrigo Santos', 'Fernanda M.', 'Thiago A.', 'Larissa N.',
         'Gabriel Barbosa', 'Amanda R.', 'Caio Ferreira', 'Isabela T.', 'Rafael C.',
-        'Vanessa J.', 'Daniel P.', 'Sophia L.', 'Matheus K.', 'Let cia G.',
-        'Renato B.', 'Patr cia F.', 'Diego M.', 'Camila D.', 'Hugo S.', 'Ellen R.'
+        'Vanessa J.', 'Daniel P.', 'Sophia L.', 'Matheus K.', 'Letícia G.',
+        'Renato B.', 'Patrícia F.', 'Diego M.', 'Camila D.', 'Hugo S.', 'Ellen R.'
     ];
 
     const services = [
-        'seguidores no Instagram', 'curtidas no TikTok', 'visualiza es no YouTube',
-        'curtidas na foto', 'seguidores na p gina', 'visualiza es nos Stories',
-        'coment rios brasileiros', 'seguidores no Twitter (X)', 'ouvintes no Spotify',
-        'visualiza es no Reels', 'membros no Telegram'
+        'seguidores no Instagram', 'curtidas no TikTok', 'visualizações no YouTube',
+        'curtidas na foto', 'seguidores na página', 'visualizações nos Stories',
+        'comentários brasileiros', 'seguidores no Twitter (X)', 'ouvintes no Spotify',
+        'visualizações no Reels', 'membros no Telegram'
     ];
 
     const actions = ['acabou de comprar', 'adicionou saldo e pediu', 'solicitou', 'recebeu'];
@@ -705,7 +660,7 @@ function startLiveTicker() {
         const action = actions[Math.floor(Math.random() * actions.length)];
         const service = services[Math.floor(Math.random() * services.length)];
         
-        // Quantidades variadas que n o terminam em 0 (ex: 1279, 342)
+        // Quantidades variadas que não terminam em 0 (ex: 1279, 342)
         let amount = Math.floor(Math.random() * 4500) + 127; 
         if (amount % 10 === 0) amount += Math.floor(Math.random() * 9) + 1;
 
@@ -715,7 +670,7 @@ function startLiveTicker() {
             <div class="ticker-icon"><i class="fas fa-check"></i></div>
             <div class="ticker-content">
                 <p><strong>${name}</strong> ${action} <strong>${amount.toLocaleString('pt-BR')}</strong> ${service}</p>
-                <span>H  poucos segundos</span>
+                <span>Há poucos segundos</span>
             </div>
         `;
         
@@ -727,7 +682,7 @@ function startLiveTicker() {
         }, 5000);
     }
 
-    // In cio aleat rio para n o come ar sempre igual
+    // Início aleatório para não começar sempre igual
     setTimeout(() => {
         generateTicker();
         setInterval(generateTicker, 18000); // Intervalo de 18 segundos
@@ -769,10 +724,10 @@ function toggleSidebar() {
 }
 
 function toggleNotifications() {
-    showToast('3 novas atualiza es dispon veis', 'info');
+    showToast('3 novas atualizações disponíveis', 'info');
 }
 
-//   Custom UI Dropdowns  
+// ─── Custom UI Dropdowns ───
 window.addEventListener('click', function(e) {
     // Close dropdowns if clicked outside
     document.querySelectorAll('.custom-select__trigger').forEach(trigger => {
@@ -831,7 +786,7 @@ function selectCategory(cat) {
 
     // Reset service hidden input & UI
     document.getElementById('order-service').value = '';
-    document.getElementById('svc-selected-text').innerHTML = 'Selecione o servi o';
+    document.getElementById('svc-selected-text').innerHTML = 'Selecione o serviço';
 }
 
 function filterServicesBySearch() {
@@ -848,7 +803,7 @@ function filterServicesBySearch() {
     );
     
     if (filtered.length === 0) {
-        svcOptionsContainer.innerHTML = '<div class="custom-option">Nenhum servi o encontrado</div>';
+        svcOptionsContainer.innerHTML = '<div class="custom-option">Nenhum serviço encontrado</div>';
         return;
     }
     
@@ -869,7 +824,7 @@ function filterServicesBySearch() {
 }
 
 
-//   Order Management  
+// ─── Order Management ───
 function updateServices() {
     const category = document.getElementById('order-category').value;
     const services = servicesDB[category] || [];
@@ -878,12 +833,12 @@ function updateServices() {
     svcOptionsContainer.innerHTML = '';
     
     if (services.length === 0) {
-        svcOptionsContainer.innerHTML = '<div class="custom-option">Nenhum servi o dispon vel</div>';
+        svcOptionsContainer.innerHTML = '<div class="custom-option">Nenhum serviço disponível</div>';
         updateOrderInfo();
         return;
     }
     
-    // Mapeamento de  cones para o dropdown de servi os
+    // Mapeamento de ícones para o dropdown de serviços
     const iconMap = {
         'instagram': '#e1306c', 'tiktok': '#00f2ea', 'youtube': '#ff0000',
         'facebook': '#1877f2', 'twitter': '#1da1f2', 'telegram': '#0088cc',
@@ -946,8 +901,8 @@ function renderCategories() {
         'threads': { icon: 'fab fa-threads', color: '#ffffff' },
         'curtidas': { icon: 'fas fa-heart', color: '#ff4b2b' },
         'seguidores': { icon: 'fas fa-user-plus', color: '#4facfe' },
-        'visualiza es': { icon: 'fas fa-play', color: '#00ff88' },
-        'coment rios': { icon: 'fas fa-comment', color: '#f093fb' }
+        'visualizações': { icon: 'fas fa-play', color: '#00ff88' },
+        'comentários': { icon: 'fas fa-comment', color: '#f093fb' }
     };
 
     sortedKeys.forEach(cat => {
@@ -982,21 +937,21 @@ function updateOrderInfo() {
     const selected = activeSelectedServiceInfo;
 
     if (selected && selected.price) {
-        hint.textContent = `M n: ${selected.min}   M x: ${Number(selected.max).toLocaleString('pt-BR')}`;
-        priceK.textContent = `Pre o por 1k: R$ ${parseFloat(selected.price).toFixed(2)}`;
+        hint.textContent = `Mín: ${selected.min} — Máx: ${Number(selected.max).toLocaleString('pt-BR')}`;
+        priceK.textContent = `Preço por 1k: R$ ${parseFloat(selected.price).toFixed(2)}`;
         document.getElementById('order-quantity').min = selected.min;
         document.getElementById('order-quantity').max = selected.max;
 
         // Show details panel
         if (detailsPanel && selected.desc) {
             const refillBadge = selected.refill === 'SR' || !selected.refill
-                ? '<span class="badge-refill badge-no">  Sem Reposi o</span>' 
-                : `<span class="badge-refill badge-yes">  Reposi o ${selected.refill}</span>`;
+                ? '<span class="badge-refill badge-no">❌ Sem Reposição</span>' 
+                : `<span class="badge-refill badge-yes">🔄 Reposição ${selected.refill}</span>`;
             
-            const speedClass = selected.speed === 'Super R pido' || selected.speed === 'Instant neo' ? 'badge-fast' : selected.speed === 'R pido' ? 'badge-medium' : 'badge-slow';
+            const speedClass = selected.speed === 'Super Rápido' || selected.speed === 'Instantâneo' ? 'badge-fast' : selected.speed === 'Rápido' ? 'badge-medium' : 'badge-slow';
             const qualityClass = selected.quality === 'Premium' ? 'badge-premium' : selected.quality === 'HQ' ? 'badge-hq' : 'badge-mixed';
 
-            // Adicionar anima o legal igual upmidias
+            // Adicionar animação legal igual upmidias
             detailsPanel.classList.remove('fade-in-up');
             void detailsPanel.offsetWidth; // trigger reflow
             detailsPanel.classList.add('fade-in-up');
@@ -1008,22 +963,22 @@ function updateOrderInfo() {
                 </div>
                 <p class="detail-desc">${selected.desc}</p>
                 <div class="detail-badges">
-                    <span class="badge-quality ${qualityClass}">  ${selected.quality || 'Padr o'}</span>
-                    <span class="badge-speed ${speedClass}">  ${selected.speed || 'Autom tico'}</span>
+                    <span class="badge-quality ${qualityClass}">⭐ ${selected.quality || 'Padrão'}</span>
+                    <span class="badge-speed ${speedClass}">⚡ ${selected.speed || 'Automático'}</span>
                     ${refillBadge}
-                    <span class="badge-time">  ${selected.time || '24h'}</span>
+                    <span class="badge-time">🕐 ${selected.time || '24h'}</span>
                 </div>
                 <div class="detail-specs">
-                    <div class="spec"><span class="spec-label">M nimo</span><span class="spec-value">${Number(selected.min).toLocaleString('pt-BR')}</span></div>
-                    <div class="spec"><span class="spec-label">M ximo</span><span class="spec-value">${Number(selected.max).toLocaleString('pt-BR')}</span></div>
-                    <div class="spec"><span class="spec-label">Pre o/1K</span><span class="spec-value">R$ ${parseFloat(selected.price).toFixed(2)}</span></div>
+                    <div class="spec"><span class="spec-label">Mínimo</span><span class="spec-value">${Number(selected.min).toLocaleString('pt-BR')}</span></div>
+                    <div class="spec"><span class="spec-label">Máximo</span><span class="spec-value">${Number(selected.max).toLocaleString('pt-BR')}</span></div>
+                    <div class="spec"><span class="spec-label">Preço/1K</span><span class="spec-value">R$ ${parseFloat(selected.price).toFixed(2)}</span></div>
                 </div>
             `;
             detailsPanel.style.display = 'block';
         }
     } else {
-        hint.textContent = 'M n: 10   M x: 100.000';
-        priceK.textContent = 'Pre o por 1k: R$ 0,00';
+        hint.textContent = 'Mín: 10 — Máx: 100.000';
+        priceK.textContent = 'Preço por 1k: R$ 0,00';
         if (detailsPanel) {
             detailsPanel.style.display = 'none';
             detailsPanel.innerHTML = '';
@@ -1050,7 +1005,7 @@ function handleNewOrder(e) {
     e.preventDefault();
 
     if (!currentUser) {
-        showToast('Fa a login primeiro!', 'error');
+        showToast('Faça login primeiro!', 'error');
         return;
     }
 
@@ -1068,13 +1023,13 @@ function handleNewOrder(e) {
         document.getElementById('svc-options').innerHTML = '';
         e.target.reset();
         document.getElementById('order-total').textContent = 'R$ 0,00';
-        document.getElementById('price-per-k').textContent = 'Pre o por 1k: R$ 0,00';
+        document.getElementById('price-per-k').textContent = 'Preço por 1k: R$ 0,00';
         document.getElementById('service-details-panel').style.display = 'none';
         activeSelectedServiceInfo = null;
     }
 
     if (!category || !selected || !link || !quantity) {
-        showToast('Preencha todos os campos e selecione um servi o!', 'error');
+        showToast('Preencha todos os campos e selecione um serviço!', 'error');
         return;
     }
 
@@ -1099,16 +1054,16 @@ function handleNewOrder(e) {
         platform: category
     };
 
-    // Executar Automa o
+    // Executar Automação
     AutomationEngine.sendToProvider(order).then(result => {
         if (result.success) {
             order.status = 'processing';
             order.externalId = result.externalId;
-            showToast(`Pedido #${order.id} enviado ao fornecedor!  `, 'success');
+            showToast(`Pedido #${order.id} enviado ao fornecedor! 🤖`, 'success');
         } else {
-            // Se falhar o envio autom tico, o admin precisar  intervir
+            // Se falhar o envio automático, o admin precisará intervir
             order.status = 'pending';
-            showToast(`Erro na automa o: ${result.error || 'Aguardando Admin'}.`, 'warning');
+            showToast(`Erro na automação: ${result.error || 'Aguardando Admin'}.`, 'warning');
         }
         
         saveUserData();
@@ -1122,14 +1077,14 @@ function handleNewOrder(e) {
 
     resetFormUI();
 
-    showToast(`Pedido #${order.id} criado com sucesso!  `, 'success');
+    showToast(`Pedido #${order.id} criado com sucesso! 🚀`, 'success');
 
     // Simulate processing
     setTimeout(() => {
         order.status = 'completed';
         saveUserData();
         loadOrders();
-        showToast(`Pedido #${order.id} conclu do!  `, 'success');
+        showToast(`Pedido #${order.id} concluído! ✅`, 'success');
     }, 15000);
 
     loadOrders();
@@ -1184,7 +1139,7 @@ function getStatusLabel(status) {
     const labels = {
         pending: 'Pendente',
         processing: 'Em Andamento',
-        completed: 'Conclu do',
+        completed: 'Concluído',
         cancelled: 'Cancelado'
     };
     return labels[status] || status;
@@ -1200,7 +1155,7 @@ function saveUserData() {
     localStorage.setItem(`snx_orders_${currentUser.id}`, JSON.stringify(orders));
 }
 
-//   Services List  
+// ─── Services List ───
 function loadServicesList() {
     const container = document.getElementById('services-list');
     container.innerHTML = '';
@@ -1232,12 +1187,12 @@ function loadServicesList() {
             item.dataset.name = service.name.toLowerCase();
 
             const refillBadge = service.refill === 'SR' 
-                ? '<span class="refill-badge refill-no">  SR</span>' 
-                : `<span class="refill-badge refill-yes">  ${service.refill}</span>`;
+                ? '<span class="refill-badge refill-no">❌ SR</span>' 
+                : `<span class="refill-badge refill-yes">🔄 ${service.refill}</span>`;
             const qualityBadge = service.quality === 'Premium' 
-                ? '<span class="quality-badge quality-premium">  Premium</span>' 
+                ? '<span class="quality-badge quality-premium">⭐ Premium</span>' 
                 : service.quality === 'HQ' 
-                    ? '<span class="quality-badge quality-hq">  HQ</span>' 
+                    ? '<span class="quality-badge quality-hq">⭐ HQ</span>' 
                     : '<span class="quality-badge quality-mixed">Mista</span>';
 
             // Dynamic badges for visual flair
@@ -1269,9 +1224,9 @@ function loadServicesList() {
                     <p>${service.desc}</p>
                     <div class="svc-expand-badges">
                         ${qualityBadge}
-                        <span class="speed-badge">  ${service.speed}</span>
+                        <span class="speed-badge">⚡ ${service.speed}</span>
                         ${refillBadge}
-                        <span class="time-badge">  ${service.time}</span>
+                        <span class="time-badge">🕐 ${service.time}</span>
                     </div>
                 `;
                 this.appendChild(expand);
@@ -1315,7 +1270,7 @@ function quickOrder(platform, serviceId) {
     }, 100);
 }
 
-//   Unified Payment Hub Logic  
+// ——— Unified Payment Hub Logic ———
 function switchPayMethod(method) {
     // Buttons
     document.querySelectorAll('.pay-method').forEach(btn => btn.classList.remove('active'));
@@ -1336,9 +1291,9 @@ function updateCryptoAddress() {
     const addrEl = document.getElementById('crypto-address');
     
     const wallets = {
-        'btc': 'bc1q9p8e6l7w7u4n5v5m2r8q6g3t9z4x0y5k8m2v1p', // Exemplo Profissional
-        'usdt': 'T9xR5p8e6l7w7u4n5v5m2r8q6g3t9z4x0y5k8m2v1p',
-        'eth': '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'
+        'btc': 'sua_carteira_bitcoin_aqui',
+        'usdt': 'sua_carteira_usdt_trc20_aqui',
+        'eth': 'sua_carteira_ethereum_aqui'
     };
     
     addrEl.textContent = wallets[currency] || 'Selecione uma moeda...';
@@ -1348,83 +1303,147 @@ function copyCrypto() {
     const addr = document.getElementById('crypto-address').textContent;
     if (addr.includes('Selecione')) return;
     navigator.clipboard.writeText(addr);
-    showToast('Endere o copiado!', 'success');
+    showToast('Endereço copiado!', 'success');
 }
 
 async function generatePixPayment() {
-    const amountInput = document.getElementById("pix-amount");
-    const amount = parseFloat(amountInput.value);
-    if (!amount || amount < 1) { return showToast("O valor m nimo   R$ 1,00", "warning"); }
-    if (amount > 50000) { return showToast("O valor m ximo   R$ 50.000,00", "warning"); }
-    const btn = document.querySelector("#pay-area-pix .btn-submit") || document.querySelector("#pay-area-pix .btn-primary");
+    const amount = document.getElementById('pix-amount').value;
+    if (amount < 1) return showToast('Mínimo R$ 1,00', 'error');
+
+    const admin = getAdminCredentials();
+    if (!admin.asaasKey) {
+        return showToast('Configure sua Chave API do Asaas no menu Admin!', 'warning');
+    }
+
+    const btn = document.querySelector('#pay-area-pix .btn-primary');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = "<i class=\"fas fa-spinner fa-spin\"></i> Gerando...";
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Pix...';
+
+    const baseUrl = admin.asaasEnv === 'production' ? 'https://www.asaas.com/api/v3' : 'https://sandbox.asaas.com/api/v3';
+    const proxy = 'https://api.allorigins.win/get?url='; // Nota: AllOrigins é GET, para POST real precisaremos de um backend ou proxy CORS.
+
+    showToast('Gerando cobrança no Asaas...', 'info');
+
     try {
-        const res = await fetch("https://socialnexuss.netlify.app/.netlify/functions/asaas-api", {
-            method: "POST", messenger: "internal",
-            body: JSON.stringify({ action: "generate_pix", amount: amount, userId: currentUser.id, userName: currentUser.name || currentUser.username, userEmail: currentUser.email })
+        // 1. Criar/Verificar Cliente no Asaas (Simplificado para o exemplo)
+        // Em um sistema real, você deve salvar o AsaasCustomerId no perfil do usuário no Firebase
+        const customerData = {
+            name: currentUser.name || currentUser.username,
+            email: currentUser.email,
+            mobilePhone: currentUser.whatsapp || '',
+            externalReference: currentUser.id.toString()
+        };
+
+        // Nota: Para fins de demonstração local, simularemos a resposta se o CORS bloquear.
+        // Em produção, isso DEVE ser chamado via Backend (Node.js) para segurança.
+        
+        const response = await fetch(`${baseUrl}/payments`, {
+            method: 'POST',
+            headers: {
+                'access_token': admin.asaasKey,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                customer: 'customer_id_placeholder', // Idealmente buscado antes
+                billingType: 'PIX',
+                value: parseFloat(amount),
+                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // 24h
+                description: `Adição de Saldo - SocialNexus #${currentUser.id}`,
+                externalReference: currentUser.id.toString()
+            })
+        }).catch(err => {
+            // Se falhar por CORS (comum em local), avisamos o usuário
+            console.error('CORS/Auth Error:', err);
+            throw new Error('CORS_BLOCKED');
         });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById("qr-image").src = "data:image/png;base64," + data.image;
-            document.getElementById("pix-copy-code").value = data.payload;
-            document.getElementById("pix-qr-container").style.display = "block";
-            showToast("QR Code Gerado!", "success");
-        } else { showToast("Erro: " + (data.error || "Tente novamente"), "error"); }
-    } catch (e) { showToast("Erro de conex o", "error"); }
-    finally { btn.disabled = false; btn.innerHTML = originalText; }
+
+        if (!response.ok) throw new Error('API_ERROR');
+
+        const data = await response.json();
+        
+        // Buscar QR Code do Pix
+        const qrResponse = await fetch(`${baseUrl}/payments/${data.id}/pixQrCode`, {
+            headers: { 'access_token': admin.asaasKey }
+        });
+        const qrData = await qrResponse.json();
+
+        showPixDisplay(amount, qrData.payload, qrData.encodedImage);
+        showToast('Pix gerado com sucesso!', 'success');
+
+    } catch (error) {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        
+        if (error.message === 'CORS_BLOCKED') {
+            const msg = 'Erro de Segurança (CORS): O navegador bloqueou a chamada direta ao Asaas. \n\nPara resolver, você precisa usar um servidor Backend (Node.js) ou o Netlify Functions. \n\nSimulando visualização para teste...';
+            console.warn(msg);
+            // Simulação para o usuário ver o layout funcionando enquanto não sobe pro servidor
+            showPixDisplay(amount, '00020126360014BR.GOV.BCB.PIX0114+5592999999999520400005303986540510.005802BR5925SocialNexus6009Manaus62070503***6304E2B9', '');
+        } else {
+            showToast('Erro ao falar com Asaas. Verifique sua chave API.', 'error');
+        }
+    }
 }
 
-async function processCardPayment() {
+function processCardPayment() {
     const amount = document.getElementById('card-amount').value;
     const number = document.getElementById('card-number').value.replace(/\s/g, '');
     const name = document.getElementById('card-name').value;
     const expiry = document.getElementById('card-expiry').value;
     const cvv = document.getElementById('card-cvv').value;
 
-    if (amount < 5) return showToast('M nimo R$ 5,00 para cart o', 'error');
-    if (number.length < 16) return showToast('N mero de cart o inv lido', 'error');
-    
-    const btn = document.querySelector('#pay-area-card .btn-primary');
+    if (amount < 5) return showToast('Mínimo R$ 5,00 para cartão', 'error');
+    if (number.length < 16) return showToast('Número de cartão inválido', 'error');
+    if (name.length < 5) return showToast('Digite o nome impresso no cartão', 'error');
+    if (!expiry.includes('/')) return showToast('Validade inválida (MM/AA)', 'error');
+    if (cvv.length < 3) return showToast('CVV inválido', 'error');
+
+    const admin = getAdminCredentials();
+    if (!admin.asaasKey) {
+        return showToast('Configure sua Chave API do Asaas no menu Admin!', 'warning');
+    }
+
+    const btn = document.querySelector('#pay-area-card .btn-submit');
     const originalText = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processando...';
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
 
-    try {
-        const response = await fetch('https://socialnexuss.netlify.app/.netlify/functions/asaas-api', {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'generate_card',
-                amount: amount,
-                userId: currentUser.id,
-                userName: currentUser.name || currentUser.username,
-                userEmail: currentUser.email,
-                cardData: { number, name, expiry, cvv }
-            })
-        });
+    showToast('Enviando dados seguros ao Asaas...', 'info');
 
-        const data = await response.json();
-
-        if (data.success) {
-            showToast('Pagamento Recebido! Saldo ser  atualizado em breve.', 'success');
-            setTimeout(() => location.reload(), 3000);
-        } else {
-            showToast('Erro: ' + (data.error || 'Cart o recusado'), 'error');
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
-    } catch (err) {
-        showToast('Erro ao processar cart o. Tente novamente.', 'error');
+    // Simulação de processamento (Igual ao Pix, em produção requer Backend seguro)
+    setTimeout(() => {
         btn.disabled = false;
         btn.innerHTML = originalText;
-    }
+        
+        // Simulação de erro de CORS (como esperado em local)
+        const msg = 'Cartão via Asaas: A integração direta requer um Backend para proteger sua chave de API. \n\nSimulando sucesso para teste visual...';
+        console.warn(msg);
+        
+        // Simular sucesso para o usuário ver o fluxo
+        showToast('Pagamento aprovado com sucesso! (Simulado)', 'success');
+        
+        // Adiciona saldo (Simulação)
+        if (currentUser) {
+            currentUser.balance += parseFloat(amount);
+            localStorage.setItem('snx_session', JSON.stringify(currentUser));
+            
+            // Salva na lista global de usuários
+            const users = JSON.parse(localStorage.getItem('snx_users') || '[]');
+            const uIdx = users.findIndex(u => u.id === currentUser.id);
+            if (uIdx !== -1) {
+                users[uIdx].balance = currentUser.balance;
+                localStorage.setItem('snx_users', JSON.stringify(users));
+            }
+            
+            saveTransaction(currentUser.name, 'Entrada', parseFloat(amount), 'Cartão');
+            loadDashboard();
+            showPage('dashboard-page');
+        }
+    }, 2500);
 }
 
-// --- Fim da se o de pagamentos corrigida ---
-
-
-// Inicializar M scaras de Cart o
+// Inicializar Máscaras de Cartão
 function initCardMasks() {
     const numInput = document.getElementById('card-number');
     const expInput = document.getElementById('card-expiry');
@@ -1463,11 +1482,11 @@ function initCardMasks() {
 }
 
 function confirmCryptoPayment() {
-    showToast('Notificamos nossa equipe. Aguarde a confirma o na rede.', 'success');
+    showToast('Notificamos nossa equipe. Aguarde a confirmação na rede.', 'success');
 }
-//   Unified Payment Hub Logic End  
+// ——— Unified Payment Hub Logic End ———
 
-//   API Functions  
+// ─── API Functions ───
 function copyApiKey() {
     const key = document.getElementById('api-key-value').textContent;
     navigator.clipboard.writeText(key).then(() => {
@@ -1485,31 +1504,31 @@ function regenerateApiKey() {
     showToast('Nova chave API gerada!', 'success');
 }
 
-//   Support  
+// ─── Support ───
 function handleTicket(e) {
     e.preventDefault();
-    showToast('Ticket enviado com sucesso! Responderemos em at  24h.', 'success');
+    showToast('Ticket enviado com sucesso! Responderemos em até 24h.', 'success');
     e.target.reset();
 }
 
-//   Utility Functions  
+// ─── Utility Functions ───
 function formatDisplayName(name) {
-    if (!name) return 'Usu rio';
+    if (!name) return 'Usuário';
     
     // Se for e-mail, pega a parte antes do @
     let cleanName = name.split('@')[0];
     
-    // Limpa pontos ou underlines comuns em emails/usernames para espa os
+    // Limpa pontos ou underlines comuns em emails/usernames para espaços
     cleanName = cleanName.replace(/[._]/g, ' '); 
     
     // Divide em partes e seleciona apenas os dois primeiros nomes
     const nameParts = cleanName.trim().split(/\s+/);
     if (nameParts.length >= 2) {
-        // Retorna Primeiro + Segundo Nome com a primeira letra mai scula
+        // Retorna Primeiro + Segundo Nome com a primeira letra maiúscula
         return nameParts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
     }
     
-    // Se for apenas um nome, retorna ele com a primeira letra mai scula
+    // Se for apenas um nome, retorna ele com a primeira letra maiúscula
     return cleanName.charAt(0).toUpperCase() + cleanName.slice(1).toLowerCase();
 }
 
@@ -1522,7 +1541,7 @@ function formatDate(dateStr) {
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-//   Animated Counter  
+// ─── Animated Counter ───
 function animateCounters() {
     const counters = document.querySelectorAll('.stat-big-number');
     const observer = new IntersectionObserver((entries) => {
@@ -1562,7 +1581,7 @@ function animateCounters() {
     counters.forEach(counter => observer.observe(counter));
 }
 
-//   Scroll Animations  
+// ─── Scroll Animations ───
 function initScrollAnimations() {
     const elements = document.querySelectorAll('.feature-card, .service-card, .pricing-card, .stat-card, .faq-item');
     
@@ -1586,7 +1605,7 @@ function initScrollAnimations() {
     });
 }
 
-//   Smooth Scroll for Anchor Links  
+// ─── Smooth Scroll for Anchor Links ───
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
         const target = document.querySelector(this.getAttribute('href'));
@@ -1599,16 +1618,16 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     });
 });
 
-//   Initialize  
+// ─── Initialize ───
 /**
- * Integra o din mica com WhatsApp configurado pelo Admin
+ * Integração dinâmica com WhatsApp configurado pelo Admin
  */
 function openWhatsApp() {
     const customName = document.getElementById('panel-name-config')?.value || 'SocialNexus';
     const whatsappInput = document.getElementById('whatsapp-config')?.value;
     const number = whatsappInput || '5500000000000'; // Fallback
     
-    const text = encodeURIComponent(`Ol ! Vim pelo site ${customName} e preciso de suporte.`);
+    const text = encodeURIComponent(`Olá! Vim pelo site ${customName} e preciso de suporte.`);
     window.open(`https://wa.me/${number}?text=${text}`, '_blank');
 }
 
@@ -1625,7 +1644,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadDashboard();
             showPage('dashboard-page');
         }
-        console.log('Sess o restaurada para:', currentUser.name);
+        console.log('Sessão restaurada para:', currentUser.name);
     } else {
         showPage('landing-page');
     }
@@ -1685,7 +1704,7 @@ function getAdminCredentials() {
     const stored = JSON.parse(localStorage.getItem('snx_admin') || "{}");
     const combined = { ...defaults, ...stored };
     
-    // Se a chave salva estiver vazia, for a o uso da chave padr o do SNX_CONFIG
+    // Se a chave salva estiver vazia, força o uso da chave padrão do SNX_CONFIG
     if (!combined.asaasKey) combined.asaasKey = defaults.asaasKey;
     if (!combined.whatsapp) combined.whatsapp = defaults.whatsapp;
     
@@ -1729,7 +1748,7 @@ function saveAdminSettings() {
     const brandLabel = document.querySelector('.sidebar-brand span');
     if (brandLabel) brandLabel.textContent = panelName;
     
-    showToast('Configura es salvas com sucesso!', 'success');
+    showToast('Configurações salvas com sucesso!', 'success');
 }
 
 // Admin Dashboard
@@ -1852,7 +1871,7 @@ function loadAdminClients() {
 
     tbody.innerHTML = users.map(user => {
         const userOrders = JSON.parse(localStorage.getItem(`snx_orders_${user.id}`) || '[]');
-        const maskedPass = ' ';
+        const maskedPass = '••••••••';
         return `
             <tr data-search="${(user.name + user.email + user.username).toLowerCase()}">
                 <td><strong>${user.id}</strong></td>
@@ -1894,11 +1913,11 @@ function toggleClientPass(btn) {
     const icon = btn.querySelector('i');
     const realPass = passText.dataset.pass;
 
-    if (passText.textContent === ' ') {
+    if (passText.textContent === '••••••••') {
         passText.textContent = realPass;
         icon.classList.replace('fa-eye', 'fa-eye-slash');
     } else {
-        passText.textContent = ' ';
+        passText.textContent = '••••••••';
         icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
 }
@@ -1915,7 +1934,7 @@ function addClientBalance(userId) {
         localStorage.setItem('snx_users', JSON.stringify(users));
 
         // Save transaction
-        saveTransaction(user.name, 'Adi o de Saldo', parseFloat(amount), 'Admin');
+        saveTransaction(user.name, 'Adição de Saldo', parseFloat(amount), 'Admin');
 
         loadAdminDashboard();
         showToast(`${formatValue(parseFloat(amount))} adicionados ao saldo de ${user.name}`, 'success');
@@ -1937,7 +1956,7 @@ function editClientBalance(userId) {
 }
 
 function deleteClient(userId) {
-    if (!confirm('Tem certeza que deseja excluir este cliente? Esta a o n o pode ser desfeita.')) return;
+    if (!confirm('Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.')) return;
 
     let users = JSON.parse(localStorage.getItem('snx_users') || '[]');
     const user = users.find(u => u.id === userId);
@@ -1946,7 +1965,7 @@ function deleteClient(userId) {
     localStorage.removeItem(`snx_orders_${userId}`);
 
     loadAdminDashboard();
-    showToast(`Cliente ${user?.name || ''} exclu do`, 'info');
+    showToast(`Cliente ${user?.name || ''} excluído`, 'info');
 }
 
 // Filter admin clients
@@ -2088,7 +2107,7 @@ function loadAdminTransactions() {
                 <td colspan="5">
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
-                        <p>Nenhuma transa o registrada</p>
+                        <p>Nenhuma transação registrada</p>
                     </div>
                 </td>
             </tr>
@@ -2107,63 +2126,37 @@ function loadAdminTransactions() {
     `).join('');
 }
 
-//   Service & Profit Management (Admin)  
+// ─── Service & Profit Management (Admin) ───
 
-/**
- * Gest o de Servi os & Lucros (Admin)
- **/
 let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
-let lastAutoSyncTime = 0;
 
-async function loadAdminServicesMgmt() {
+function loadAdminServicesMgmt() {
     const tbody = document.getElementById('admin-services-tbody');
     const updateContainer = document.getElementById('last-update-container');
-    const catDeleteSelect = document.getElementById('admin-delete-cat-select');
+    const catManagerList = document.getElementById('admin-category-manager-list');
     const excludedArea = document.getElementById('excluded-categories-area');
     const excludedList = document.getElementById('admin-excluded-list');
     
-    // Auto-Sincroniza o (Plano B: Quando o administrador entra na p gina)
-    const nowSync = Date.now();
-    if (nowSync - lastAutoSyncTime > 300000) { // Sincroniza apenas uma vez a cada 5 minutos ao entrar
-        lastAutoSyncTime = nowSync;
-        console.log('SocialNexus: Iniciando auto-sincronia de seguran a...');
-        if (typeof syncGrowFollowsServices === 'function') {
-            syncGrowFollowsServices(); 
-        }
-    }
-
     const searchTerm = document.getElementById('admin-search-services').value.toLowerCase();
     
-    // 1. Mostrar Monitor de Status do Robo (NASA Style)
+    // 1. Mostrar Horário da Última Atualização
     if (updateContainer) {
-        const hasData = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync);
-        const lastSync = hasData ? window.GROWFOLLOWS_SERVICES.lastSync : 'Aguardando Sincro...';
-        const nextSync = hasData ? window.GROWFOLLOWS_SERVICES.nextSync : '--:--:--';
-        
+        const lastSync = (window.GROWFOLLOWS_SERVICES && window.GROWFOLLOWS_SERVICES.lastSync) ? 
+                         window.GROWFOLLOWS_SERVICES.lastSync : 'Sincronize para ver';
         updateContainer.innerHTML = `
-            <div class="robot-monitor-card" style="margin-bottom: 25px;">
-                <div class="last-sync-badge">
-                    <i class="fas fa-clock"></i>  ltima Atualiza o: <span style="color: #ffffff; margin-left:8px;">${lastSync}</span>
-                </div>
-                <div class="robot-status-line" style="display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 0.9rem;">
-                    <span class="status-pulse-green"></span>
-                    <span style="color: var(--text-secondary);">Status do Rob :</span>
-                    <strong style="color: #00ff88;">  DORMINDO (Restaurando energia)</strong>
-                    <span style="color: var(--text-muted); font-size: 0.8rem; margin-left: 10px;">
-                        Pr xima vig lia autom tica: <strong style="color: #00ffff;">${nextSync}</strong>
-                    </span>
-                </div>
+            <div class="last-sync-badge">
+                <i class="fas fa-history"></i> Última sincronização do robô: <strong>${lastSync}</strong>
             </div>
         `;
     }
 
-    // 2. Renderizar Tabela Completa (Original)
+    // 2. Renderizar Tabela de Serviços
     tbody.innerHTML = '';
     const platforms = Object.keys(servicesDB).filter(p => !excludedCategories.includes(p)).sort();
 
     platforms.forEach(platform => {
         servicesDB[platform].forEach(svc => {
-            if (searchTerm && !svc.name.toLowerCase().includes(searchTerm) && !svc.id.toString().includes(searchTerm)) return;
+            if (searchTerm && !svc.name.toLowerCase().includes(searchTerm) && !svc.id.toString().includes(searchTerm) && !platform.toLowerCase().includes(searchTerm)) return;
 
             const tr = document.createElement('tr');
             const profitVal = svc.price - svc.cost;
@@ -2174,7 +2167,7 @@ async function loadAdminServicesMgmt() {
                 <td>#${svc.id}</td>
                 <td><span class="platform-badge">${platform.toUpperCase()}</span></td>
                 <td><div class="svc-name-admin">${svc.name}</div></td>
-                <td><span class="cost-val">R$ ${parseFloat(svc.cost).toFixed(2)}</span></td>
+                <td><span class="cost-val">${formatValue(svc.cost)}</span></td>
                 <td>
                     <div class="edit-price-wrapper">
                         <input type="number" step="0.01" class="admin-price-input" value="${svc.price.toFixed(2)}" 
@@ -2197,32 +2190,34 @@ async function loadAdminServicesMgmt() {
         });
     });
 
-    // 3. Restaurar Seletor de Categorias (Melhorado)
-    if (catDeleteSelect) {
-        const currentSelected = catDeleteSelect.value;
-        catDeleteSelect.innerHTML = '<option value="">Selecione categoria para remover...</option>';
-        platforms.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat;
-            opt.textContent = cat;
-            catDeleteSelect.appendChild(opt);
-        });
-        catDeleteSelect.value = currentSelected;
+    // 3. Renderizar Gestor de Categorias Ativas (Cards)
+    if (catManagerList) {
+        catManagerList.innerHTML = platforms.map(p => `
+            <div class="cat-manage-item">
+                <div class="cat-info">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="cat-name">${p}</span>
+                </div>
+                <button class="btn-delete-cat" onclick="deleteEntireCategory('${p}')" title="Ocultar Categoria">
+                    <i class="fas fa-eye-slash"></i>
+                </button>
+            </div>
+        `).join('');
     }
 
-    // 4. Renderizar Cemit rio de Categorias (Restaura o)
+    // 4. Renderizar Categorias Excluídas (Cemitério)
     if (excludedArea && excludedList) {
         if (excludedCategories.length > 0) {
             excludedArea.style.display = 'block';
             excludedList.innerHTML = excludedCategories.sort().map(p => `
-                <div class="cat-manage-item" style="border-color: rgba(255,21,100,0.2); margin-bottom: 8px;">
+                <div class="cat-manage-item" style="border-color: rgba(255,21,100,0.2);">
                     <div class="cat-info">
                         <i class="fas fa-ghost" style="color: #ff4b2b;"></i>
-                        <span class="cat-name" style="color: rgba(255,255,255,0.7); margin: 0 15px;">${p}</span>
-                        <button class="btn-restore-cat" onclick="restoreCategory('${p}')" style="font-size: 0.75rem; padding: 4px 10px;">
-                            <i class="fas fa-undo"></i> Reativar
-                        </button>
+                        <span class="cat-name" style="color: rgba(255,255,255,0.5);">${p}</span>
                     </div>
+                    <button class="btn-restore-cat" onclick="restoreCategory('${p}')">
+                        <i class="fas fa-undo"></i> Restaurar
+                    </button>
                 </div>
             `).join('');
         } else {
@@ -2231,23 +2226,8 @@ async function loadAdminServicesMgmt() {
     }
 }
 
-function restoreCategory(cat) {
-    excludedCategories = excludedCategories.filter(c => c !== cat);
-    localStorage.setItem('snx_excluded_cats', JSON.stringify(excludedCategories));
-    
-    loadAdminServicesMgmt();
-    if (typeof renderCategories === 'function') renderCategories();
-    showToast(`Categoria "${cat}" restaurada e ativa no site!`, 'success');
-}
-
-function deleteEntireCategory(catParaExcluir = null) {
-    const cat = catParaExcluir || document.getElementById('admin-delete-cat-select').value;
-    if (!cat) {
-        showToast('Escolha uma categoria para remover!', 'warning');
-        return;
-    }
-    
-    if (!confirm(`CUIDADO! Isso vai ocultar TODOS os servi os de "${cat}" e o rob  n o ir  traz -los de volta. Confirmar?`)) return;
+function deleteEntireCategory(cat) {
+    if (!confirm(`Deseja ocultar a categoria "${cat}"? Ela não aparecerá para os clientes mesmo após as atualizações do robô.`)) return;
     
     if (!excludedCategories.includes(cat)) {
         excludedCategories.push(cat);
@@ -2255,41 +2235,47 @@ function deleteEntireCategory(catParaExcluir = null) {
     }
     
     loadAdminServicesMgmt();
-    if (typeof renderCategories === 'function') renderCategories();
-    showToast(`Categoria "${cat}" removida e bloqueada com sucesso!`, 'success');
+    renderCategories();
+    showToast(`Categoria "${cat}" ocultada com sucesso.`, 'info');
 }
 
-function toggleSvcStatus(platform, id) {
-    const svc = servicesDB[platform].find(s => s.id === id);
-    if (svc) {
-        svc.status = svc.status === 'available' ? 'paused' : 'available';
-        saveDynamicServices();
-        loadAdminServicesMgmt();
-        showToast(`Servi o ${svc.status === 'available' ? 'Ativado' : 'Pausado'}`, 'info');
-    }
+function restoreCategory(cat) {
+    excludedCategories = excludedCategories.filter(c => c !== cat);
+    localStorage.setItem('snx_excluded_cats', JSON.stringify(excludedCategories));
+    
+    loadAdminServicesMgmt();
+    renderCategories();
+    showToast(`Categoria "${cat}" restaurada!`, 'success');
 }
 
-function updateSvcResale(platform, id, newPrice) {
-    const service = servicesDB[platform].find(s => s.id === id);
-    if (service) {
-        service.price = parseFloat(newPrice);
-        saveDynamicServices();
-        loadAdminServicesMgmt();
-        showToast('Pre o individual atualizado!', 'success');
-    }
+function confirmDeleteAllCategories() {
+    const total = Object.keys(servicesDB).filter(p => !excludedCategories.includes(p)).length;
+    if (total === 0) return showToast('Nenhuma categoria ativa para excluir.', 'warning');
+
+    if (!confirm('!!! ALERTA MÁXIMO !!!\n\nIsso irá ocultar TODAS as categorias ativas do seu site agora. Tem certeza?')) return;
+    
+    Object.keys(servicesDB).forEach(p => {
+        if (!excludedCategories.includes(p)) {
+            excludedCategories.push(p);
+        }
+    });
+    
+    localStorage.setItem('snx_excluded_cats', JSON.stringify(excludedCategories));
+    loadAdminServicesMgmt();
+    renderCategories();
+    showToast('Site limpo! Todas as categorias foram ocultadas.', 'error');
 }
 
 function deleteService(platform, id) {
-    if (!confirm('Deseja remover este servi o individualmente?')) return;
+    if (!confirm('Remover este serviço do banco local? (Nota: Se o robô rodar, ele pode voltar se estiver ativo no fornecedor)')) return;
     
     if (servicesDB[platform]) {
         servicesDB[platform] = servicesDB[platform].filter(s => s.id != id);
         if (servicesDB[platform].length === 0) {
             deleteEntireCategory(platform);
         } else {
-            saveDynamicServices();
             loadAdminServicesMgmt();
-            showToast('Servi o removido.', 'info');
+            showToast('Serviço removido localmente.', 'info');
         }
     }
 }
@@ -2303,7 +2289,7 @@ function updateSvcResale(platform, id, newPrice) {
         updateLandingPrices();
         if (typeof filterServices === 'function') filterServices();
         if (typeof updateServices === 'function') updateServices();
-        showToast('Pre o de venda atualizado!', 'success');
+        showToast('Preço de venda atualizado!', 'success');
     }
 }
 
@@ -2313,7 +2299,7 @@ function toggleSvcStatus(platform, id) {
         service.status = service.status === 'available' ? 'unavailable' : 'available';
         saveDynamicServices();
         loadAdminServicesMgmt();
-        showToast(`Servi o ${service.status === 'available' ? 'Ativado' : 'Desativado'}`, 'info');
+        showToast(`Serviço ${service.status === 'available' ? 'Ativado' : 'Desativado'}`, 'info');
         updateServices(); // Update user dropdown
     }
 }
@@ -2327,7 +2313,7 @@ function applyGlobalProfit() {
     const percent = parseFloat(percentInput.value);
     
     if (isNaN(percent)) {
-        showToast('Insira uma porcentagem v lida.', 'error');
+        showToast('Insira uma porcentagem válida.', 'error');
         return;
     }
 
@@ -2345,7 +2331,7 @@ function applyGlobalProfit() {
     loadAdminServicesMgmt();
     updateLandingPrices();
     
-    // Atualiza a UI do usu rio em tempo real
+    // Atualiza a UI do usuário em tempo real
     if (typeof renderCategories === 'function') renderCategories();
     if (typeof filterServices === 'function') filterServices(); 
     if (typeof updateServices === 'function') updateServices();
@@ -2382,14 +2368,14 @@ async function syncGrowFollowsServices() {
                 const proxyData = await resp.json();
                 data = JSON.parse(proxyData.contents);
             } catch(pErr) {
-                console.warn("Rede bloqueada. Usando banco de dados pr -carregado.");
+                console.warn("Rede bloqueada. Usando banco de dados pré-carregado.");
             }
         }
 
-        // 2. Se falhar na rede, usar os dados pr -carregados (services-data.js)
+        // 2. Se falhar na rede, usar os dados pré-carregados (services-data.js)
         if (!data || !Array.isArray(data)) {
             if (window.GROWFOLLOWS_SERVICES) {
-                // Converter o formato agrupado de volta para array se necess rio
+                // Converter o formato agrupado de volta para array se necessário
                 if (!Array.isArray(window.GROWFOLLOWS_SERVICES)) {
                     data = [];
                     Object.values(window.GROWFOLLOWS_SERVICES).forEach(catArray => {
@@ -2433,7 +2419,7 @@ async function syncGrowFollowsServices() {
                     max: parseInt(s.max),
                     desc: s.name,
                     quality: 'HQ API',
-                    speed: 'Autom tico',
+                    speed: 'Automático',
                     refill: s.refill ? 'R30' : 'SR',
                     time: '0-24h',
                     category: s.category,
@@ -2445,18 +2431,18 @@ async function syncGrowFollowsServices() {
             loadAdminServicesMgmt();
             updateLandingPrices();
             
-            // For a renderiza o no Painel do Usu rio
+            // Força renderização no Painel do Usuário
             if (typeof renderCategories === 'function') renderCategories();
             if (typeof filterServices === 'function') filterServices(); 
             if (typeof updateServices === 'function') updateServices();
             
-            showToast(`Sucesso! ${data.length} servi os sincronizados.`, 'success');
+            showToast(`Sucesso! ${data.length} serviços sincronizados.`, 'success');
         } else {
-            showToast('Erro: N o foi poss vel carregar os dados da GrowFollows.', 'error');
+            showToast('Erro: Não foi possível carregar os dados da GrowFollows.', 'error');
         }
     } catch (err) {
         console.error('Sync Error:', err);
-        showToast('Erro cr tico na sincroniza o.', 'error');
+        showToast('Erro crítico na sincronização.', 'error');
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -2476,7 +2462,7 @@ function loadDynamicServices() {
 }
 
 /**
- * Atualiza os pre os na vitrine (P gina Inicial) dinamicamente
+ * Atualiza os preços na vitrine (Página Inicial) dinamicamente
  */
 function updateLandingPrices() {
     const cards = document.querySelectorAll('.services-section .service-card');
@@ -2505,13 +2491,13 @@ function filterAdminServicesMgmt() {
     });
 }
 
-// Fun o para limpar dados legados se necess rio
+// Função para limpar dados legados se necessário
 function checkAndClearLegacyData() {
-    // Verificamos se existem servi os antigos (ID 101) no LocalStorage ou no DB parcial
+    // Verificamos se existem serviços antigos (ID 101) no LocalStorage ou no DB parcial
     const hasLegacy = (servicesDB.instagram && servicesDB.instagram.length > 0 && servicesDB.instagram[0].id === 101);
     
     if (hasLegacy) {
-        console.log("Detectados servi os de exemplo antigos. Limpando...");
+        console.log("Detectados serviços de exemplo antigos. Limpando...");
         for (let key in servicesDB) delete servicesDB[key];
         localStorage.removeItem('snx_services');
     }
@@ -2524,13 +2510,13 @@ loadAdminDashboard = function() {
     loadAdminServicesMgmt();
 };
 
-//   Payment Processing  
+// ─── Payment Processing ───
 function processPayment() {
     const amountInput = document.getElementById('add-amount');
     const amount = parseFloat(amountInput.value);
 
     if (!amount || amount < SNX_CONFIG.MIN_DEPOSIT) {
-        showToast(`Valor m nimo de dep sito: ${formatValue(SNX_CONFIG.MIN_DEPOSIT)}`, 'error');
+        showToast(`Valor mínimo de depósito: ${formatValue(SNX_CONFIG.MIN_DEPOSIT)}`, 'error');
         return;
     }
 
@@ -2550,7 +2536,7 @@ function processPayment() {
                 showPixDisplay(amount, result.pixCode);
             } else {
                 showManualDeposit(amount);
-                showToast('Usando checkout manual para sua seguran a.', 'info');
+                showToast('Usando checkout manual para sua segurança.', 'info');
             }
         })
         .catch(err => {
@@ -2589,13 +2575,13 @@ function showPixDisplay(amount, pixCode, encodedImage = '') {
 
             <div class="pix-instructions">
                 <ul>
-                    <li><i class="fas fa-check-circle" style="color:#2ecc71"></i> O saldo cair  automaticamente ap s o pagamento.</li>
-                    <li><i class="fas fa-clock" style="color:#f1c40f"></i> Este c digo expira em 24 horas.</li>
+                    <li><i class="fas fa-check-circle" style="color:#2ecc71"></i> O saldo cairá automaticamente após o pagamento.</li>
+                    <li><i class="fas fa-clock" style="color:#f1c40f"></i> Este código expira em 24 horas.</li>
                 </ul>
             </div>
 
             <button class="btn-primary-sm" onclick="location.reload()" style="width:100%; margin-top:15px;">
-                <i class="fas fa-check"></i> J  realizei o pagamento
+                <i class="fas fa-check"></i> Já realizei o pagamento
             </button>
             <button class="btn-ghost" onclick="location.reload()" style="width:100%; margin-top:5px; font-size:0.8rem;">
                 Voltar / Cancelar
@@ -2608,12 +2594,12 @@ function showManualDeposit(amount) {
     const container = document.getElementById('balance-form-area');
     container.innerHTML = `
         <div class="order-form-card pix-display">
-            <h3><i class="fas fa-university"></i> Dep sito Manual</h3>
-            <p>A automa o via API est  em manuten o ou n o configurada.</p>
+            <h3><i class="fas fa-university"></i> Depósito Manual</h3>
+            <p>A automação via API está em manutenção ou não configurada.</p>
             <p class="pix-amount">Valor pretendido: <strong>${formatValue(amount)}</strong></p>
             
             <div class="manual-instructions">
-                <p>Para adicionar saldo agora, fa a o PIX para a chave abaixo e envie o comprovante no suporte:</p>
+                <p>Para adicionar saldo agora, faça o PIX para a chave abaixo e envie o comprovante no suporte:</p>
                 <div class="api-key-display">
                     <span>chave@pix.com.br</span>
                 </div>
@@ -2629,16 +2615,16 @@ function showManualDeposit(amount) {
 
 function copyToClipboard(text) {
     navigator.clipboard.writeText(text);
-    showToast('Copiado para a  rea de transfer ncia!', 'success');
+    showToast('Copiado para a área de transferência!', 'success');
 }
 
-//   Admin Super Powers   Session & Data Integration  
+// ─── Admin Super Powers — Session & Data Integration ───
 
 /**
  * Reembolsa um pedido e devolve o saldo ao cliente
  */
 function adminRefundOrder(orderId) {
-    if (!confirm('Deseja realmente reembolsar este pedido? O valor integral voltar  para o saldo do cliente.')) return;
+    if (!confirm('Deseja realmente reembolsar este pedido? O valor integral voltará para o saldo do cliente.')) return;
 
     const storedUsers = JSON.parse(localStorage.getItem('snx_users') || '[]');
     let orderFound = false;
@@ -2668,7 +2654,7 @@ function adminRefundOrder(orderId) {
         loadAdminDashboard();
         showToast(`Pedido #${orderId} reembolsado com sucesso!`, 'success');
     } else {
-        showToast('Pedido n o encontrado ou j  reembolsado.', 'error');
+        showToast('Pedido não encontrado ou já reembolsado.', 'error');
     }
 }
 
@@ -2705,7 +2691,7 @@ function adminUpdateBalance(userId) {
         user.balance += amount;
         localStorage.setItem('snx_users', JSON.stringify(storedUsers));
         
-        // Se for o usu rio atual logado, atualiza a sess o
+        // Se for o usuário atual logado, atualiza a sessão
         if (currentUser && currentUser.id == userId) {
             currentUser.balance = user.balance;
             localStorage.setItem('snx_session', JSON.stringify(currentUser));
@@ -2717,7 +2703,7 @@ function adminUpdateBalance(userId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Carregar Configura es e Sess o
+    // 1. Carregar Configurações e Sessão
     loadDynamicServices();
     checkAndClearLegacyData();
     if (typeof renderCategories === 'function') renderCategories();
@@ -2746,10 +2732,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
- * Formata o nome para exibi o profissional
+ * Formata o nome para exibição profissional
  */
 function formatDisplayName(name) {
-    if (!name) return 'Usu rio';
+    if (!name) return 'Usuário';
     
     // Se for um email, pega a parte antes do @
     let cleanName = name;
@@ -2759,10 +2745,7 @@ function formatDisplayName(name) {
     
     // Capitaliza a primeira letra de cada nome e pega apenas os dois primeiros
     const parts = cleanName.trim().split(/\s+/);
-    if (parts.length === 0) return 'Usu rio';
+    if (parts.length === 0) return 'Usuário';
     
     return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
 }
-
-
-
