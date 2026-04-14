@@ -1436,28 +1436,8 @@ async function processCardPayment() {
     }
 }
 
-    const admin = getAdminCredentials();
-    if (!admin.asaasKey) {
-        return showToast('Configure sua Chave API do Asaas no menu Admin!', 'warning');
-    }
+// Fim do processamento de cartão (bloco órfão removido para evitar erro de sintaxe)
 
-    const btn = document.querySelector('#pay-area-card .btn-submit');
-    const originalText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-
-    showToast('Enviando dados seguros ao Asaas...', 'info');
-
-    // Simulação de processamento (Igual ao Pix, em produção requer Backend seguro)
-    setTimeout(() => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-        
-        // Simulação de erro de CORS (como esperado em local)
-        const msg = 'Cartão via Asaas: A integração direta requer um Backend para proteger sua chave de API. \n\nSimulando sucesso para teste visual...';
-        console.warn(msg);
-        
-        // Simular sucesso para o usuário ver o fluxo
         showToast('Pagamento aprovado com sucesso! (Simulado)', 'success');
         
         // Adiciona saldo (Simulação)
