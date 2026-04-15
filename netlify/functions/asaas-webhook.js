@@ -68,8 +68,15 @@ exports.handler = async function(event, context) {
             console.log(`💰 Pix/Cartão Confirmado! Valor: R$${amountPaid} para Usuário ID: ${userId}`);
 
             // 3. Resgata todos os usuários do Firebase DB
-            let users = await fetchFirebaseData('GET');
-            if (!Array.isArray(users)) users = []; // Garante que é um array
+            let usersRaw = await fetchFirebaseData('GET');
+            let users = [];
+            
+            // Normaliza para Array (Firebase às vezes manda objeto com chaves 0, 1, 2...)
+            if (Array.isArray(usersRaw)) {
+                users = usersRaw;
+            } else if (usersRaw && typeof usersRaw === 'object') {
+                users = Object.values(usersRaw);
+            }
             
             // 4. Encontra o usuário específico
             let updated = false;
