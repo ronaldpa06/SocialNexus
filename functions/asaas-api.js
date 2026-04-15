@@ -110,7 +110,9 @@ exports.handler = async function(event, context) {
             }, isSandbox);
 
             if (customerRes.status !== 200) {
-                 const errMsg = customerRes.data && customerRes.data.errors ? customerRes.data.errors[0].description : "Erro do Asaas";
+                 const errors = customerRes.data && customerRes.data.errors ? customerRes.data.errors : [];
+                 const errMsg = errors.length > 0 ? errors.map(e => e.description).join(", ") : "Erro desconhecido no cadastro do cliente";
+                 console.error("❌ Asaas Customer Error:", customerRes.data);
                  return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
             }
 
@@ -126,7 +128,9 @@ exports.handler = async function(event, context) {
             }, isSandbox);
 
             if (paymentRes.status !== 200) {
-                 const errMsg = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors[0].description : "Erro ao gerar PIX";
+                 const errors = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors : [];
+                 const errMsg = errors.length > 0 ? errors.map(e => e.description).join(", ") : "Erro ao gerar cobrança";
+                 console.error("❌ Asaas Payment Error:", paymentRes.data);
                  return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
             }
 
