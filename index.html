@@ -1120,6 +1120,22 @@
                                     <button class="btn-submit" onclick="generatePixPayment()">
                                         <i class="fas fa-check"></i> Gerar QR Code
                                     </button>
+
+                                    <!-- Área do QR Code (Inicia escondida) -->
+                                    <div id="pix-qr-container" style="display: none; margin-top: 25px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: 15px; text-align: center; border: 1px dashed rgba(255,255,255,0.2);">
+                                        <h4 style="margin-bottom: 15px; color: #00ff88;">QR Code Gerado! ✅</h4>
+                                        <div id="pix-qr-image-wrapper" style="background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 15px;">
+                                            <img id="pix-qr-img" src="" alt="QR Code" style="display: block; width: 200px; height: 200px;">
+                                        </div>
+                                        <div class="form-group" style="text-align: left;">
+                                            <label>Pix Copia e Cola:</label>
+                                            <div class="input-wrapper">
+                                                <input type="text" id="pix-payload" readonly style="font-size: 0.8rem;">
+                                                <button onclick="copyPixPayload()" style="background: #00ff88; color: #000; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; margin-left: 10px; font-weight: bold;">Copiar</button>
+                                            </div>
+                                        </div>
+                                        <p style="font-size: 0.75rem; opacity: 0.7; margin-top: 10px; color: #ffcc00;"><i class="fas fa-history"></i> Aguardando pagamento... Não feche esta página.</p>
+                                    </div>
                                 </div>
 
                                 <div id="pay-area-card" class="pay-area">
