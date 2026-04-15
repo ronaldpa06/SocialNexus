@@ -74,8 +74,15 @@ exports.handler = async function(event, context) {
             // 4. Encontra o usuário específico
             let updated = false;
             for (let i = 0; i < users.length; i++) {
-                // Compara ID (Asaas manda String, Firebase tem Número)
-                if (users[i] && users[i].id && users[i].id.toString() === userId.toString()) {
+                if (!users[i]) continue;
+                
+                const dbId = users[i].id ? users[i].id.toString().trim() : "";
+                const targetId = userId.toString().trim();
+                const dbEmail = users[i].email ? users[i].email.toLowerCase().trim() : "";
+                const targetEmail = (payload.payment.customerEmail || "").toLowerCase().trim();
+
+                // Tenta pelo ID ou pelo Email (como plano B)
+                if (dbId === targetId || (targetEmail && dbEmail === targetEmail)) {
                     
                     // 5. Soma o Saldo
                     const oldBalance = parseFloat(users[i].balance || 0);
