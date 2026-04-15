@@ -46,7 +46,8 @@ function asaasRequest(method, path, apiKey, data = null, isSandbox = false) {
             method: method,
             headers: {
                 'access_token': apiKey,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'User-Agent': 'SocialNexus/1.0'
             }
         };
 
