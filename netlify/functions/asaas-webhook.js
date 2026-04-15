@@ -136,8 +136,9 @@ exports.handler = async function(event, context) {
                  console.log("☁️ Firebase sincronizado e saldo creditado!");
                  return { statusCode: 200, body: "OK - Saldo e Notificação processados" };
             } else {
-                 console.error(`❌ Usuário ${userId} não encontrado para creditar R$${amountPaid}`);
-                 return { statusCode: 404, body: "Usuário não encontrado" };
+                 const debugInfo = `Total: ${users.length}, PrimeiroID: ${users[0] ? users[0].id : 'N/A'}, Tipo: ${typeof usersRaw}`;
+                 console.error(`❌ Usuário ${userId} não encontrado. Info: ${debugInfo}`);
+                 return { statusCode: 404, body: `Usuário ${userId} não encontrado. Debug: ${debugInfo}` };
             }
 
         } else {
