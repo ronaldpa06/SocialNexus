@@ -57,45 +57,69 @@ exports.handler = async function(event, context) {
         if (payload.event === 'PAYMENT_RECEIVED' || payload.event === 'PAYMENT_CONFIRMED') {
             
             const paymentInfo = payload.payment;
-            const amountPaid = parseFloat(paymentInfo.netValue || paymentInfo.value); 
-            const userId = paymentInfo.externalReference; // O 'RG' do cliente que botamos no app.js!
+            const amountPaid = parseFloat(paymentInfo.value); 
+            const userId = paymentInfo.externalReference;
 
             if (!userId) {
-                console.warn("⚠️ Pagamento sem ID de cliente. Ignorando...");
+                console.warn("⚠️ Pagamento sem ID de cliente (externalReference).");
                 return { statusCode: 200, body: "Ignorado - Sem ID" };
             }
 
-            console.log(`💰 Pix / Cartão aprovado! Valor: R$${amountPaid} para Usuário ID: ${userId}`);
+            console.log(`💰 Pix/Cartão Confirmado! Valor: R$${amountPaid} para Usuário ID: ${userId}`);
 
             // 3. Resgata todos os usuários do Firebase DB
-            const users = await fetchFirebaseData('GET') || [];
+            let users = await fetchFirebaseData('GET');
+            if (!Array.isArray(users)) users = []; // Garante que é um array
             
             // 4. Encontra o usuário específico
-            let orderFoundAndUpdated = false;
+            let updated = false;
             for (let i = 0; i < users.length; i++) {
-                if (users[i] && users[i].id.toString() === userId.toString()) {
+                // Compara ID (Asaas manda String, Firebase tem Número)
+                if (users[i] && users[i].id && users[i].id.toString() === userId.toString()) {
                     
-                    // 5. Adiciona o saldo na conta dele!
-                    users[i].balance = parseFloat(users[i].balance || 0) + amountPaid;
-                    console.log(`✅ Saldo atualizado com sucesso. Novo saldo: R$ ${users[i].balance}`);
+                    // 5. Soma o Saldo
+                    const oldBalance = parseFloat(users[i].balance || 0);
+                    users[i].balance = oldBalance + amountPaid;
+
+                    // 6. ADICIONA NOTIFICAÇÃO REAL 🔔
+                    if (!users[i].notifications) users[i].notifications = [];
                     
-                    orderFoundAndUpdated = true;
+                    const newNotif = {
+                        id: Date.now(),
+                        text: `Depósito de R$ ${amountPaid.toFixed(2)} via Pix confirmado! 💸`,
+                        time: new Date().toISOString(),
+                        unread: true,
+                        icon: 'fas fa-wallet'
+                    };
+                    
+                    // Adiciona no topo (início do array)
+                    users[i].notifications.unshift(newNotif);
+                    
+                    // Mantém apenas as últimas 10 notificações para não pesar
+                    if (users[i].notifications.length > 10) {
+                        users[i].notifications = users[i].notifications.slice(0, 10);
+                    }
+
+                    console.log(`✅ Saldo: R$ ${oldBalance} -> R$ ${users[i].balance}`);
+                    console.log(`✅ Notificação adicionada para ${users[i].name}`);
+                    
+                    updated = true;
                     break;
                 }
             }
 
-            // 6. Atualiza e Salva o banco de dados inteiro no Firebase
-            if (orderFoundAndUpdated) {
+            // 7. Atualiza o banco de dados
+            if (updated) {
                  await fetchFirebaseData('PUT', users);
-                 console.log("☁️ Firebase sincronizado com sucesso!");
-                 return { statusCode: 200, body: "Saldo creditado com sucesso!" };
+                 console.log("☁️ Firebase sincronizado e saldo creditado!");
+                 return { statusCode: 200, body: "OK - Saldo e Notificação processados" };
             } else {
-                 console.error("❌ Usuário não encontrado no banco de dados.");
+                 console.error(`❌ Usuário ${userId} não encontrado para creditar R$${amountPaid}`);
                  return { statusCode: 404, body: "Usuário não encontrado" };
             }
 
         } else {
-            console.log("ℹ️ Evento ignorado (Não é recebimento de dinheiro):", payload.event);
+            console.log("ℹ️ Evento ignorado:", payload.event);
             return { statusCode: 200, body: "Evento ignorado" };
         }
 
