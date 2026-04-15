@@ -539,13 +539,61 @@ async function refreshUserBalance() {
                     const statBalEl = document.getElementById('stat-balance');
                     if (balEl) balEl.textContent = formatValue(currentUser.balance);
                     if (statBalEl) statBalEl.textContent = formatValue(currentUser.balance);
-                    console.log("💰 Saldo atualizado via Nuvem:", currentUser.balance);
+                    showToast('Saldo atualizado! 💰', 'success');
+                }
+
+                // Sincroniza Notificações
+                if (JSON.stringify(currentUser.notifications || []) !== JSON.stringify(freshData.notifications || [])) {
+                    currentUser.notifications = freshData.notifications || [];
+                    localStorage.setItem('snx_session', JSON.stringify(currentUser));
+                    renderNotifications();
+                    
+                    // Mostra o badge vermelho se houver não lidas
+                    const hasUnread = currentUser.notifications.some(n => n.unread);
+                    const badge = document.getElementById('drop-notif-count');
+                    if (badge && hasUnread) {
+                        badge.style.display = 'flex';
+                        badge.textContent = currentUser.notifications.filter(n => n.unread).length;
+                    }
                 }
             }
         }
     } catch (err) {
-        console.error("❌ Erro na sincronização de saldo:", err);
+        console.error("❌ Erro na sincronização:", err);
     }
+}
+
+// 🔔 Renderiza as Notificações Reais
+function renderNotifications() {
+    const container = document.getElementById('notif-content');
+    if (!container || !currentUser) return;
+
+    if (!currentUser.notifications || currentUser.notifications.length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; opacity: 0.5;">Nenhuma notificação por enquanto.</div>';
+        return;
+    }
+
+    container.innerHTML = currentUser.notifications.map(n => `
+        <div class="notif-item ${n.unread ? 'unread' : ''}">
+            <i class="${n.icon || 'fas fa-wallet'}" style="color: #00ff88;"></i>
+            <div>
+                <p>${n.text}</p>
+                <span style="font-size: 0.7rem; opacity: 0.6;">${formatNotifTime(n.time)}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function formatNotifTime(isoString) {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000); // segundos
+
+    if (diff < 60) return 'Agora mesmo';
+    if (diff < 3600) return `Há ${Math.floor(diff / 60)} min`;
+    if (diff < 86400) return `Há ${Math.floor(diff / 3600)} horas`;
+    return date.toLocaleDateString();
 }
 
 function loadDashboard() {
@@ -580,6 +628,7 @@ function loadDashboard() {
     // Atualiza saldo e fidelidade
     if (typeof updateBalanceDisplay === 'function') updateBalanceDisplay();
     if (typeof updateLoyalty === 'function') updateLoyalty();
+    renderNotifications();
 
     // Novas referências UpMidias
     const welcomeUser = document.getElementById('welcome-username');
@@ -623,8 +672,23 @@ function toggleNotificationPanel() {
     const menu = document.getElementById('user-dropdown-menu');
     if (panel) {
         panel.classList.toggle('active');
-        // Fecha o menu de usuário se abrir as notificações
-        if (panel.classList.contains('active') && menu) menu.classList.remove('active');
+        if (panel.classList.contains('active')) {
+            // Marca como lidas quando abrir o painel
+            if (currentUser && currentUser.notifications) {
+                let changed = false;
+                currentUser.notifications.forEach(n => {
+                    if (n.unread) {
+                        n.unread = false;
+                        changed = true;
+                    }
+                });
+                if (changed) {
+                    localStorage.setItem('snx_session', JSON.stringify(currentUser));
+                    renderNotifications();
+                }
+            }
+            if (menu) menu.classList.remove('active');
+        }
     }
     const badge = document.getElementById('drop-notif-count');
     if (badge) badge.style.display = 'none';
