@@ -1442,10 +1442,11 @@ function switchPayMethod(method) {
     document.querySelectorAll('.pay-area').forEach(area => area.classList.remove('active'));
     document.getElementById(`pay-area-${method}`).classList.add('active');
     
-    // Mostra área de teste apenas para Ronald Palheta
+    // Mostra área de teste para o Ronald
     const adminArea = document.getElementById('admin-test-area');
     if (adminArea) {
-        if (currentUser && currentUser.email === 'ronaldpalheta046@gmail.com') {
+        const userEmail = (currentUser && currentUser.email) ? currentUser.email.toLowerCase() : "";
+        if (userEmail.includes('ronald')) {
             adminArea.style.display = 'block';
         } else {
             adminArea.style.display = 'none';
