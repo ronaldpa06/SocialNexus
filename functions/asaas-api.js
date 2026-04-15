@@ -109,29 +109,44 @@ exports.handler = async function(event, context) {
                 cpfCnpj: cpfInput
             }, isSandbox);
 
-            if (customerRes.status !== 200) {
+            // Sanitização de dados para o Asaas
+            const cleanName = (userName || "Cliente SocialNexus").trim().substring(0, 60);
+            const cleanEmail = (emailInput || "").trim();
+            const cleanCpf = cpfInput.replace(/\D/g, ''); // Remove tudo que não é número
+
+            console.log(`🚀 Tentando cadastrar cliente: ${cleanName} (${cleanEmail})`);
+
+            const customerRes = await asaasRequest('POST', '/customers', finalApiKey.trim(), {
+                name: cleanName,
+                cpfCnpj: cleanCpf,
+                email: cleanEmail,
+                notificationDisabled: true
+            }, isSandbox);
+
+            if (customerRes.status !== 200 && customerRes.status !== 201) {
                  const errors = customerRes.data && customerRes.data.errors ? customerRes.data.errors : [];
-                 const errMsg = errors.length > 0 ? errors.map(e => e.description).join(", ") : "Erro desconhecido no cadastro do cliente";
-                 console.error("❌ Asaas Customer Error:", customerRes.data);
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
+                 const errMsg = errors.length > 0 ? errors.map(e => e.description).join(", ") : `Status ${customerRes.status}`;
+                 console.error("❌ Detalhes do Erro Asaas (Customer):", JSON.stringify(customerRes.data));
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas (Cliente): " + errMsg }) };
             }
 
             const customerId = customerRes.data.id;
+            console.log(`✅ Cliente cadastrado/encontrado: ${customerId}`);
 
-            const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
+            const paymentRes = await asaasRequest('POST', '/payments', finalApiKey.trim(), {
                 customer: customerId,
                 billingType: 'PIX',
                 value: parseFloat(amount),
                 dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-                description: `Adicao de Saldo SocialNexus - ${userName}`,
+                description: `Depósito SocialNexus - ${cleanName}`,
                 externalReference: userId
             }, isSandbox);
 
-            if (paymentRes.status !== 200) {
+            if (paymentRes.status !== 200 && paymentRes.status !== 201) {
                  const errors = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors : [];
-                 const errMsg = errors.length > 0 ? errors.map(e => e.description).join(", ") : "Erro ao gerar cobrança";
-                 console.error("❌ Asaas Payment Error:", paymentRes.data);
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
+                 const errMsg = errors.length > 0 ? errors.map(e => e.description).join(", ") : `Status ${paymentRes.status}`;
+                 console.error("❌ Detalhes do Erro Asaas (Payment):", JSON.stringify(paymentRes.data));
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas (Pagamento): " + errMsg }) };
             }
 
             const qrRes = await asaasRequest('GET', `/payments/${paymentRes.data.id}/pixQrCode`, finalApiKey, null, isSandbox);
