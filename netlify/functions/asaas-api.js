@@ -1,219 +1,126 @@
 /**
- * SocialNexus - Gateway de Pagamentos Real (ASAAS)
+ * SOCIALNEXUS - ASAAS API SERVICE (Zero-Dep Edition)
+ * Build: 2026-04-15_19:00
  */
-
 const https = require('https');
 
-// Função de busca com detecção de erro e timeout
-async function getCredentialsFromFirebase() {
-    return new Promise((resolve) => {
-        const url = 'https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_config.json';
-        const req = https.get(url, (res) => {
-            let body = '';
-            res.on('data', chunk => body += chunk);
-            res.on('end', () => {
-                try {
-                    let data = JSON.parse(body || '{}');
-                    if (typeof data === 'string') data = JSON.parse(data);
-                    resolve(data);
-                } catch (e) {
-                    console.error("Erro no Parse Firebase:", e.message);
-                    resolve({});
-                }
-            });
-        });
-
-        req.on('error', (e) => {
-            console.error("Erro ao conectar no Firebase:", e.message);
-            resolve({});
-        });
-
-        req.setTimeout(5000, () => {
-            req.abort();
-            console.error("Timeout ao buscar config no Firebase");
-            resolve({});
-        });
-    });
-}
-
-function asaasRequest(method, path, apiKey, data = null, isSandbox = false) {
+function asaasRequest(method, endpoint, apiKey, data = null, isSandbox = false) {
     return new Promise((resolve, reject) => {
-        const hostname = isSandbox ? 'sandbox.asaas.com' : 'api.asaas.com';
-        
+        const baseUrl = isSandbox ? 'sandbox.asaas.com' : 'www.asaas.com';
         const options = {
-            hostname: hostname,
+            hostname: baseUrl,
             port: 443,
-            path: '/v3' + path,
+            path: '/api/v3' + endpoint,
             method: method,
             headers: {
-                'access_token': apiKey,
+                'access_token': apiKey.trim(),
                 'Content-Type': 'application/json',
-                'User-Agent': 'SocialNexus/1.0'
+                'User-Agent': 'SocialNexus-App'
             }
         };
 
         const req = https.request(options, (res) => {
             let body = '';
-            res.on('data', chunk => body += chunk);
+            res.on('data', (chunk) => body += chunk);
             res.on('end', () => {
                 try {
                     const json = JSON.parse(body || '{}');
                     resolve({ status: res.statusCode, data: json });
                 } catch (e) {
-                    reject(e);
+                    resolve({ status: 500, data: { errors: [{ description: "Erro ao processar resposta do Asaas: " + e.message }] } });
                 }
             });
         });
 
-        req.on('error', e => reject(e));
-        if (data) req.write(JSON.stringify(data));
+        req.on('error', (e) => {
+            resolve({ status: 500, data: { errors: [{ description: "Erro de conexão: " + e.message }] } });
+        });
+
+        if (data) {
+            req.write(JSON.stringify(data));
+        }
         req.end();
     });
 }
 
 exports.handler = async function(event, context) {
-    if (event.httpMethod !== "POST") {
-        return { statusCode: 405, body: "Method Not Allowed" };
-    }
+    if (event.httpMethod !== "POST") return { statusCode: 405, body: "POST Required" };
 
     try {
         const payload = JSON.parse(event.body);
-        const { action, amount, userId, userName, userEmail, cardData } = payload;
-        
-        console.log(`🤖 Processando ${action} para ${userName}...`);
+        const { amount, userName, email, cpf, userId } = payload;
 
-        // 🔍 BUSCA CHAVE CONFIGURADA
-        const firebaseConfig = await getCredentialsFromFirebase();
-        let finalApiKey = firebaseConfig.asaasKey;
-        const isSandbox = firebaseConfig.asaasEnv === 'sandbox';
+        // 1. Busca Config no Firebase
+        const configUrl = 'https://socialnexus-58290-default-rtdb.firebaseio.com/socialnexus_kv/snx_config.json';
+        const configRaw = await new Promise((resolve) => {
+            https.get(configUrl, (res) => {
+                let body = '';
+                res.on('data', d => body += d);
+                res.on('end', () => {
+                   try {
+                       let json = JSON.parse(body);
+                       if (typeof json === 'string') json = JSON.parse(json);
+                       resolve(json);
+                   } catch(e) { resolve(null); }
+                });
+            }).on('error', () => resolve(null));
+        });
 
-        // Fallback para ENV se Firebase falhar
-        if (!finalApiKey) finalApiKey = process.env.ASAAS_API_KEY;
+        const finalApiKey = (configRaw && configRaw.asaas_key) || 'aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi';
+        const isSandbox = finalApiKey.includes('sandbox');
 
-        if (!finalApiKey || finalApiKey.length < 10) {
-            console.error("❌ ERRO: Chave Asaas não encontrada!");
-            return { 
-                statusCode: 401, 
-                body: JSON.stringify({ success: false, error: "Asaas não configurado no painel Admin!" }) 
-            };
-        }
-        
-        let cpfInput = payload.cpf || "00000000000";
+        // 2. Cadastro/Busca de Cliente
+        const cpfClean = cpf.replace(/\D/g, '');
+        const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
+            name: (userName || "Cliente").trim().substring(0, 60),
+            cpfCnpj: cpfClean,
+            email: (email || "").trim(),
+            notificationDisabled: true
+        }, isSandbox);
 
-        // --- AÇÃO: GERAR PIX ---
-        if (action === 'generate_pix') {
-            const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
-                name: userName,
-                email: userEmail || "cliente@socialnexus.com",
-                externalReference: userId,
-                cpfCnpj: cpfInput
-            }, isSandbox);
-
-            if (customerRes.status !== 200) {
-                 const errMsg = customerRes.data && customerRes.data.errors ? customerRes.data.errors[0].description : "Erro do Asaas";
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
-            }
-
-            const customerId = customerRes.data.id;
-
-            const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
-                customer: customerId,
-                billingType: 'PIX',
-                value: parseFloat(amount),
-                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-                description: `Adicao de Saldo SocialNexus - ${userName}`,
-                externalReference: userId
-            }, isSandbox);
-
-            if (paymentRes.status !== 200) {
-                 const errMsg = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors[0].description : "Erro ao gerar PIX";
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
-            }
-
-            const qrRes = await asaasRequest('GET', `/payments/${paymentRes.data.id}/pixQrCode`, finalApiKey, null, isSandbox);
-
-            if (qrRes.status !== 200) {
-                 const errMsg = qrRes.data && qrRes.data.errors ? qrRes.data.errors[0].description : "O Asaas criou o pagamento, mas não gerou o QR Code. Ative o Pix no seu painel Asaas!";
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas QR Error: " + errMsg }) };
-            }
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    success: true,
-                    paymentId: paymentRes.data.id,
-                    payload: qrRes.data.payload,
-                    image: qrRes.data.encodedImage
-                })
-            };
+        if (customerRes.status !== 200 && customerRes.status !== 201) {
+            const errors = customerRes.data && customerRes.data.errors ? customerRes.data.errors : [];
+            const msg = errors.length > 0 ? errors.map(e => e.description).join(", ") : "Erro status " + customerRes.status;
+            return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + msg }) };
         }
 
-        // --- AÇÃO: PROCESSAR CARTÃO ---
-        if (action === 'generate_card') {
-            const { number, name, expiry, cvv } = cardData;
-            const [expiryMonth, expiryYear] = expiry.split('/');
+        const customerId = customerRes.data.id;
 
-            // 1. Criar/Buscar Cliente
-            const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
-                name: userName,
-                email: userEmail || "cliente@socialnexus.com",
-                externalReference: userId,
-                cpfCnpj: cpfInput
-            }, isSandbox);
+        // 3. Gerar Cobrança Pix
+        const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
+            customer: customerId,
+            billingType: 'PIX',
+            value: parseFloat(amount),
+            dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+            description: `Depósito SocialNexus - ${userName}`,
+            externalReference: userId
+        }, isSandbox);
 
-            if (customerRes.status !== 200) {
-                 const errMsg = customerRes.data && customerRes.data.errors ? customerRes.data.errors[0].description : "Erro do Asaas";
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + errMsg }) };
-            }
-
-            const customerId = customerRes.data.id;
-
-            // 2. Processar Pagamento Cartão
-            const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
-                customer: customerId,
-                billingType: 'CREDIT_CARD',
-                value: parseFloat(amount),
-                dueDate: new Date().toISOString().split('T')[0],
-                description: `Adicao de Saldo SocialNexus - ${userName}`,
-                externalReference: userId,
-                creditCard: {
-                    holderName: name,
-                    number: number,
-                    expiryMonth: expiryMonth,
-                    expiryYear: "20" + expiryYear,
-                    cvv: cvv
-                },
-                creditCardHolderInfo: {
-                    name: userName,
-                    email: userEmail || "cliente@socialnexus.com",
-                    cpfCnpj: cpfInput,
-                    postalCode: "00000000",
-                    addressNumber: "0",
-                    phone: "0000000000"
-                }
-            }, isSandbox);
-
-            if (paymentRes.status !== 200) {
-                 const errMsg = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors[0].description : "Cartão Recusado";
-                 return { statusCode: 400, body: JSON.stringify({ success: false, error: errMsg }) };
-            }
-
-            return {
-                statusCode: 200,
-                body: JSON.stringify({
-                    success: true,
-                    paymentId: paymentRes.data.id,
-                    status: paymentRes.data.status
-                })
-            };
+        if (paymentRes.status !== 200 && paymentRes.status !== 201) {
+            return { statusCode: 400, body: JSON.stringify({ success: false, error: "Erro ao gerar PIX" }) };
         }
 
-        return { statusCode: 400, body: "Invalid Action" };
+        const paymentId = paymentRes.data.id;
 
-    } catch (error) {
-        console.error("❌ ERRO INTERNO:", error.message);
-        return { statusCode: 500, body: JSON.stringify({ success: false, error: "Conexão perdida com o gateway." }) };
+        // 4. Buscar QR Code
+        const qrRes = await asaasRequest('GET', `/payments/${paymentId}/pixQrCode`, finalApiKey, null, isSandbox);
+
+        return {
+            statusCode: 200,
+            headers: { 
+                "Content-Type": "application/json",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Headers": "Content-Type"
+            },
+            body: JSON.stringify({
+                success: true,
+                paymentId: paymentId,
+                payload: qrRes.data.payload,
+                encodedImage: qrRes.data.encodedImage
+            })
+        };
+
+    } catch (err) {
+        return { statusCode: 500, body: JSON.stringify({ success: false, error: err.message }) };
     }
 };
-
-
