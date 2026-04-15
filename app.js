@@ -1413,6 +1413,15 @@ function renderPixResult(data) {
     const payloadInput = document.getElementById('pix-payload');
     const btnSubmit = document.querySelector('#pay-area-pix .btn-submit');
 
+    if (!data.image || !data.payload) {
+        showToast('Erro: Recebemos o pagamento, mas o QR Code falhou. Tente novamente!', 'error');
+        if (btnSubmit) {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="fas fa-check"></i> Gerar QR Code';
+        }
+        return;
+    }
+
     if (container && imgElement && payloadInput) {
         // O Asaas manda a imagem em base64, precisamos garantir o prefixo
         const qrBase64 = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
