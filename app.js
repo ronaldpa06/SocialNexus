@@ -1406,6 +1406,43 @@ async function generatePixPayment() {
     }
 }
 
+// 🎨 Renderiza o QR Code na Tela
+function renderPixResult(data) {
+    const container = document.getElementById('pix-qr-container');
+    const imgElement = document.getElementById('pix-qr-img');
+    const payloadInput = document.getElementById('pix-payload');
+    const btnSubmit = document.querySelector('#pay-area-pix .btn-submit');
+
+    if (container && imgElement && payloadInput) {
+        // O Asaas manda a imagem em base64, precisamos garantir o prefixo
+        const qrBase64 = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+        
+        imgElement.src = qrBase64;
+        payloadInput.value = data.payload;
+        
+        // Exibe o container com animação suave
+        container.style.display = 'block';
+        container.scrollIntoView({ behavior: 'smooth' });
+        
+        // Restaura o botão original
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<i class="fas fa-sync"></i> Gerar Novo QR Code';
+        
+        showToast('QR Code gerado com sucesso!', 'success');
+    }
+}
+
+// 📋 Copia o código Pix
+function copyPixPayload() {
+    const input = document.getElementById('pix-payload');
+    if (input) {
+        input.select();
+        input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value);
+        showToast('Código Pix copiado!', 'success');
+    }
+}
+
 async function processCardPayment() {
     const amountStr = document.getElementById('card-amount').value.replace(/\./g, '').replace(',', '.');
     const amount = parseFloat(amountStr);
