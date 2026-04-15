@@ -1356,7 +1356,7 @@ function copyCrypto() {
 async function generatePixPayment() {
     let amountStr = document.getElementById('pix-amount').value.replace(/\./g, '').replace(',', '.');
     const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount < 1) return showToast('Mínimo R$ 1,00', 'error');
+    if (isNaN(amount) || amount < 5) return showToast('Mínimo R$ 5,00 para depósito via Pix', 'error');
 
     const cpf = document.getElementById('pix-cpf') ? document.getElementById('pix-cpf').value.replace(/\D/g, '') : '';
     if (!cpf || cpf.length < 11) return showToast('Informe seu CPF (11 dígitos) para gerar o Pix!', 'error');
