@@ -85,8 +85,8 @@ exports.handler = async function(event, context) {
                  await fetchFirebaseData('PUT', users);
                  return { statusCode: 200, body: "OK - Saldo e Notificação processados" };
             } else {
-                 const debug = `Total: ${users.length}, ID_Procurado: ${userId}, Email_Procurado: ${targetEmail}, PrimeiroDB: ${users[0] ? users[0].id : 'N/A'}`;
-                 return { statusCode: 404, body: `USUARIO_NAO_ENCONTRADO|${debug}` };
+                 const debug = `Total: ${users.length}, ID: ${userId}, Email: ${targetEmail}, DB1: ${users[0] ? users[0].id : 'N/A'}`;
+                 return { statusCode: 404, body: `ERRO_FINAL_SINCRONIZADO|${debug}` };
             }
 
         }
