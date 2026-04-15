@@ -13,7 +13,8 @@ async function getCredentialsFromFirebase() {
             res.on('data', chunk => body += chunk);
             res.on('end', () => {
                 try {
-                    const data = JSON.parse(body || '{}');
+                    let data = JSON.parse(body || '{}');
+                    if (typeof data === 'string') data = JSON.parse(data);
                     resolve(data);
                 } catch (e) {
                     console.error("Erro no Parse Firebase:", e.message);
