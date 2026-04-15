@@ -131,6 +131,11 @@ exports.handler = async function(event, context) {
 
             const qrRes = await asaasRequest('GET', `/payments/${paymentRes.data.id}/pixQrCode`, finalApiKey, null, isSandbox);
 
+            if (qrRes.status !== 200) {
+                 const errMsg = qrRes.data && qrRes.data.errors ? qrRes.data.errors[0].description : "O Asaas criou o pagamento, mas não gerou o QR Code. Ative o Pix no seu painel Asaas!";
+                 return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas QR Error: " + errMsg }) };
+            }
+
             return {
                 statusCode: 200,
                 body: JSON.stringify({
