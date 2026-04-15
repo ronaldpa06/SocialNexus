@@ -75,8 +75,60 @@ const i18n = {
 // Currency configuration
 const currencies = {
     BRL: { symbol: "R$", rate: 1, name: "Real" },
-    USD: { symbol: "$", rate: 5.20, name: "Dollar" } // 1 USD = 5.20 BRL local logic
+    USD: { symbol: "$", rate: 5.20, name: "Dollar" } // --- SIMULAÇÃO DE TESTE (SEM DINHEIRO REAL) ---
 };
+
+async function simulatePixPayment() {
+    if (!confirm("Deseja simular um pagamento de R$ 10,00 para teste?")) return;
+    
+    const btn = document.querySelector('.btn-simulate-test');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
+    }
+
+    try {
+        const payload = {
+            event: "PAYMENT_RECEIVED",
+            payment: {
+                id: "SIMULADO_" + Date.now(),
+                value: 10.00,
+                netValue: 10.00,
+                externalReference: currentUser.id,
+                customerEmail: currentUser.email,
+                billingType: "PIX"
+            }
+        };
+
+        const response = await fetch('/.netlify/functions/asaas-webhook', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.text();
+        
+        if (response.ok) {
+            showToast("Sucesso! O sinal de pagamento foi enviado ao servidor.", "success");
+            setTimeout(() => {
+                location.reload(); // Recarrega para ver o saldo
+            }, 2000);
+        } else {
+            // Se der 404, avisa sobre o problema de sincronia que estávamos tendo
+            if (response.status === 404) {
+                 showToast("Servidor não encontrou seu usuário. Verifique se o banco de dados está sincronizado.", "warning");
+            } else {
+                 showToast("Erro na simulação: " + result, "error");
+            }
+        }
+    } catch (error) {
+        showToast("Erro de comunicação com o servidor.", "error");
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-vial"></i> Simular Pix R$ 10 (TESTE)';
+        }
+    }
+}
 
 let currentLang = localStorage.getItem('snx_lang') || 'pt';
 let currentCurrency = localStorage.getItem('snx_currency') || 'BRL';
@@ -266,7 +318,6 @@ const SNX_CONFIG = {
     ASAAS_API_KEY: 'aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi', 
     
     // Configurações Globais
-    EXCHANGE_RATE: 5.20, // 1 USD = 5.20 BRL
     MIN_DEPOSIT: 1.00    // Depósito mínimo em Real
 };
 
@@ -1390,6 +1441,16 @@ function switchPayMethod(method) {
     // Areas
     document.querySelectorAll('.pay-area').forEach(area => area.classList.remove('active'));
     document.getElementById(`pay-area-${method}`).classList.add('active');
+    
+    // Mostra área de teste apenas para Ronald Palheta
+    const adminArea = document.getElementById('admin-test-area');
+    if (adminArea) {
+        if (currentUser && currentUser.email === 'ronaldpalheta046@gmail.com') {
+            adminArea.style.display = 'block';
+        } else {
+            adminArea.style.display = 'none';
+        }
+    }
 }
 
 function setAmount(type, val) {
