@@ -69,9 +69,17 @@ exports.handler = async function(event, context) {
 
             // 3. Resgata todos os usuários do Firebase DB
             let usersRaw = await fetchFirebaseData('GET');
-            let users = [];
             
-            // Normaliza para Array (Firebase às vezes manda objeto com chaves 0, 1, 2...)
+            // Corrige "Double Encoding" (Texto dentro de Texto)
+            if (typeof usersRaw === 'string') {
+                try { usersRaw = JSON.parse(usersRaw); } catch(e) {}
+            }
+            if (typeof usersRaw === 'string') {
+                try { usersRaw = JSON.parse(usersRaw); } catch(e) {}
+            }
+
+            let users = [];
+            // Normaliza para Array
             if (Array.isArray(usersRaw)) {
                 users = usersRaw;
             } else if (usersRaw && typeof usersRaw === 'object') {
