@@ -1358,6 +1358,9 @@ async function generatePixPayment() {
     const amount = parseFloat(amountStr);
     if (isNaN(amount) || amount < 1) return showToast('Mínimo R$ 1,00', 'error');
 
+    const cpf = document.getElementById('pix-cpf') ? document.getElementById('pix-cpf').value.replace(/\D/g, '') : '';
+    if (!cpf || cpf.length < 11) return showToast('Informe seu CPF (11 dígitos) para gerar o Pix!', 'error');
+
     const btn = document.querySelector('#pay-area-pix .btn-submit');
     const originalText = btn.innerHTML;
     
@@ -1379,7 +1382,8 @@ async function generatePixPayment() {
                 amount: amount,
                 userId: currentUser.id,
                 userName: currentUser.name,
-                userEmail: currentUser.email
+                userEmail: currentUser.email,
+                cpf: cpf
             })
         });
 
@@ -1409,12 +1413,14 @@ async function processCardPayment() {
     const name = document.getElementById('card-name').value;
     const expiry = document.getElementById('card-expiry').value;
     const cvv = document.getElementById('card-cvv').value;
+    const cpf = document.getElementById('card-cpf') ? document.getElementById('card-cpf').value.replace(/\D/g, '') : '';
 
     if (isNaN(amount) || amount < 5) return showToast('Mínimo R$ 5,00 para cartão', 'error');
     if (number.length < 16) return showToast('Número de cartão inválido', 'error');
     if (name.length < 5) return showToast('Digite o nome impresso no cartão', 'error');
     if (!expiry.includes('/')) return showToast('Validade inválida (MM/AA)', 'error');
     if (cvv.length < 3) return showToast('CVV inválido', 'error');
+    if (!cpf || cpf.length < 11) return showToast('Informe seu CPF (11 dígitos) para pagar com cartão!', 'error');
 
     const btn = document.querySelector('#pay-area-card .btn-submit');
     const originalText = btn.innerHTML;
@@ -1431,6 +1437,7 @@ async function processCardPayment() {
                 userId: currentUser.id,
                 userName: currentUser.name,
                 userEmail: currentUser.email,
+                cpf: cpf,
                 cardData: { number, name, expiry, cvv }
             })
         });
