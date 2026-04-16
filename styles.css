@@ -2311,6 +2311,43 @@ img { max-width: 100%; height: auto; }
     color: #ff6b6b;
 }
 
+/* Actions in Tables */
+.btn-refill {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-refill:hover {
+    background: #00ff88;
+    color: #000;
+}
+
+.btn-sync {
+    background: rgba(79, 172, 254, 0.15);
+    color: #4facfe;
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    padding: 5px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-sync:hover {
+    background: #4facfe;
+    color: #000;
+}
+
 /* ───────────────────────────────────────────────────────────── */
 /* Service Guide Section */
 .service-guide-section {
