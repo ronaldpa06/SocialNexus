@@ -15,8 +15,19 @@ const firebaseConfig = {
     databaseURL: "https://socialnexus-58290-default-rtdb.firebaseio.com"
 };
 
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
+// Inicializa Firebase apenas se não existir
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+
+// ─── Self-Healing Patch (Limpeza de Lixo) ───
+// Se o navegador estiver com dados corrompidos das sessões antigas
+if (localStorage.getItem('snx_users') === '[object Object]') {
+    console.warn("Limpando banco de dados local corrompido...");
+    localStorage.setItem('snx_users', '[]');
+    localStorage.removeItem('snx_session');
+}
+
 const db = firebase.database();
 
 const SYNC_KEYS = ['snx_users', 'snx_custom_services', 'snx_excluded_cats']; // Chaves globais
@@ -47,23 +58,30 @@ db.ref('socialnexus_kv').on('value', (snapshot) => {
         
         isSyncingFromCloud = true;
         for (let key in cloudData) {
+            let remoteVal = cloudData[key];
+            // Se o backend/webhook atualizou a nuvem como objeto nativo, stringifica antes do LocalStorage!
+            if (typeof remoteVal === 'object' && remoteVal !== null) {
+                remoteVal = JSON.stringify(remoteVal);
+            }
+            
             const localVal = originalGetItem.apply(localStorage, [key]);
             
             // Se o dado da nuvem for diferente do que está no celular/PC atual
-            if (localVal !== cloudData[key]) {
-                originalSetItem.apply(localStorage, [key, cloudData[key]]);
+            if (localVal !== remoteVal) {
+                originalSetItem.apply(localStorage, [key, remoteVal]);
                 
                 // Se o current_user foi afetado, precisa atualizar a "sessão" 
                 // para o saldo refletir no header sem F5
                 if (key === 'snx_users' && window.currentUser && window.currentUser.role !== 'admin') {
                     try {
-                        const parsedUsers = JSON.parse(cloudData[key]);
-                        const updatedMe = parsedUsers.find(u => u.id === window.currentUser.id);
-                        if (updatedMe) {
-                            window.currentUser = updatedMe;
-                            originalSetItem.apply(localStorage, ['snx_session', JSON.stringify(updatedMe)]);
+                        const parsedUsers = JSON.parse(remoteVal);
+                        const freshMe = parsedUsers.find(u => u.email === window.currentUser.email);
+                        if (freshMe) {
+                            window.currentUser = freshMe;
+                            originalSetItem.apply(localStorage, ['snx_session', JSON.stringify(freshMe)]);
+                            if (typeof loadDashboard === 'function') loadDashboard();
                         }
-                    } catch(e) {}
+                    } catch(e) { console.error("Sync error updating session", e); }
                 }
                 hasChanges = true;
             }
