@@ -1321,9 +1321,21 @@ function loadOrders() {
 function getStatusLabel(status) {
     const labels = {
         pending: 'Pendente',
-        processing: 'Em Andamento',
+        Pending: 'Pendente',
+        processing: 'Processamento',
+        Processing: 'Processamento',
+        inprogress: 'Em Andamento',
+        InProgress: 'Em Andamento',
+        'in progress': 'Em Andamento',
         completed: 'Concluído',
-        cancelled: 'Cancelado'
+        Completed: 'Concluído',
+        partial: 'Parcial',
+        Partial: 'Parcial',
+        cancelled: 'Cancelado',
+        Cancelled: 'Cancelado',
+        canceled: 'Cancelado',
+        Canceled: 'Cancelado',
+        refunded: 'Reembolsado'
     };
     return labels[status] || status;
 }
