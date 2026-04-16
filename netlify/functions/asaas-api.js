@@ -105,6 +105,11 @@ exports.handler = async function(event, context) {
         // 4. Buscar QR Code
         const qrRes = await asaasRequest('GET', `/payments/${paymentId}/pixQrCode`, finalApiKey, null, isSandbox);
 
+        if (!qrRes.data || !qrRes.data.payload) {
+             console.error("❌ Erro ao buscar QR Code:", JSON.stringify(qrRes));
+             return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: Falha ao gerar a imagem do Pix." }) };
+        }
+
         return {
             statusCode: 200,
             headers: { 
