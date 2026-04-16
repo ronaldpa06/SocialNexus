@@ -1539,7 +1539,10 @@ function renderPixResult(data) {
     const payloadInput = document.getElementById('pix-payload');
     const btnSubmit = document.querySelector('#pay-area-pix .btn-submit');
 
-    if (!data.image || !data.payload) {
+    const imageSource = data.image || data.encodedImage;
+    const payloadSource = data.payload || data.pixCopyPaste;
+
+    if (!imageSource || !payloadSource) {
         showToast('Erro: Recebemos o pagamento, mas o QR Code falhou. Tente novamente!', 'error');
         if (btnSubmit) {
             btnSubmit.disabled = false;
@@ -1550,10 +1553,10 @@ function renderPixResult(data) {
 
     if (container && imgElement && payloadInput) {
         // O Asaas manda a imagem em base64, precisamos garantir o prefixo
-        const qrBase64 = data.image.startsWith('data:') ? data.image : `data:image/png;base64,${data.image}`;
+        const qrBase64 = imageSource.startsWith('data:') ? imageSource : `data:image/png;base64,${imageSource}`;
         
         imgElement.src = qrBase64;
-        payloadInput.value = data.payload;
+        payloadInput.value = payloadSource;
         
         // Exibe o container com animação suave
         container.style.display = 'block';
