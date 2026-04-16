@@ -6,106 +6,6 @@
 if (typeof window.servicesDB === 'undefined') window.servicesDB = {};
 const servicesDB = window.servicesDB;
 
-// ─── Pastas Padrão do Sistema (Organização Automática de Categorias) ───
-// Só cria se o admin ainda não criou as suas próprias pastas
-(function initDefaultFolders() {
-    const existing = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
-    if (Object.keys(existing).length === 0) {
-        const defaultFolders = {
-            "📘 Facebook - Seguidores & Curtidas": [
-                "Facebook - Seguidores",
-                "Facebook - Seguidores [ Baratoest ] ⁻ᴺᴱᵂ⁻",
-                "Facebook - Special Service [ \uD835\uDC07\uD835\uDC22\uD835\uDC20\uD835\uDC21 \uD835\uDC10\uD835\uDC®\uD835\uDC1A\uD835\uDC₁\uD835\uDC­\uD835\uDC²\uD835\uDC€\uD835\uDC­ ]",
-                "Facebook - Page Curtidas [ Baratoest | Bangladesh \uD83C\uDDE7\uD83C\uDDE9 ] ⁻ᴺᴱᵂ⁻",
-                "Facebook - Seguidores for Monetization"
-            ],
-            "📘 Facebook - Vídeos & Visualizações": [
-                "Facebook - Video VisualizaÃ§Ãµes + Plays | 100k+/day",
-                "Facebook - Video VisualizaÃ§Ãµes + Plays | 50k+/day",
-                "Facebook - Video VisualizaÃ§Ãµes | 20k+/day [ Emergency ]",
-                "Facebook - Live Stream VisualizaÃ§Ãµes | \uD835\uDE36\uD835\uDE37\uD835\uDE35\uD835\uDE4C\uD835\uDE4F \uD835\uDE5A2",
-                "Facebook - Stories",
-                "Facebook - Horas de ExibiÃ§Ã£o [ Offline | Ultra RÃ¡pido ] ⁻ᴺᴱᵂ⁻"
-            ],
-            "📘 Facebook - Reações & Comentários": [
-                "Facebook - Reaction ❤️😄😡[ \uD835\uDC0C\uD835\uDC22\uD835\uDC31\uD835\uDC1E\uD835\uDC1D ]",
-                "Facebook - Reaction ❤️😀😡[ \uD835\uDE56\uD835\uDE5A\uD835\uDE66\uD835\uDE59\uD835\uDE5A\uD835\uDE5C\uD835\uDE57\uD835\uDE5E\uD835\uDE5E\uD835\uDE2B ]",
-                "Facebook - ComentÃ¡rios"
-            ],
-            "📸 Instagram - Seguidores": [
-                "Instagram - [ \uD835\uDC15\uD835\uDC1E\uD835\uDC2C\uD835\uDC2D \uD835\uDC12\uD835\uDC1E\uD835\uDCซ\uD835\uDC16\uD835\uDC2C\uD835\uDC1E\uD835\uDC2C | Recommended ] ⁻ᵁᴾᴰᴬᵀᴱᴰ⁻",
-                "Instagram - Seguidores [ High Speed | Baratoest ]",
-                "Instagram - Seguidores [ 100% Old Accounts ] ⁻ᴺᴱᵂ⁻",
-                "Instagram - Indian \uD83C\uDDEE\uD83C\uDDF3",
-                "Instagram - Türkiye \uD83C\uDDF9\uD83C\uDDF7",
-                "Instagram - Latin Countries Services [ Premium Quality ]"
-            ],
-            "📸 Instagram - Curtidas & Visualizações": [
-                "Instagram - Curtidas [ 100% Reais Account | Baratoest ]",
-                "Instagram - Curtidas [ RÃ¡pidoest in The Market ]",
-                "Instagram - Curtidas [ Old Accounts | Update Working ]",
-                "Instagram - VisualizaÃ§Ãµes ( Video / Postagem / Reel ) ⁻ᴺᴱᵂ⁻",
-                "Instagram - Reel",
-                "Instagram - Impressions | Reach | Perfil Visits"
-            ],
-            "📸 Instagram - Auto & Outros": [
-                "Instagram - \uD835\uDC00\uD835\uDC® \uD835\uDC2D\uD835\uDC¨ Curtidas",
-                "Instagram - \uD835\uDC00\uD835\uDC® \uD835\uDC2D\uD835\uDC¨ VisualizaÃ§Ãµes",
-                "Instagram - \uD835\uDC00\uD835\uDC® \uD835\uDC2D\uD835\uDC¨ Impression | Saves | Compartilhamentos"
-            ],
-            "🎵 TikTok - Seguidores & Curtidas": [
-                "TikTok - Curtidas [ LQ \u0026 Bot Accounts | Baratoest in the Market | S1 ]",
-                "TikTok - Curtidas [ RÃ¡pidoest + Less Drop Server \uD83D\uDE80| S5 ] ⁻ᴺᴱᵂ⁻",
-                "TikTok - Curtidas | Segmentados",
-                "TikTok - Curtidas [ USA \uD83C\uDDFA\uD83C\uDDF8 ]",
-                "TikTok - Services [ Vietnamese \uD83C\uDDE7\uD83C\uDDF3 ] ⁻ᴺᴱᵂ⁻"
-            ],
-            "🎵 TikTok - Live & Outros": [
-                "TikTok - Live Viewers [ %100 Concurrent ] [ Recommended ] ⁻ᵁᴾᴰᴬᵀᴱᴰ⁻",
-                "TikTok - Live Stream Like / Comment",
-                "Tiktok - PK Battle Services",
-                "TikTok - ComentÃ¡rios [ Melhor Service ]",
-                "TikTok - ComentÃ¡rios [ Baratoest ]"
-            ],
-            "▶️ YouTube - Visualizações": [
-                "YouTube - \uD835\uDC15est Services",
-                "YouTube - Social RÃ¡pido VisualizaÃ§Ãµes + Reais Ativos User [ Sem Queda ]",
-                "YouTube - Live Stream VisualizaÃ§Ãµes | Baratoest",
-                "YouTube - Live Stream [ \uD835\uDC01\uD835\uDC1E\uD835\uDC2C\uD835\uDC2D \uD835\uDC1F\uD835\uDC¨\uD835\uDC2B \uD835\uDC11\uD835\uDC1A\uD835\uDC§\uD835\uDC¢\uD835\uDC§\uD835\uDC0D + \uD835\uDC04\uD835\uDC31\uD835\uDC2D\uD835\uDC2B\uD835\uDC1A \uD835\uDC0B\uD835\uDC22\uD835\uDC¯\uD835\uDC1E \uD835\uDC¨\uD835\uDC§ \uD835\uDC04\uD835\uDC¯\uD835\uDC1E\uD835\uDC2B\uD835\uDC32 \uD835\uDC16\uD835\uDC2B\uD835\uDC1D\uD835\uDC1E\uD835\uDC2B ]",
-                "YouTube - Inscritos"
-            ],
-            "✈️ Telegram - Membros": [
-                "Telegram - Membros [ \uD835\uDE56\uD835\uDE1E\uD835\uDE2C\uD835\uDE2D \uD835\uDE56 \uD835\uDE22\uD835\uDE28\uD835\uDE2B \uD835\uDE17\uD835\uDE2B\uD835\uDE28\uD835\uDE19 ]",
-                "Telegram - Membros | \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 (Join From Link)",
-                "Telegram - Membros [ India \uD83C\uDDEE\uD83C\uDDF3 ]",
-                "Telegram - Membros [ Ukraine \uD83C\uDDFA\uD83C\uDDE6 ]",
-                "Telegram - Premium Membros [ Russian \uD83C\uDDF7\uD83C\uDDFA + Online ]"
-            ],
-            "✈️ Telegram - Outros": [
-                "Telegram - VisualizaÃ§Ãµes | Static Include",
-                "Telegram - VisualizaÃ§Ãµes | \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 Accounts",
-                "Telegram - ReaÃ§Ãµes \uD83D\uDC4D ❤️ \uD83D\uDD25 \uD83D\uDC4E\uD83D\uDE22\uD83D\uDCA9 | \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 Account",
-                "Telegram - \uD835\uDC15est Services",
-                "Telegram - Channel Boost"
-            ],
-            "🐦 Twitter/X": [
-                "X [ Twitter ] - Retweets",
-                "X [ Twitter ] - Services [ Recommended\uD83C\uDFC5]",
-                "X ( Twitter ) - VisualizaÃ§Ãµes"
-            ],
-            "🎶 Spotify & Música": [
-                "Spotify - Seguidores [ Artist / Playlist / User ]",
-                "Spotify - Plays [ Language Segmentados ]",
-                "Spotify - Plays [ \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 Accounts ]",
-                "Spotify - Monthly Listeners ⁻ᴺᴱᵂ⁻",
-                "Audiomack",
-                "Deezer"
-            ]
-        };
-        localStorage.setItem('snx_custom_folders', JSON.stringify(defaultFolders));
-    }
-})();
-
 
 // ─── App State & Internationalization ───
 let currentUser = null;
@@ -2631,13 +2531,14 @@ function createCategoryFolder() {
     const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
     if (folders[name]) return showToast('Já existe uma pasta com esse nome!', 'warning');
     
-    folders[name] = []; // Array vazio de subcategorias
+    folders[name] = [];
     localStorage.setItem('snx_custom_folders', JSON.stringify(folders));
     
     input.value = '';
-    showToast(`Pasta "${name}" criada com sucesso!`, 'success');
+    showToast(`Pasta "${name}" criada! Agora adicione categorias a ela.`, 'success');
     loadAdminCategoryFolders();
-    renderCategories(); // atualiza dropdown do cliente
+    // Força atualização do dropdown do cliente imediatamente
+    if (typeof renderCategories === 'function') renderCategories();
 }
 
 function loadAdminCategoryFolders() {
@@ -2647,81 +2548,145 @@ function loadAdminCategoryFolders() {
     const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
     container.innerHTML = '';
     
-    const allBaseKeys = Object.keys(servicesDB).sort();
-    
     if (Object.keys(folders).length === 0) {
-        container.innerHTML = '<p style="color: #666;">Nenhuma pasta criada ainda. Tente "Facebook (Geral)".</p>';
+        container.innerHTML = '<p style="color:#666; font-size:0.85rem;">Nenhuma pasta criada ainda. Experimente criar "📘 Facebook (Geral)".</p>';
         return;
     }
 
-    // Gerador de Options para o Select
-    let  optsHTML = '<option value="">-- Adicionar Categoria Nativa à Pasta --</option>';
-    allBaseKeys.forEach(k => {
-        optsHTML += `<option value="${k}">${k}</option>`;
-    });
+    // Categorias disponíveis (sem as que já estão em alguma pasta)
+    const allBaseKeys = Object.keys(servicesDB).sort();
+    const catsInAnyFolder = new Set();
+    Object.values(folders).forEach(arr => arr.forEach(c => catsInAnyFolder.add(c)));
+    const available = allBaseKeys.filter(k => !catsInAnyFolder.has(k));
 
     for (let folderName in folders) {
-        let insideHTML = folders[folderName].map(c => `
-            <span style="display:inline-block; background: rgba(0,255,136,0.1); color: #00ff88; padding: 3px 8px; border-radius: 4px; margin-right: 5px; margin-bottom: 5px; font-size: 0.8rem;">
-                ${c} <i class="fas fa-times" style="cursor:pointer; margin-left:3px; color: #ff4b2b;" onclick="removeCatFromFolder('${folderName}', '${c}')"></i>
-            </span>
-        `).join('');
+        const safeId = 'cb-list-' + folderName.replace(/\W+/g, '_');
+        const searchId = 'search-' + folderName.replace(/\W+/g, '_');
+        const countId  = 'count-'  + folderName.replace(/\W+/g, '_');
         
+        // Tags das categorias já dentro dessa pasta
+        let insideHTML = folders[folderName].length === 0
+            ? '<i style="color:#555; font-size:0.8rem;">(Pasta vazia — adicione categorias abaixo)</i>'
+            : folders[folderName].map(c => `
+                <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(0,255,136,0.08); color:#00ff88; padding:4px 10px; border-radius:20px; margin:3px; font-size:0.78rem; border:1px solid rgba(0,255,136,0.2);">
+                    ${c}
+                    <i class="fas fa-times" style="cursor:pointer; color:#ff4b2b; font-size:0.7rem;" onclick="removeCatFromFolder('${folderName.replace(/'/g,"\\'")}', '${c.replace(/'/g,"\\'")}')"></i>
+                </span>`).join('');
+
+        // Gera checkboxes (apenas das categorias AINDA não nessa pasta)
+        const availableForThisFolder = allBaseKeys.filter(k => !folders[folderName].includes(k));
+        let checkboxesHTML = availableForThisFolder.map(k => `
+            <label style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:0.82rem; color:#ccc;" 
+                   class="cb-folder-item" data-folder="${folderName.replace(/"/g,'&quot;')}">
+                <input type="checkbox" value="${k.replace(/"/g,'&quot;')}" style="accent-color:#00ff88; width:14px; height:14px;" 
+                       onchange="updateFolderSelCount('${countId}', '${safeId}')">
+                <span>${k}</span>
+            </label>`).join('');
+
         container.innerHTML += `
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h4 style="color: #ffd700; margin: 0;"><i class="fas fa-folder-open"></i> ${folderName}</h4>
-                    <button class="btn-primary-sm" style="background: #ff4b2b;" onclick="deleteCategoryFolder('${folderName}')"><i class="fas fa-trash"></i> Apagar Pasta</button>
+            <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,215,0,0.15); padding:16px; border-radius:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h4 style="color:#ffd700; margin:0; font-size:1rem;"><i class="fas fa-folder-open"></i> ${folderName}</h4>
+                    <button class="btn-primary-sm" style="background:#ff4b2b; font-size:0.75rem;" onclick="deleteCategoryFolder('${folderName.replace(/'/g,"\\'")}')">
+                        <i class="fas fa-trash"></i> Apagar Pasta
+                    </button>
                 </div>
-                
-                <div style="display:flex; gap: 10px; margin-bottom: 15px;">
-                    <select id="sel-${folderName.replace(/\s+/g, '')}" class="admin-input-dark" style="flex:1;">${optsHTML}</select>
-                    <button class="btn-submit" style="width: auto; padding: 0 15px;" onclick="addCategoryToFolder('${folderName}')"><i class="fas fa-plus"></i> Inserir</button>
+
+                <!-- Categorias já dentro desta pasta -->
+                <div style="margin-bottom:14px; min-height:28px;">
+                    ${insideHTML}
                 </div>
-                
-                <div>${insideHTML || '<i style="color:#666; font-size:0.8rem;">(Pasta vazia)</i>'}</div>
-            </div>
-        `;
+
+                <!-- Multi-select com busca -->
+                <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden;">
+                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                        <i class="fas fa-search" style="color:#666; font-size:0.8rem;"></i>
+                        <input type="text" id="${searchId}" placeholder="Buscar categorias para adicionar..." 
+                               style="flex:1; background:transparent; border:none; color:white; font-size:0.82rem; outline:none;"
+                               oninput="filterFolderCheckboxes('${safeId}', this.value)">
+                        <span id="${countId}" style="background:#00ff88; color:#000; border-radius:20px; padding:2px 8px; font-size:0.7rem; font-weight:700; display:none; min-width:20px; text-align:center;">0</span>
+                    </div>
+                    <div id="${safeId}" style="max-height:200px; overflow-y:auto; padding:6px;">
+                        ${checkboxesHTML || '<p style="color:#555; padding:8px; font-size:0.8rem;">Todas as categorias já estão nesta pasta.</p>'}
+                    </div>
+                    <div style="padding:8px 12px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:flex-end;">
+                        <button class="btn-submit" style="width:auto; padding:7px 18px; font-size:0.82rem;" 
+                                onclick="addCheckedToFolder('${folderName.replace(/'/g,"\\'")}', '${safeId}')">
+                            <i class="fas fa-plus"></i> Adicionar Selecionadas
+                        </button>
+                    </div>
+                </div>
+            </div>`;
     }
 }
 
-function addCategoryToFolder(folderName) {
-    const safeId = 'sel-' + folderName.replace(/\s+/g, '');
-    const sel = document.getElementById(safeId);
-    if(!sel || !sel.value) return showToast('Selecione uma categoria', 'warning');
-    
-    const cat = sel.value;
-    const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
-    if(!folders[folderName]) folders[folderName] = [];
-    
-    if(!folders[folderName].includes(cat)) {
-        folders[folderName].push(cat);
-        localStorage.setItem('snx_custom_folders', JSON.stringify(folders));
-        showToast('Adicionado com sucesso!', 'success');
-        loadAdminCategoryFolders();
-        renderCategories();
-    } else {
-        showToast('Já está nesta pasta.', 'info');
+// Atualiza o contador de checkboxes selecionados
+function updateFolderSelCount(countId, listId) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    const checked = list.querySelectorAll('input[type=checkbox]:checked').length;
+    const countEl = document.getElementById(countId);
+    if (countEl) {
+        countEl.textContent = checked;
+        countEl.style.display = checked > 0 ? 'inline-block' : 'none';
     }
+}
+
+// Filtra os checkboxes por texto digitado
+function filterFolderCheckboxes(listId, term) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    const lterm = term.toLowerCase();
+    list.querySelectorAll('.cb-folder-item').forEach(item => {
+        const text = item.querySelector('span').textContent.toLowerCase();
+        item.style.display = text.includes(lterm) ? 'flex' : 'none';
+    });
+}
+
+// Adiciona todas as categorias marcadas à pasta de uma vez
+function addCheckedToFolder(folderName, listId) {
+    const list = document.getElementById(listId);
+    if (!list) return;
+    
+    const checked = [...list.querySelectorAll('input[type=checkbox]:checked')].map(cb => cb.value);
+    if (checked.length === 0) return showToast('Marque pelo menos uma categoria!', 'warning');
+
+    const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
+    if (!folders[folderName]) folders[folderName] = [];
+    
+    let added = 0;
+    checked.forEach(cat => {
+        if (!folders[folderName].includes(cat)) {
+            folders[folderName].push(cat);
+            added++;
+        }
+    });
+
+    localStorage.setItem('snx_custom_folders', JSON.stringify(folders));
+    showToast(`${added} categoria(s) adicionada(s) à pasta! ✅`, 'success');
+    
+    // Atualiza o painel admin E o dropdown do cliente
+    loadAdminCategoryFolders();
+    if (typeof renderCategories === 'function') renderCategories();
 }
 
 function removeCatFromFolder(folderName, cat) {
     const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
-    if(folders[folderName]) {
+    if (folders[folderName]) {
         folders[folderName] = folders[folderName].filter(c => c !== cat);
         localStorage.setItem('snx_custom_folders', JSON.stringify(folders));
         loadAdminCategoryFolders();
-        renderCategories();
+        if (typeof renderCategories === 'function') renderCategories();
     }
 }
 
 function deleteCategoryFolder(folderName) {
-    if(!confirm(`Excluir a pasta "${folderName}"? As categorias voltarão a aparecer soltas.`)) return;
+    if (!confirm(`Excluir a pasta "${folderName}"? As categorias voltarão a aparecer soltas.`)) return;
     const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
     delete folders[folderName];
     localStorage.setItem('snx_custom_folders', JSON.stringify(folders));
     loadAdminCategoryFolders();
-    renderCategories();
+    if (typeof renderCategories === 'function') renderCategories();
 }
 
 
