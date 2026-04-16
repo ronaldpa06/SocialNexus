@@ -986,6 +986,79 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="service-guide-section">
+                            <div class="guide-card">
+                                <h3><i class="fas fa-info-circle"></i> Ícones de serviço</h3>
+                                <ul class="guide-item-list">
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">⭐</div>
+                                        <div class="guide-text"><b>Recomendado</b> Melhores serviços da casa.</div>
+                                    </li>
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">♻️</div>
+                                        <div class="guide-text"><b>Reposição</b> Possui garantia de reposição.</div>
+                                    </li>
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">⛔</div>
+                                        <div class="guide-text"><b>Botão Cancelar</b> Permite cancelamento manual.</div>
+                                    </li>
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">💧</div>
+                                        <div class="guide-text"><b>Drip-Feed</b> Permite entregas fracionadas.</div>
+                                    </li>
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">⚡</div>
+                                        <div class="guide-text"><b>Rápido</b> Início e entrega acelerados.</div>
+                                    </li>
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">📌</div>
+                                        <div class="guide-text"><b>Novo</b> Serviço recém adicionado.</div>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="guide-card">
+                                <h3><i class="fas fa-redo-alt"></i> Regras de Reposição</h3>
+                                <ul class="guide-item-list">
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">🔄</div>
+                                        <div class="guide-text"><b>Manual (R)</b> Você deve solicitar suporte.</div>
+                                    </li>
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">🤖</div>
+                                        <div class="guide-text"><b>Automática (AR)</b> O sistema faz sozinho.</div>
+                                    </li>
+                                    <li class="guide-item">
+                                        <div class="guide-icon-box">🚫</div>
+                                        <div class="guide-text"><b>Sem Reposição (SR)</b> Sem garantia de queda.</div>
+                                    </li>
+                                </ul>
+                                <button class="btn-outline-sm" style="width:100%; margin-top:15px;" onclick="showDashTab('dash-support')">Leia as Regras Completas</button>
+                                
+                                <h3 style="margin-top:25px;"><i class="fas fa-star"></i> Qualidade</h3>
+                                <ul class="guide-item-list">
+                                    <li class="guide-item"><b>(BQ)</b> Baixa Qualidade / <b>(MQ)</b> Média / <b>(HQ)</b> Alta</li>
+                                </ul>
+                            </div>
+
+                            <div class="guide-card">
+                                <h3><i class="fas fa-question-circle"></i> Pedido cancelado ou parcial?</h3>
+                                <ul class="guide-item-rules">
+                                    <li><i class="fas fa-minus-circle"></i> Retire o privado do seu perfil.</li>
+                                    <li><i class="fas fa-minus-circle"></i> Retire a restrição de idade.</li>
+                                    <li><i class="fas fa-minus-circle"></i> Confira se o link ou usuário está correto.</li>
+                                    <li><i class="fas fa-minus-circle"></i> O número de curtidas deve estar visível no post.</li>
+                                </ul>
+                                <div style="margin-top:15px; padding:10px; background:rgba(245, 87, 108, 0.1); border-radius:8px; font-size:0.8rem; color:var(--error);">
+                                    <i class="fas fa-exclamation-triangle"></i> Pedidos cancelados ou parciais têm o valor residual estornado automaticamente.
+                                </div>
+                            </div>
+
+                            <div class="guide-footer-note">
+                                Ao fazer um pedido, você concorda com os nossos <b>Termos de Serviço</b> e confirma que leu a descrição do serviço e está ciente dos prazos e regras do serviço.
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Orders Tab -->
@@ -1001,8 +1074,11 @@
                                     <option value="all">Todos</option>
                                     <option value="pending">Pendente</option>
                                     <option value="processing">Em Andamento</option>
+                                    <option value="InProgress">Em Andamento (API)</option>
                                     <option value="completed">Concluído</option>
+                                    <option value="partial">Parcial</option>
                                     <option value="cancelled">Cancelado</option>
+                                    <option value="Canceled">Cancelado (API)</option>
                                 </select>
                             </div>
                         </div>
@@ -1679,8 +1755,11 @@
                                     <option value="all">Todos</option>
                                     <option value="pending">Pendente</option>
                                     <option value="processing">Em Andamento</option>
+                                    <option value="InProgress">Em Andamento (API)</option>
                                     <option value="completed">Concluído</option>
+                                    <option value="partial">Parcial</option>
                                     <option value="cancelled">Cancelado</option>
+                                    <option value="Canceled">Cancelado (API)</option>
                                 </select>
                             </div>
                         </div>
