@@ -6,6 +6,106 @@
 if (typeof window.servicesDB === 'undefined') window.servicesDB = {};
 const servicesDB = window.servicesDB;
 
+// ─── Pastas Padrão do Sistema (Organização Automática de Categorias) ───
+// Só cria se o admin ainda não criou as suas próprias pastas
+(function initDefaultFolders() {
+    const existing = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
+    if (Object.keys(existing).length === 0) {
+        const defaultFolders = {
+            "📘 Facebook - Seguidores & Curtidas": [
+                "Facebook - Seguidores",
+                "Facebook - Seguidores [ Baratoest ] ⁻ᴺᴱᵂ⁻",
+                "Facebook - Special Service [ \uD835\uDC07\uD835\uDC22\uD835\uDC20\uD835\uDC21 \uD835\uDC10\uD835\uDC®\uD835\uDC1A\uD835\uDC₁\uD835\uDC­\uD835\uDC²\uD835\uDC€\uD835\uDC­ ]",
+                "Facebook - Page Curtidas [ Baratoest | Bangladesh \uD83C\uDDE7\uD83C\uDDE9 ] ⁻ᴺᴱᵂ⁻",
+                "Facebook - Seguidores for Monetization"
+            ],
+            "📘 Facebook - Vídeos & Visualizações": [
+                "Facebook - Video VisualizaÃ§Ãµes + Plays | 100k+/day",
+                "Facebook - Video VisualizaÃ§Ãµes + Plays | 50k+/day",
+                "Facebook - Video VisualizaÃ§Ãµes | 20k+/day [ Emergency ]",
+                "Facebook - Live Stream VisualizaÃ§Ãµes | \uD835\uDE36\uD835\uDE37\uD835\uDE35\uD835\uDE4C\uD835\uDE4F \uD835\uDE5A2",
+                "Facebook - Stories",
+                "Facebook - Horas de ExibiÃ§Ã£o [ Offline | Ultra RÃ¡pido ] ⁻ᴺᴱᵂ⁻"
+            ],
+            "📘 Facebook - Reações & Comentários": [
+                "Facebook - Reaction ❤️😄😡[ \uD835\uDC0C\uD835\uDC22\uD835\uDC31\uD835\uDC1E\uD835\uDC1D ]",
+                "Facebook - Reaction ❤️😀😡[ \uD835\uDE56\uD835\uDE5A\uD835\uDE66\uD835\uDE59\uD835\uDE5A\uD835\uDE5C\uD835\uDE57\uD835\uDE5E\uD835\uDE5E\uD835\uDE2B ]",
+                "Facebook - ComentÃ¡rios"
+            ],
+            "📸 Instagram - Seguidores": [
+                "Instagram - [ \uD835\uDC15\uD835\uDC1E\uD835\uDC2C\uD835\uDC2D \uD835\uDC12\uD835\uDC1E\uD835\uDCซ\uD835\uDC16\uD835\uDC2C\uD835\uDC1E\uD835\uDC2C | Recommended ] ⁻ᵁᴾᴰᴬᵀᴱᴰ⁻",
+                "Instagram - Seguidores [ High Speed | Baratoest ]",
+                "Instagram - Seguidores [ 100% Old Accounts ] ⁻ᴺᴱᵂ⁻",
+                "Instagram - Indian \uD83C\uDDEE\uD83C\uDDF3",
+                "Instagram - Türkiye \uD83C\uDDF9\uD83C\uDDF7",
+                "Instagram - Latin Countries Services [ Premium Quality ]"
+            ],
+            "📸 Instagram - Curtidas & Visualizações": [
+                "Instagram - Curtidas [ 100% Reais Account | Baratoest ]",
+                "Instagram - Curtidas [ RÃ¡pidoest in The Market ]",
+                "Instagram - Curtidas [ Old Accounts | Update Working ]",
+                "Instagram - VisualizaÃ§Ãµes ( Video / Postagem / Reel ) ⁻ᴺᴱᵂ⁻",
+                "Instagram - Reel",
+                "Instagram - Impressions | Reach | Perfil Visits"
+            ],
+            "📸 Instagram - Auto & Outros": [
+                "Instagram - \uD835\uDC00\uD835\uDC® \uD835\uDC2D\uD835\uDC¨ Curtidas",
+                "Instagram - \uD835\uDC00\uD835\uDC® \uD835\uDC2D\uD835\uDC¨ VisualizaÃ§Ãµes",
+                "Instagram - \uD835\uDC00\uD835\uDC® \uD835\uDC2D\uD835\uDC¨ Impression | Saves | Compartilhamentos"
+            ],
+            "🎵 TikTok - Seguidores & Curtidas": [
+                "TikTok - Curtidas [ LQ \u0026 Bot Accounts | Baratoest in the Market | S1 ]",
+                "TikTok - Curtidas [ RÃ¡pidoest + Less Drop Server \uD83D\uDE80| S5 ] ⁻ᴺᴱᵂ⁻",
+                "TikTok - Curtidas | Segmentados",
+                "TikTok - Curtidas [ USA \uD83C\uDDFA\uD83C\uDDF8 ]",
+                "TikTok - Services [ Vietnamese \uD83C\uDDE7\uD83C\uDDF3 ] ⁻ᴺᴱᵂ⁻"
+            ],
+            "🎵 TikTok - Live & Outros": [
+                "TikTok - Live Viewers [ %100 Concurrent ] [ Recommended ] ⁻ᵁᴾᴰᴬᵀᴱᴰ⁻",
+                "TikTok - Live Stream Like / Comment",
+                "Tiktok - PK Battle Services",
+                "TikTok - ComentÃ¡rios [ Melhor Service ]",
+                "TikTok - ComentÃ¡rios [ Baratoest ]"
+            ],
+            "▶️ YouTube - Visualizações": [
+                "YouTube - \uD835\uDC15est Services",
+                "YouTube - Social RÃ¡pido VisualizaÃ§Ãµes + Reais Ativos User [ Sem Queda ]",
+                "YouTube - Live Stream VisualizaÃ§Ãµes | Baratoest",
+                "YouTube - Live Stream [ \uD835\uDC01\uD835\uDC1E\uD835\uDC2C\uD835\uDC2D \uD835\uDC1F\uD835\uDC¨\uD835\uDC2B \uD835\uDC11\uD835\uDC1A\uD835\uDC§\uD835\uDC¢\uD835\uDC§\uD835\uDC0D + \uD835\uDC04\uD835\uDC31\uD835\uDC2D\uD835\uDC2B\uD835\uDC1A \uD835\uDC0B\uD835\uDC22\uD835\uDC¯\uD835\uDC1E \uD835\uDC¨\uD835\uDC§ \uD835\uDC04\uD835\uDC¯\uD835\uDC1E\uD835\uDC2B\uD835\uDC32 \uD835\uDC16\uD835\uDC2B\uD835\uDC1D\uD835\uDC1E\uD835\uDC2B ]",
+                "YouTube - Inscritos"
+            ],
+            "✈️ Telegram - Membros": [
+                "Telegram - Membros [ \uD835\uDE56\uD835\uDE1E\uD835\uDE2C\uD835\uDE2D \uD835\uDE56 \uD835\uDE22\uD835\uDE28\uD835\uDE2B \uD835\uDE17\uD835\uDE2B\uD835\uDE28\uD835\uDE19 ]",
+                "Telegram - Membros | \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 (Join From Link)",
+                "Telegram - Membros [ India \uD83C\uDDEE\uD83C\uDDF3 ]",
+                "Telegram - Membros [ Ukraine \uD83C\uDDFA\uD83C\uDDE6 ]",
+                "Telegram - Premium Membros [ Russian \uD83C\uDDF7\uD83C\uDDFA + Online ]"
+            ],
+            "✈️ Telegram - Outros": [
+                "Telegram - VisualizaÃ§Ãµes | Static Include",
+                "Telegram - VisualizaÃ§Ãµes | \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 Accounts",
+                "Telegram - ReaÃ§Ãµes \uD83D\uDC4D ❤️ \uD83D\uDD25 \uD83D\uDC4E\uD83D\uDE22\uD83D\uDCA9 | \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 Account",
+                "Telegram - \uD835\uDC15est Services",
+                "Telegram - Channel Boost"
+            ],
+            "🐦 Twitter/X": [
+                "X [ Twitter ] - Retweets",
+                "X [ Twitter ] - Services [ Recommended\uD83C\uDFC5]",
+                "X ( Twitter ) - VisualizaÃ§Ãµes"
+            ],
+            "🎶 Spotify & Música": [
+                "Spotify - Seguidores [ Artist / Playlist / User ]",
+                "Spotify - Plays [ Language Segmentados ]",
+                "Spotify - Plays [ \uD835\uDC0F\uD835\uDC«\uD835\uDC1E\uD835\uDC20\uD835\uDC22\uD835\uDC®\uD835\uDC20 Accounts ]",
+                "Spotify - Monthly Listeners ⁻ᴺᴱᵂ⁻",
+                "Audiomack",
+                "Deezer"
+            ]
+        };
+        localStorage.setItem('snx_custom_folders', JSON.stringify(defaultFolders));
+    }
+})();
+
 
 // ─── App State & Internationalization ───
 let currentUser = null;
