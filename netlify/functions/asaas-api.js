@@ -66,7 +66,7 @@ exports.handler = async function(event, context) {
             }).on('error', () => resolve(null));
         });
 
-        const finalApiKey = (configRaw && configRaw.asaas_key) || 'aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OmY3YWRmMDM1LTc1OWItNDU2MS04ZTRhLTI4MjQxODk3ZDI0Yjo6JGFhY2hfNjM2MDU2ZjItNjllMi00OTk1LTg1NDEtN2I3ODM1N2M5OWNi';
+        const finalApiKey = (configRaw && (configRaw.asaasKey || configRaw.asaas_key)) || '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjA0ZDAzYzExLTJkYWQtNGRlOC05NTY0LWMxYmMwNmU0MGE4OTo6JGFhY2hfZjEwYmJlNTctNjFhMS00NmE0LWIxYzAtNWY0ZDdiOWZkMmM4';
         const isSandbox = finalApiKey.includes('sandbox');
 
         // 2. Cadastro/Busca de Cliente
