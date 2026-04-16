@@ -364,6 +364,39 @@ const AutomationEngine = {
         }
     },
 
+    async requestRefill(externalId) {
+        if (!SNX_CONFIG.PROVIDER_API_KEY) return { success: false, error: 'API Key missing' };
+        try {
+            const params = new URLSearchParams({
+                key: SNX_CONFIG.PROVIDER_API_KEY,
+                action: 'refill',
+                order: externalId
+            });
+            const response = await fetch(`${SNX_CONFIG.PROVIDER_API_URL}?${params.toString()}`, { method: 'POST' });
+            const data = await response.json();
+            if (data.refill) return { success: true, refillId: data.refill };
+            return { success: false, error: data.error || 'Erro na reposição' };
+        } catch (err) {
+            return { success: false, error: 'Falha de conexão' };
+        }
+    },
+
+    async syncOrderStatus(externalId) {
+        if (!SNX_CONFIG.PROVIDER_API_KEY) return null;
+        try {
+            const params = new URLSearchParams({
+                key: SNX_CONFIG.PROVIDER_API_KEY,
+                action: 'status',
+                order: externalId
+            });
+            const response = await fetch(`${SNX_CONFIG.PROVIDER_API_URL}?${params.toString()}`, { method: 'POST' });
+            const data = await response.json();
+            return data; // { status, charge, start_count, remains }
+        } catch (err) {
+            return null;
+        }
+    },
+
     /**
      * Gera uma cobrança PIX no Asaas
      */
@@ -1019,12 +1052,22 @@ function updateServices() {
     services.forEach(service => {
         if (service.status === 'unavailable') return;
         
+        // Identificar ícones extras baseados no nome
+        let extraIcons = "";
+        const lowName = service.name.toLowerCase();
+        if(lowName.includes('⭐') || lowName.includes('recomendado')) extraIcons += "⭐ ";
+        if(lowName.includes('♻️') || lowName.includes('refill') || lowName.includes('reposi')) extraIcons += "♻️ ";
+        if(lowName.includes('⚡') || lowName.includes('rápido') || lowName.includes('fast') || lowName.includes('instante')) extraIcons += "⚡ ";
+        if(lowName.includes('📌') || lowName.includes('novo') || lowName.includes('new')) extraIcons += "📌 ";
+        if(lowName.includes('⛔') || lowName.includes('cancel')) extraIcons += "⛔ ";
+        if(lowName.includes('💧') || lowName.includes('drip')) extraIcons += "💧 ";
+
         const optionHTML = `
             <div class="custom-option service-option-item" 
                  onclick='selectService(${JSON.stringify(service).replace(/'/g, "&#39;")})'>
                 <div class="svc-main-info">
                     <i class="fas fa-circle" style="color: ${dotColor}; font-size: 8px;"></i>
-                    <span class="svc-name-text">${service.name}</span>
+                    <span class="svc-name-text">${extraIcons}${service.name}</span>
                 </div>
                 <div class="svc-price-wrapper">
                     <span class="svc-price-tag">R$ ${parseFloat(service.price).toFixed(2)}</span>
@@ -1040,8 +1083,15 @@ function updateServices() {
 let activeSelectedServiceInfo = null;
 
 function selectService(serviceObj) {
+    // Identificar ícones para o label selecionado
+    let extraIcons = "";
+    const name = serviceObj.name.toLowerCase();
+    if(name.includes('⭐') || name.includes('recomendado')) extraIcons += "⭐ ";
+    if(name.includes('♻️') || name.includes('refill') || name.includes('reposi')) extraIcons += "♻️ ";
+    if(name.includes('⚡')) extraIcons += "⚡ ";
+
     document.getElementById('order-service').value = serviceObj.id;
-    document.getElementById('svc-selected-text').innerHTML = `<i class="fas fa-gem"></i> ${serviceObj.name}`;
+    document.getElementById('svc-selected-text').innerHTML = `<i class="fas fa-gem"></i> ${extraIcons}${serviceObj.name}`;
     document.getElementById('svc-trigger').classList.remove('open');
     
     activeSelectedServiceInfo = serviceObj;
@@ -1055,18 +1105,18 @@ function renderCategories() {
     container.innerHTML = '';
     const excluded = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
     const customFolders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
+    const folderOrder = JSON.parse(localStorage.getItem('snx_folder_order') || '[]');
     
-    // Lista de todas as categorias base
     const allBaseKeys = Object.keys(servicesDB).filter(k => !excluded.includes(k));
-    
-    // Descobre quis categorias já estão dentro de alguma pasta para não repeti-las avulsamente
     const catsInFolders = new Set();
     Object.values(customFolders).forEach(arr => arr.forEach(c => catsInFolders.add(c)));
-
     const avulsas = allBaseKeys.filter(k => !catsInFolders.has(k)).sort();
     
-    // Itens finais para exibir: Pastas primeiro, depois Avulsas
-    let finalItemsToRender = Object.keys(customFolders).map(f => ({ name: f, isFolder: true }));
+    // Ordenar pastas conforme o order salvo
+    let sortedFolders = folderOrder.filter(f => customFolders[f]);
+    Object.keys(customFolders).forEach(f => { if(!sortedFolders.includes(f)) sortedFolders.push(f); });
+
+    let finalItemsToRender = sortedFolders.map(f => ({ name: f, isFolder: true }));
     avulsas.forEach(a => finalItemsToRender.push({ name: a, isFolder: false }));
 
     const iconMap = {
@@ -1084,28 +1134,19 @@ function renderCategories() {
         'seguidores': { icon: 'fas fa-user-plus', color: '#4facfe' },
         'visualizações': { icon: 'fas fa-play', color: '#00ff88' },
         'comentários': { icon: 'fas fa-comment', color: '#f093fb' },
-        'pasta': { icon: 'fas fa-folder-open', color: '#ffd700' } // Ícone padrão de pasta
+        'pasta': { icon: 'fas fa-folder-open', color: '#ffd700' }
     };
 
     finalItemsToRender.forEach(item => {
         let icon = item.isFolder ? 'fas fa-folder' : 'fas fa-list';
         let color = item.isFolder ? '#ffd700' : '#a18cd1';
         const lowerName = item.name.toLowerCase();
-        
-        for (let key in iconMap) {
-            if (lowerName.includes(key)) { 
-                icon = iconMap[key].icon; 
-                color = iconMap[key].color;
-                break; 
-            }
-        }
+        for (let key in iconMap) { if (lowerName.includes(key)) { icon = iconMap[key].icon; color = iconMap[key].color; break; } }
         
         const div = document.createElement('div');
         div.className = 'custom-option';
         div.style.borderLeft = item.isFolder ? `4px solid ${color}` : `3px solid ${color}`;
         div.innerHTML = `<i class="${icon}" style="color: ${color}"></i> <b>${item.name.charAt(0).toUpperCase() + item.name.slice(1)}</b>`;
-        
-        // Identificador especial para diferenciar pastas de categorias nativas
         const actionValue = item.isFolder ? `FOLDER::${item.name}` : item.name;
         div.onclick = () => selectCategory(actionValue, item.name, icon, color);
         container.appendChild(div);
@@ -1281,7 +1322,7 @@ function loadOrders() {
     if (orders.length === 0) {
         tbody.innerHTML = `
             <tr class="empty-row">
-                <td colspan="7">
+                <td colspan="8">
                     <div class="empty-state">
                         <i class="fas fa-inbox"></i>
                         <p>Nenhum pedido encontrado</p>
@@ -1292,21 +1333,84 @@ function loadOrders() {
         return;
     }
 
-    tbody.innerHTML = orders.map(order => `
-        <tr>
-            <td><strong>#${order.id}</strong></td>
-            <td>${order.service}</td>
-            <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.link}</td>
-            <td>${order.quantity.toLocaleString('pt-BR')}</td>
-            <td>R$ ${order.total.toFixed(2)}</td>
-            <td><span class="status-badge status-${order.status}">${getStatusLabel(order.status)}</span></td>
-            <td>${formatDate(order.date)}</td>
-        </tr>
-    `).join('');
+    // Tentar sincronizar status de pedidos pendentes/processando
+    document.querySelectorAll('.btn-sync-status').forEach(b => b.classList.add('fa-spin'));
+    
+    tbody.innerHTML = orders.map(order => {
+        // Logica para mostrar botão de Refill
+        const canRefill = order.status === 'completed' && order.externalId;
+        const refillBtn = canRefill 
+            ? `<button class="btn-refill" onclick="requestOrderRefill(${order.id}, ${order.externalId})"><i class="fas fa-redo"></i> Reposição</button>` 
+            : '';
+        
+        // Botão para sincronizar manual
+        const syncBtn = order.externalId && order.status !== 'completed' && order.status !== 'cancelled'
+            ? `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status"><i class="fas fa-sync-alt"></i></button>`
+            : '';
 
-    // Update overview stats
-    const completedOrders = orders.filter(o => o.status === 'completed');
-    const pendingOrders = orders.filter(o => o.status !== 'completed' && o.status !== 'cancelled');
+        return `
+            <tr>
+                <td><strong>#${order.id}</strong></td>
+                <td>${order.service}</td>
+                <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.link}</td>
+                <td>${order.quantity.toLocaleString('pt-BR')}</td>
+                <td>R$ ${order.total.toFixed(2)}</td>
+                <td><span class="status-badge status-${order.status}">${getStatusLabel(order.status)}</span></td>
+                <td>${formatDate(order.date)}</td>
+                <td><div style="display:flex; gap:5px;">${refillBtn}${syncBtn}</div></td>
+            </tr>
+        `;
+    }).join('');
+
+    // Sincronização Automática Silenciosa para pedidos recentes
+    orders.forEach(o => {
+        if(o.externalId && (o.status === 'processing' || o.status === 'pending' || o.status === 'InProgress' || o.status === 'Processing')) {
+            syncSpecificOrder(o.id, o.externalId, true);
+        }
+    });
+
+    updateOverviewStats();
+}
+
+async function syncSpecificOrder(orderId, externalId, silent = false) {
+    const data = await AutomationEngine.syncOrderStatus(externalId);
+    if (data && data.status) {
+        let needsUpdate = false;
+        const order = orders.find(o => o.id === orderId);
+        if (order && order.status !== data.status.toLowerCase()) {
+            order.status = data.status;
+            needsUpdate = true;
+        }
+        if (needsUpdate) {
+            saveUserData();
+            if(!silent) {
+                loadOrders();
+                showToast(`Pedido #${orderId} atualizado para ${getStatusLabel(data.status)}`, 'info');
+            }
+        }
+    }
+}
+
+async function requestOrderRefill(orderId, externalId) {
+    const btn = event.currentTarget;
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Solicitando...';
+    
+    const result = await AutomationEngine.requestRefill(externalId);
+    if (result.success) {
+        showToast(`Solicitação de reposição #${result.refillId} enviada com sucesso!`, 'success');
+        btn.innerHTML = '<i class="fas fa-check"></i> Solicitado';
+    } else {
+        showToast(`Erro: ${result.error}`, 'error');
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+    }
+}
+
+function updateOverviewStats() {
+    const completedOrders = orders.filter(o => o.status === 'completed' || o.status === 'Completed');
+    const pendingOrders = orders.filter(o => !['completed', 'cancelled', 'Completed', 'Cancelled', 'Canceled'].includes(o.status));
     const totalSpent = orders.reduce((sum, o) => sum + o.total, 0);
 
     const overviewCards = document.querySelectorAll('.overview-card .ov-value');
@@ -2291,31 +2395,52 @@ function loadAdminOrders() {
     // Sort by date, latest first
     allOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    tbody.innerHTML = allOrders.map(order => `
-        <tr data-search="${(order.clientName + order.service + order.id).toLowerCase()}" data-status="${order.status}">
-            <td><strong>#${order.id}</strong></td>
-            <td>${order.clientName}</td>
-            <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.service}</td>
-            <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.link}</td>
-            <td>${order.quantity?.toLocaleString('pt-BR') || '-'}</td>
-            <td>${formatValue(order.total || 0)}</td>
-            <td><span class="status-badge status-${order.status}">${getStatusLabel(order.status)}</span></td>
-            <td>${formatDate(order.date)}</td>
-            <td class="order-actions-cell">
-                <div style="display: flex; gap: 5px;">
-                    <button class="btn-action success" onclick="changeOrderStatus(${order.clientId}, ${order.id}, 'completed')" title="Concluir">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn-action danger" onclick="adminRefundOrder(${order.id})" title="Reembolsar Cliente">
-                        <i class="fas fa-undo"></i>
-                    </button>
-                    <button class="btn-action" onclick="changeOrderStatus(${order.clientId}, ${order.id}, 'cancelled')" title="Cancelar">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = allOrders.map(order => {
+        const syncBtn = order.externalId && !['completed', 'cancelled', 'Completed', 'Cancelled', 'Canceled'].includes(order.status)
+            ? `<button class="btn-sync" onclick="syncAdminOrder(${order.clientId}, ${order.id}, ${order.externalId})" title="Sincronizar com GrowFollows"><i class="fas fa-sync-alt"></i></button>`
+            : '';
+
+        return `
+            <tr data-search="${(order.clientName + order.service + order.id).toLowerCase()}" data-status="${order.status}">
+                <td><strong>#${order.id}</strong></td>
+                <td>${order.clientName}</td>
+                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.service}</td>
+                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.link}</td>
+                <td>${order.quantity?.toLocaleString('pt-BR') || '-'}</td>
+                <td>${formatValue(order.total || 0)}</td>
+                <td><span class="status-badge status-${order.status}">${getStatusLabel(order.status)}</span> ${syncBtn}</td>
+                <td>${formatDate(order.date)}</td>
+                <td class="order-actions-cell">
+                    <div style="display: flex; gap: 5px;">
+                        <button class="btn-action success" onclick="changeOrderStatus(${order.clientId}, ${order.id}, 'completed')" title="Concluir">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn-action danger" onclick="adminRefundOrder(${order.id})" title="Reembolsar Cliente">
+                            <i class="fas fa-undo"></i>
+                        </button>
+                        <button class="btn-action" onclick="changeOrderStatus(${order.clientId}, ${order.id}, 'cancelled')" title="Cancelar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Sobrecarga para o admin poder sincronizar
+async function syncAdminOrder(clientId, orderId, externalId) {
+    const data = await AutomationEngine.syncOrderStatus(externalId);
+    if (data && data.status) {
+        const userOrders = JSON.parse(localStorage.getItem(`snx_orders_${clientId}`) || '[]');
+        const order = userOrders.find(o => o.id === orderId);
+        if (order) {
+            order.status = data.status;
+            localStorage.setItem(`snx_orders_${clientId}`, JSON.stringify(userOrders));
+            loadAdminDashboard();
+            showToast(`Pedido #${orderId} atualizado para ${getStatusLabel(data.status)}`, 'info');
+        }
+    }
 }
 
 // Change order status
@@ -2558,6 +2683,14 @@ function loadAdminCategoryFolders() {
     if (!container) return;
     
     const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
+    const folderOrder = JSON.parse(localStorage.getItem('snx_folder_order') || '[]');
+    
+    // Garantir que todos os nomes de pastas estejam no order
+    Object.keys(folders).forEach(f => { if(!folderOrder.includes(f)) folderOrder.push(f); });
+    // Remover do order pastas que não existem mais
+    const cleanedOrder = folderOrder.filter(f => folders[f]);
+    if(cleanedOrder.length !== folderOrder.length) localStorage.setItem('snx_folder_order', JSON.stringify(cleanedOrder));
+
     container.innerHTML = '';
     
     if (Object.keys(folders).length === 0) {
@@ -2565,18 +2698,13 @@ function loadAdminCategoryFolders() {
         return;
     }
 
-    // Categorias disponíveis (sem as que já estão em alguma pasta)
     const allBaseKeys = Object.keys(servicesDB).sort();
-    const catsInAnyFolder = new Set();
-    Object.values(folders).forEach(arr => arr.forEach(c => catsInAnyFolder.add(c)));
-    const available = allBaseKeys.filter(k => !catsInAnyFolder.has(k));
 
-    for (let folderName in folders) {
+    cleanedOrder.forEach(folderName => {
         const safeId = 'cb-list-' + folderName.replace(/\W+/g, '_');
         const searchId = 'search-' + folderName.replace(/\W+/g, '_');
         const countId  = 'count-'  + folderName.replace(/\W+/g, '_');
         
-        // Tags das categorias já dentro dessa pasta
         let insideHTML = folders[folderName].length === 0
             ? '<i style="color:#555; font-size:0.8rem;">(Pasta vazia — adicione categorias abaixo)</i>'
             : folders[folderName].map(c => `
@@ -2585,7 +2713,6 @@ function loadAdminCategoryFolders() {
                     <i class="fas fa-times" style="cursor:pointer; color:#ff4b2b; font-size:0.7rem;" onclick="removeCatFromFolder('${folderName.replace(/'/g,"\\'")}', '${c.replace(/'/g,"\\'")}')"></i>
                 </span>`).join('');
 
-        // Gera checkboxes (apenas das categorias AINDA não nessa pasta)
         const availableForThisFolder = allBaseKeys.filter(k => !folders[folderName].includes(k));
         let checkboxesHTML = availableForThisFolder.map(k => `
             <label style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:0.82rem; color:#ccc;" 
@@ -2596,28 +2723,24 @@ function loadAdminCategoryFolders() {
             </label>`).join('');
 
         container.innerHTML += `
-            <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,215,0,0.15); padding:16px; border-radius:10px;">
+            <div class="folder-card-sort" data-name="${folderName}" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,215,0,0.15); padding:16px; border-radius:10px; cursor:default; position:relative;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                    <h4 style="color:#ffd700; margin:0; font-size:1rem;"><i class="fas fa-folder-open"></i> ${folderName}</h4>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <i class="fas fa-grip-vertical drag-handle" style="color:#ffd700; cursor:grab; padding:5px; opacity:0.6;"></i>
+                        <h4 style="color:#ffd700; margin:0; font-size:1rem;"><i class="fas fa-folder-open"></i> ${folderName}</h4>
+                    </div>
                     <button class="btn-primary-sm" style="background:#ff4b2b; font-size:0.75rem;" onclick="deleteCategoryFolder('${folderName.replace(/'/g,"\\'")}')">
-                        <i class="fas fa-trash"></i> Apagar Pasta
+                        <i class="fas fa-trash"></i> Apagar
                     </button>
                 </div>
 
-                <!-- Categorias já dentro desta pasta -->
                 <div style="margin-bottom:14px; min-height:28px;">
                     ${insideHTML}
                 </div>
 
-                <!-- Multi-select com busca -->
                 <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden;">
                     <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.05);">
                         <i class="fas fa-search" style="color:#666; font-size:0.8rem;"></i>
-                        <input type="text" id="${searchId}" placeholder="Buscar categorias para adicionar..." 
-                               style="flex:1; background:transparent; border:none; color:white; font-size:0.82rem; outline:none;"
-                               oninput="filterFolderCheckboxes('${safeId}', this.value)">
-                        <span id="${countId}" style="background:#00ff88; color:#000; border-radius:20px; padding:2px 8px; font-size:0.7rem; font-weight:700; display:none; min-width:20px; text-align:center;">0</span>
-                    </div>
                     <div id="${safeId}" style="max-height:200px; overflow-y:auto; padding:6px;">
                         ${checkboxesHTML || '<p style="color:#555; padding:8px; font-size:0.8rem;">Todas as categorias já estão nesta pasta.</p>'}
                     </div>
