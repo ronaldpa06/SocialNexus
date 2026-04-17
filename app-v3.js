@@ -15,8 +15,22 @@ window.currentUser = null; // Exposição para o Sincronizador de Nuvem
 function fixEncoding(str) {
     if (!str || typeof str !== 'string') return str;
     
+    // Normalize Unicode Bold/Italic characters to standard ASCII
+    let res = str.replace(/[\u1D400-\u1D7FF]/g, (char) => {
+        const code = char.codePointAt(0);
+        if (code >= 0x1D400 && code <= 0x1D419) return String.fromCharCode(code - 0x1D400 + 65); // Bold A-Z
+        if (code >= 0x1D5EE && code <= 0x1D607) return String.fromCharCode(code - 0x1D5EE + 97); // Bold a-z
+        if (code >= 0x1D5D4 && code <= 0x1D5ED) return String.fromCharCode(code - 0x1D5D4 + 65); // Sans-bold A-Z
+        if (code >= 0x1D516 && code <= 0x1D52F) return String.fromCharCode(code - 0x1D516 + 65); // Fraktur A-Z?
+        return char;
+    });
+
+    // Specific mapping for common bold fonts in SMM
+    const boldMap = {'𝗥':'R','𝗘':'E','𝗙':'F','𝗜':'I','𝗟':'L','𝗗':'D'};
+    for(let b in boldMap) { res = res.split(b).join(boldMap[b]); }
+
     // 1. Mojibake Fix
-    let res = str
+    res = res
         .replace(/Ã§/g, 'ç').replace(/Ã£/g, 'ã').replace(/Ãµ/g, 'õ')
         .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
         .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã¢/g, 'â')
@@ -26,20 +40,12 @@ function fixEncoding(str) {
         .replace(/â\u0080\u0099/g, "'").replace(/â\u0080\u009c/g, '"').replace(/â\u0080\u009d/g, '"')
         .replace(/Â®/g, '®').replace(/Â©/g, '©').replace(/Â/g, '');
 
-    // 2. Tradução de Termos Comuns (Inglês -> Português)
+    // 2. Tradução de Termos Comuns
     const map = {
-        'LIKES': 'CURTIDAS',
-        'FOLLOWERS': 'SEGUIDORES',
-        'VIEWS': 'VISUALIZAÇÕES',
-        'COMMENTS': 'COMENTÁRIOS',
-        'MEMBERS': 'MEMBROS',
-        'PLAYS': 'REPRODUÇÕES',
-        'WATCH TIME': 'TEMPO DE EXIBIÇÃO',
-        'SERVICES': 'SERVIÇOS',
-        'BEST': 'MELHOR',
-        'REAL': 'REAIS',
-        'MIXED': 'MISTOS',
-        'INSTANT': 'INSTANTÂNEO'
+        'LIKES': 'CURTIDAS', 'FOLLOWERS': 'SEGUIDORES', 'VIEWS': 'VISUALIZAÇÕES',
+        'COMMENTS': 'COMENTÁRIOS', 'MEMBERS': 'MEMBROS', 'PLAYS': 'REPRODUÇÕES',
+        'WATCH TIME': 'TEMPO DE EXIBIÇÃO', 'SERVICES': 'SERVIÇOS', 'BEST': 'MELHOR',
+        'REAL': 'REAIS', 'MIXED': 'MISTOS', 'INSTANT': 'INSTANTÂNEO'
     };
     
     for (let eng in map) {
@@ -48,6 +54,14 @@ function fixEncoding(str) {
     }
     
     return res;
+}
+
+function checkRefillSupport(name) {
+    if (!name) return false;
+    const normalized = fixEncoding(name).toUpperCase();
+    if (normalized.includes('NO REFILL')) return false;
+    // REFILL seguido de número e D/DIA/DAYS (considerando espaços ou não)
+    return /REFILL.*\d+\s*(D|DIA|DAY)/i.test(normalized);
 }
 
 function cleanText(str) {
@@ -1399,8 +1413,7 @@ function loadOrders() {
         const serviceName = fixEncoding(order.service);
         
         // Logica para mostrar botão de Refill
-        // Regra estrita: Só aceita se tiver "REFILL" seguido de um número de dias (ex: 30D, 30 Dias)
-        const supportsRefill = /REFILL.*\d+\s*(D|Dia|Day)/i.test(serviceName) && !serviceName.toUpperCase().includes('NO REFILL');
+        const supportsRefill = checkRefillSupport(serviceName);
         const isCompleted = order.status.toLowerCase() === 'completed';
         
         let refillContent = '';
@@ -1560,9 +1573,10 @@ function loadServicesList() {
             item.dataset.platform = platform;
             item.dataset.name = service.name.toLowerCase();
 
-            const refillBadge = service.refill === 'SR' 
-                ? '<span class="refill-badge refill-no">❌ SR</span>' 
-                : `<span class="refill-badge refill-yes">🔄 ${service.refill}</span>`;
+            const hasRefill = checkRefillSupport(service.name);
+            const refillBadge = !hasRefill 
+                ? '<span class="refill-badge refill-no"><i class="fas fa-times"></i> SR</span>' 
+                : '<span class="refill-badge refill-yes"><i class="fas fa-sync-alt"></i> R30</span>';
             const qualityBadge = service.quality === 'Premium' 
                 ? '<span class="quality-badge quality-premium">⭐ Premium</span>' 
                 : service.quality === 'HQ' 
@@ -3042,9 +3056,9 @@ async function syncGrowFollowsServices() {
                 
                 if (existing) {
                     existing.cost = cost;
-                    existing.price = cost * multiplier;
+                    existing.refill = checkRefillSupport(s.name) ? 'R30' : 'SR';
                     existing.status = 'available'; 
-                    existing.providerStatus = 'online'; // SINAL DA API
+                    existing.providerStatus = 'online'; 
                     existing.category = targetCat;
                 } else {
                     servicesDB[targetCat].push({
@@ -3057,7 +3071,7 @@ async function syncGrowFollowsServices() {
                         desc: s.name,
                         quality: 'HQ API',
                         speed: 'Automático',
-                        refill: s.refill ? 'R30' : 'SR',
+                        refill: checkRefillSupport(s.name) ? 'R30' : 'SR',
                         time: '0-24h',
                         category: s.category,
                         status: 'available',
