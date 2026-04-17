@@ -1,6 +1,5 @@
 /* ============================================
    SocialNexus — JavaScript Application Logic
-   BUILD: 2026-04-17_04:48_FIX_HANDLERS_V5
    ============================================ */
 // ─── Services Database ───
 // Usamos window.servicesDB para garantir que o services-data.js e o app.js compartilhem os mesmos dados
@@ -1996,11 +1995,7 @@ function openWhatsApp() {
     window.open(`https://wa.me/${number}?text=${text}`, '_blank');
 }
 
-
-        });
-    }
-
-    // Filter by status
+// Filter by status
     const filterStatus = document.getElementById('filter-status');
     if (filterStatus) {
         filterStatus.addEventListener('change', () => {
@@ -2017,7 +2012,6 @@ function openWhatsApp() {
             });
         });
     }
-});
 
 // ============================================
 //  ADMIN PANEL LOGIC
@@ -3315,10 +3309,6 @@ function formatDisplayName(name) {
     
     return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
 }
-
-
-});
-
 
 // =====================================================
 // INICIALIZADOR UNICO - SocialNexus v3.1
