@@ -137,57 +137,6 @@ const currencies = {
     USD: { symbol: "$", rate: 5.20, name: "Dollar" } // --- SIMULAÇÃO DE TESTE (SEM DINHEIRO REAL) ---
 };
 
-async function simulatePixPayment() {
-    if (!confirm("Deseja simular um pagamento de R$ 10,00 para teste?")) return;
-    
-    const btn = document.querySelector('.btn-simulate-test');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processando...';
-    }
-
-    try {
-        const payload = {
-            event: "PAYMENT_RECEIVED",
-            payment: {
-                id: "SIMULADO_" + Date.now(),
-                value: 10.00,
-                netValue: 10.00,
-                externalReference: currentUser.id,
-                customerEmail: currentUser.email,
-                billingType: "PIX"
-            }
-        };
-
-        const response = await fetch('/.netlify/functions/asaas-webhook', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.text();
-        
-        if (response.ok) {
-            showToast("Sucesso! O sinal de pagamento foi enviado ao servidor.", "success");
-            setTimeout(() => {
-                location.reload(); // Recarrega para ver o saldo
-            }, 2000);
-        } else {
-            // Se der 404, avisa sobre o problema de sincronia que estávamos tendo
-            if (response.status === 404) {
-                 showToast("Servidor não encontrou seu usuário. Verifique se o banco de dados está sincronizado.", "warning");
-            } else {
-                 showToast("Erro na simulação: " + result, "error");
-            }
-        }
-    } catch (error) {
-        showToast("Erro de comunicação com o servidor.", "error");
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-vial"></i> Simular Pix R$ 10 (TESTE)';
-        }
-    }
-}
 
 let currentLang = localStorage.getItem('snx_lang') || 'pt';
 let currentCurrency = localStorage.getItem('snx_currency') || 'BRL';
