@@ -12,10 +12,6 @@
     <link rel="stylesheet" href="styles.css?v=7">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     
-    <!-- Firebase SDK (Compat Version para fácil integração) -->
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -2002,18 +1998,19 @@
     <!-- Live Ticker (Prova Social) -->
     <div id="live-ticker-container"></div>
 
-    <!-- Firebase Core & Auth (Real SDKs) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <!-- ===================== SCRIPTS ===================== -->
+    
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.9.0/firebase-database-compat.js"></script>
 
-    <!-- Drag & Drop -->
+    <!-- UI / External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
-    <!-- Firebase Sync Engine (SINGLE load) -->
-    <script src="firebase-sync.js?v=3.1"></script>
-
-    <!-- Main Application -->
-    <script src="app-v3.js?v=3.1"></script>
+    <!-- SocialNexus Engine (Firebase Sync + App Logic) -->
+    <script src="firebase-sync.js?v=4.0"></script>
+    <script src="services-data.js?v=4.0"></script>
+    <script src="app-v3.js?v=4.0"></script>
 </body>
 </html>
