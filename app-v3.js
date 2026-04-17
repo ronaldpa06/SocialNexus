@@ -1432,9 +1432,10 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
     const data = await AutomationEngine.syncOrderStatus(externalId);
     if (data && data.status) {
         let needsUpdate = false;
+        const normalizedDataStatus = data.status.toLowerCase();
         const order = orders.find(o => o.id === orderId);
-        if (order && order.status !== data.status.toLowerCase()) {
-            order.status = data.status;
+        if (order && order.status !== normalizedDataStatus) {
+            order.status = normalizedDataStatus;
             needsUpdate = true;
         }
         if (needsUpdate) {
