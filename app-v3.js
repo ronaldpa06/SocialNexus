@@ -1399,8 +1399,8 @@ function loadOrders() {
         const serviceName = fixEncoding(order.service);
         
         // Logica para mostrar botão de Refill
-        // Se o nome do serviço contiver 'REFILL' e NÃO contiver 'NO REFILL'
-        const supportsRefill = serviceName.toUpperCase().includes('REFILL') && !serviceName.toUpperCase().includes('NO REFILL');
+        // Regra estrita: Só aceita se tiver "REFILL" seguido de um número de dias (ex: 30D, 30 Dias)
+        const supportsRefill = /REFILL.*\d+\s*(D|Dia|Day)/i.test(serviceName) && !serviceName.toUpperCase().includes('NO REFILL');
         const isCompleted = order.status.toLowerCase() === 'completed';
         
         let refillContent = '';
