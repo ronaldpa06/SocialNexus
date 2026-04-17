@@ -1959,25 +1959,7 @@ function openWhatsApp() {
     window.open(`https://wa.me/${number}?text=${text}`, '_blank');
 }
 
-// Inicializador Global
-document.addEventListener('DOMContentLoaded', () => {
-    // Autoload Session (Keep logged in on F5)
-    // Sistema de Sessão Único (Mudamos para o final para garantir carregamento)
-    // Removed old block to consolidate below
-    loadAdminSettings();
-    animateCounters();
-    initScrollAnimations();
 
-    // Search orders
-    const searchInput = document.getElementById('search-orders');
-    if (searchInput) {
-        searchInput.addEventListener('input', () => {
-            const term = searchInput.value.toLowerCase();
-            const rows = document.querySelectorAll('#orders-tbody tr:not(.empty-row)');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(term) ? '' : 'none';
-            });
         });
     }
 
@@ -3276,36 +3258,7 @@ function adminUpdateBalance(userId) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Carregar Configurações e Sessão
-    loadDynamicServices();
-    checkAndClearLegacyData();
-    if (typeof renderCategories === 'function') renderCategories();
-    if (typeof loadServicesList === 'function') loadServicesList();
-    
-    // 2. Carregar UI
-    const langSelect = document.getElementById('global-lang-selector');
-    const currSelect = document.getElementById('global-curr-selector');
-    if (langSelect) langSelect.value = currentLang || 'pt';
-    if (currSelect) currSelect.value = currentCurrency || 'BRL';
 
-    initCardMasks();
-    applyTranslations();
-    // Check for logged user
-    const saved = localStorage.getItem('snx_session');
-    if (saved) {
-        currentUser = JSON.parse(saved);
-        window.currentUser = currentUser; // Alimenta o motor de sincronia
-        
-        if (currentUser.role === 'admin') {
-            loadAdminDashboard();
-            showPage('admin-page');
-        } else {
-            loadDashboard();
-            showPage('dashboard-page');
-        }
-    }
-});
 
 /**
  * Formata o nome para exibição profissional
@@ -3326,17 +3279,108 @@ function formatDisplayName(name) {
     return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
 }
 
-// ─── FINAL INITIALIZATION ───
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. Check for active session
-    const isLogoutAction = window.location.search.includes('logout=');
-    const saved = localStorage.getItem('snx_session');
 
-    if (saved && !isLogoutAction) {
+});
+
+
+// =====================================================
+// INICIALIZADOR UNICO - SocialNexus v3.1
+// =====================================================
+function updateRobotClock() {
+    var clockEl = document.getElementById('robot-clock');
+    if (!clockEl) return;
+    var now = new Date();
+    clockEl.textContent = now.toLocaleTimeString('pt-BR') + ' - ' + now.toLocaleDateString('pt-BR');
+}
+
+function toggleRobotStatus() {
+    var stateEl = document.getElementById('robot-state');
+    var iconEl = document.getElementById('robot-icon');
+    if (!stateEl || !iconEl) return;
+    var isWorking = Math.random() > 0.3;
+    if (isWorking) {
+        stateEl.textContent = 'TRABALHANDO';
+        stateEl.className = 'robot-state working';
+        iconEl.textContent = '⚙️';
+    } else {
+        stateEl.textContent = 'DORMINDO';
+        stateEl.className = 'robot-state sleeping';
+        iconEl.textContent = '🤖';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    // 1. Load services and settings
+    if (typeof loadDynamicServices === 'function') loadDynamicServices();
+    if (typeof checkAndClearLegacyData === 'function') checkAndClearLegacyData();
+    if (typeof loadAdminSettings === 'function') loadAdminSettings();
+
+    // 2. UI Setup
+    var langSelect = document.getElementById('global-lang-selector');
+    var currSelect = document.getElementById('global-curr-selector');
+    if (langSelect) langSelect.value = currentLang || 'pt';
+    if (currSelect) currSelect.value = currentCurrency || 'BRL';
+    if (typeof initCardMasks === 'function') initCardMasks();
+    if (typeof applyTranslations === 'function') applyTranslations();
+    if (typeof renderCategories === 'function') renderCategories();
+    if (typeof loadServicesList === 'function') loadServicesList();
+    if (typeof animateCounters === 'function') animateCounters();
+    if (typeof initScrollAnimations === 'function') initScrollAnimations();
+
+    // 3. Order search filter
+    var searchInput = document.getElementById('search-orders');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            var term = searchInput.value.toLowerCase();
+            document.querySelectorAll('#orders-tbody tr:not(.empty-row)').forEach(function(row) {
+                row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+            });
+        });
+    }
+    var filterStatus = document.getElementById('filter-status');
+    if (filterStatus) {
+        filterStatus.addEventListener('change', function() {
+            var status = filterStatus.value;
+            document.querySelectorAll('#orders-tbody tr:not(.empty-row)').forEach(function(row) {
+                if (status === 'all') { row.style.display = ''; }
+                else {
+                    var badge = row.querySelector('.status-badge');
+                    row.style.display = (badge && badge.className.includes(status)) ? '' : 'none';
+                }
+            });
+        });
+    }
+
+    // 4. Robot clock
+    updateRobotClock();
+    setInterval(updateRobotClock, 1000);
+    setInterval(toggleRobotStatus, 20000);
+
+    // 5. Close category dropdown on outside click
+    document.addEventListener('mousedown', function(e) {
+        var dropdown = document.getElementById('cat-search-results');
+        var searchArea = document.querySelector('.cat-search-bar');
+        if (dropdown && searchArea && !searchArea.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    // 6. SESSION RESTORE (single point of truth)
+    var isLogoutAction = window.location.search.indexOf('logout=') !== -1;
+    if (isLogoutAction) {
+        localStorage.removeItem('snx_session');
+        window.history.replaceState(null, '', window.location.pathname);
+        showPage('landing-page');
+        console.log('[SNX] Logout OK');
+        return;
+    }
+
+    var saved = localStorage.getItem('snx_session');
+    if (saved) {
         try {
             currentUser = JSON.parse(saved);
             window.currentUser = currentUser;
-            
             if (currentUser.role === 'admin') {
                 showPage('admin-page');
                 loadAdminDashboard();
@@ -3344,32 +3388,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 showPage('dashboard-page');
                 loadDashboard();
             }
-            console.log('--- Sessão Ativa: ' + currentUser.name + ' ---');
+            console.log('[SNX] Sessao restaurada: ' + currentUser.name);
         } catch(e) {
-            console.error('Sessão corrompida, limpando...');
+            console.error('[SNX] Sessao corrompida, limpando...');
             localStorage.clear();
             showPage('landing-page');
         }
     } else {
-        if (isLogoutAction) {
-            console.log('Logout realizado com sucesso.');
-            // Remove o parâmetro da URL sem refresh
-            window.history.replaceState(null, '', window.location.pathname);
-        }
         showPage('landing-page');
     }
-
-    // 2. Start secondary scripts
-    updateRobotClock();
-    setInterval(updateRobotClock, 1000);
-    setInterval(toggleRobotStatus, 20000);
-    
-    // 3. Close menus on click outside
-    document.addEventListener('mousedown', (e) => {
-        const dropdown = document.getElementById('cat-search-results');
-        const searchArea = document.querySelector('.cat-search-bar');
-        if (dropdown && searchArea && !searchArea.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.style.display = 'none';
-        }
-    });
 });
