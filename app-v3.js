@@ -347,9 +347,9 @@ const AutomationEngine = {
                     params: {
                         key: SNX_CONFIG.PROVIDER_API_KEY,
                         action: 'add',
-                        service: order.serviceId,
+                        service: Number(order.serviceId),
                         link: order.link,
-                        quantity: order.quantity
+                        quantity: Number(order.quantity)
                     }
                 })
             });
@@ -599,6 +599,7 @@ function finishGoogleAuth(name, email) {
     // Direciona para o Dashboard
     closeAuthModals();
     loadDashboard();
+    loadClientTickets();
     showPage('dashboard-page');
     showToast(`Bem-vindo, ${name}! Logado via Google.`, 'success');
 }
@@ -1308,7 +1309,9 @@ function handleNewOrder(e) {
         } else {
             // Se falhar o envio automático, o admin precisará intervir
             order.status = 'pending';
-            showToast(`Erro na automação: ${result.error || 'Aguardando Admin'}.`, 'warning');
+            const errorMsg = result.error || 'Erro Crítico de API';
+            showToast(`Erro na automação: ${errorMsg}. Verifique os detalhes.`, 'warning');
+            console.error(`[SocialNexus] Falha no Pedido #${order.id}:`, errorMsg);
         }
         
         saveUserData();
@@ -1929,6 +1932,7 @@ function handleTicket(e) {
 
     // Tentar atualizar admin badge em tempo real
     if(typeof updateNotifBadge === 'function') updateNotifBadge();
+    loadClientTickets(); // Recarrega a lista do cliente
 }
 
 // ─── Utility Functions ───
@@ -3699,22 +3703,79 @@ window.openTicketAdminModal = function(tktId) {
     document.getElementById('tkt-modal-subject').textContent = t.subject;
     document.getElementById('tkt-modal-orderid').textContent = t.orderId;
     document.getElementById('tkt-modal-message').textContent = t.message;
-    document.getElementById('tkt-modal-reply').value = '';
+    document.getElementById('tkt-modal-reply').value = t.adminReply || '';
     
     const resolveBtn = document.getElementById('btn-resolve-tkt');
-    if (t.status === 'closed') {
-        resolveBtn.style.display = 'none';
-    } else {
-        resolveBtn.style.display = 'inline-block';
-        resolveBtn.onclick = () => {
-            closeTicket(t.id);
-            document.getElementById('ticket-admin-modal').style.display = 'none';
-            loadAdminTicketsTab();
-        };
-    }
+    resolveBtn.onclick = () => {
+        const reply = document.getElementById('tkt-modal-reply').value;
+        const tkts = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+        const target = tkts.find(x => x.id === tktId);
+        if (target) {
+            target.adminReply = reply;
+            target.status = 'closed';
+            localStorage.setItem('snx_tickets', JSON.stringify(tkts));
+            if (typeof firebase !== 'undefined' && firebase.database) firebase.database().ref('snx_tickets').set(tkts);
+            showToast('Resposta salva e ticket marcado como resolvido!', 'success');
+        }
+        document.getElementById('ticket-admin-modal').style.display = 'none';
+        loadAdminTicketsTab();
+        loadAdminNotifications();
+    };
 
     document.getElementById('ticket-admin-modal').style.display = 'flex';
 };
+
+window.loadClientTickets = function() {
+    if (!currentUser) return;
+    const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    const myTickets = tickets.filter(t => t.userId === currentUser.id);
+    const tbody = document.getElementById('client-tickets-tbody');
+    if (!tbody) return;
+
+    if (myTickets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:15px; color:#666;">Nenhum ticket aberto.</td></tr>';
+        return;
+    }
+
+    myTickets.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    tbody.innerHTML = myTickets.map(t => {
+        const stClass = t.status === 'open' ? 'status-processing' : 'status-completed';
+        const stText = t.status === 'open' ? 'Pendente' : 'Respondido';
+        return `
+            <tr>
+                <td><strong>${t.id}</strong></td>
+                <td>${t.subject}</td>
+                <td>${formatDate(t.date).split(' ')[0]}</td>
+                <td><span class="status-badge ${stClass}">${stText}</span></td>
+                <td><button class="btn-sync" onclick="openClientTicketModal('${t.id}')"><i class="fas fa-eye"></i></button></td>
+            </tr>
+        `;
+    }).join('');
+};
+
+window.openClientTicketModal = function(tktId) {
+    const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    const t = tickets.find(x => x.id === tktId);
+    if (!t) return;
+
+    document.getElementById('cli-tkt-id').textContent = t.id;
+    document.getElementById('cli-tkt-subject').textContent = t.subject;
+    document.getElementById('cli-tkt-message').textContent = t.message;
+    
+    const replyBox = document.getElementById('cli-tkt-reply-box');
+    if (t.adminReply) {
+        replyBox.style.display = 'block';
+        document.getElementById('cli-tkt-reply-text').textContent = t.adminReply;
+    } else {
+        replyBox.style.display = 'none';
+    }
+
+    document.getElementById('ticket-client-view-modal').style.display = 'flex';
+};
+
+// Auto-Update Badge every 30s
+setInterval(() => { if(typeof updateNotifBadge === 'function') updateNotifBadge(); }, 30000);
 
 // Inicializar Badge no carregamento da página
 document.addEventListener('DOMContentLoaded', () => { setTimeout(() => { if (typeof updateNotifBadge === 'function') updateNotifBadge(); }, 1500); });
