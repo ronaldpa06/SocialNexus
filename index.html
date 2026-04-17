@@ -1374,12 +1374,7 @@
                                 <p>suporte@socialnexus.com</p>
                                 <button class="btn-outline-sm"><i class="fas fa-paper-plane"></i> Enviar E-mail</button>
                             </div>
-                            <div class="support-card">
-                                <div class="support-icon"><i class="fab fa-telegram"></i></div>
-                                <h3>Telegram</h3>
-                                <p>Canal de suporte e novidades</p>
-                                <button class="btn-outline-sm"><i class="fas fa-external-link-alt"></i> Abrir Canal</button>
-                            </div>
+
                         </div>
                         <div class="ticket-form-card">
                             <h3><i class="fas fa-ticket-alt"></i> Abrir Ticket de Suporte</h3>
@@ -1475,7 +1470,27 @@
                     <button class="sidebar-toggle" onclick="toggleAdminSidebar()">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <div class="topbar-right">
+                    <div class="topbar-right" style="display: flex; align-items: center; gap: 15px;">
+                        <!-- Notificações Admin -->
+                        <div class="header-notifications" style="position: relative;">
+                            <button onclick="toggleAdminNotifications()" class="btn-notification" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 1.2rem; cursor: pointer; position: relative; border-radius: 10px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                                <i class="fas fa-bell"></i>
+                                <span id="admin-notif-badge" style="display: none; position: absolute; top: -5px; right: -5px; background: #ff4b2b; color: #fff; font-size: 0.6rem; font-weight: bold; border-radius: 50%; padding: 2px 5px;">0</span>
+                            </button>
+                            <div id="admin-notif-dropdown" class="notif-dropdown" style="display: none; position: absolute; top: 100%; right: 0; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 1000; margin-top: 10px; overflow: hidden;">
+                                <div style="display: flex; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    <button onclick="switchNotifTab('tickets')" id="tab-notif-tickets" style="flex: 1; padding: 12px; background: rgba(79, 172, 254, 0.1); color: #4facfe; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid #4facfe; transition: all 0.3s ease;">🎫 Tickets</button>
+                                    <button onclick="switchNotifTab('alerts')" id="tab-notif-alerts" style="flex: 1; padding: 12px; background: transparent; color: #888; border: none; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; transition: all 0.3s ease;">⚠️ Alertas</button>
+                                </div>
+                                <div id="notif-content-tickets" style="max-height: 350px; overflow-y: auto; padding: 10px;">
+                                    <p style="text-align: center; color: #888; font-size: 0.8rem; padding: 20px 0;">Nenhum ticket novo.</p>
+                                </div>
+                                <div id="notif-content-alerts" style="display: none; max-height: 350px; overflow-y: auto; padding: 10px;">
+                                    <p style="text-align: center; color: #888; font-size: 0.8rem; padding: 20px 0;">Nenhum alerta recente.</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="balance-display" style="border-color: rgba(245, 87, 108, 0.3);">
                             <i class="fas fa-crown" style="color: #f5576c;"></i>
                             <span>Painel <strong style="color: #f5576c;">Administrativo</strong></span>
@@ -2059,8 +2074,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <!-- SocialNexus Engine (Firebase Sync + App Logic) -->
-    <script src="firebase-sync.js?v=12.0"></script>
-    <script src="services-data.js?v=12.0"></script>
-    <script src="app-v3.js?v=12.0"></script>
+    <script src="firebase-sync.js?v=13.0"></script>
+    <script src="services-data.js?v=13.0"></script>
+    <script src="app-v3.js?v=13.0"></script>
 </body>
 </html>
