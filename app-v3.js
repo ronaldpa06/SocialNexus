@@ -1,5 +1,6 @@
 /* ============================================
    SocialNexus — JavaScript Application Logic
+   BUILD: 2026-04-17_04:48_FIX_HANDLERS_V5
    ============================================ */
 // ─── Services Database ───
 // Usamos window.servicesDB para garantir que o services-data.js e o app.js compartilhem os mesmos dados
