@@ -331,56 +331,49 @@ const SNX_CONFIG = {
 
 const AutomationEngine = {
     /**
-     * Envia o pedido automaticamente para o fornecedor (GrowFollows)
+     * Envia o pedido automaticamente para o fornecedor (GrowFollows) proxy 
      */
     async sendToProvider(order) {
         if (!SNX_CONFIG.PROVIDER_API_KEY) {
-            console.warn('SocialNexus: API Key do fornecedor não configurada. O pedido foi salvo mas não enviado automaticamente.');
+            console.warn('SocialNexus: API Key faltante.');
             return { success: false, error: 'API Key missing' };
         }
-
         try {
-            console.log(`[Automação] Enviando pedido #${order.id} para o fornecedor...`);
-            
-            // Este é o padrão SMM API v2 usado pela GrowFollows
-            const params = new URLSearchParams({
-                key: SNX_CONFIG.PROVIDER_API_KEY,
-                action: 'add',
-                service: order.serviceId,
-                link: order.link,
-                quantity: order.quantity
+            console.log(`[Automação] Enviando pedido #${order.id} via proxy...`);
+            const response = await fetch('/.netlify/functions/provider-proxy', {
+                method: 'POST',
+                body: JSON.stringify({
+                    providerUrl: SNX_CONFIG.PROVIDER_API_URL,
+                    params: {
+                        key: SNX_CONFIG.PROVIDER_API_KEY,
+                        action: 'add',
+                        service: order.serviceId,
+                        link: order.link,
+                        quantity: order.quantity
+                    }
+                })
             });
-
-            // Nota: Em um ambiente de produção (Frontend), você precisaria de um Proxy (CORS) 
-            // ou um backend (Node.js) para fazer essa chamada com segurança.
-            const response = await fetch(`${SNX_CONFIG.PROVIDER_API_URL}?${params.toString()}`, {
-                method: 'POST'
-            });
-
             const data = await response.json();
-            
             if (data.order) {
-                console.log(`[Automação] Pedido aceito pelo fornecedor! ID Externo: ${data.order}`);
                 return { success: true, externalId: data.order };
             } else {
-                console.error('[Automação] Erro no fornecedor:', data.error);
-                return { success: false, error: data.error };
+                return { success: false, error: data.error || 'Erro desconhecido.' };
             }
         } catch (err) {
-            console.error('[Automação] Falha de conexão:', err);
-            return { success: false, error: 'Connection failed' };
+            return { success: false, error: 'Proxy Connection failed' };
         }
     },
 
     async requestRefill(externalId) {
         if (!SNX_CONFIG.PROVIDER_API_KEY) return { success: false, error: 'API Key missing' };
         try {
-            const params = new URLSearchParams({
-                key: SNX_CONFIG.PROVIDER_API_KEY,
-                action: 'refill',
-                order: externalId
+            const response = await fetch('/.netlify/functions/provider-proxy', {
+                method: 'POST',
+                body: JSON.stringify({
+                    providerUrl: SNX_CONFIG.PROVIDER_API_URL,
+                    params: { key: SNX_CONFIG.PROVIDER_API_KEY, action: 'refill', order: externalId }
+                })
             });
-            const response = await fetch(`${SNX_CONFIG.PROVIDER_API_URL}?${params.toString()}`, { method: 'POST' });
             const data = await response.json();
             if (data.refill) return { success: true, refillId: data.refill };
             return { success: false, error: data.error || 'Erro na reposição' };
@@ -392,14 +385,15 @@ const AutomationEngine = {
     async syncOrderStatus(externalId) {
         if (!SNX_CONFIG.PROVIDER_API_KEY) return null;
         try {
-            const params = new URLSearchParams({
-                key: SNX_CONFIG.PROVIDER_API_KEY,
-                action: 'status',
-                order: externalId
+            const response = await fetch('/.netlify/functions/provider-proxy', {
+                method: 'POST',
+                body: JSON.stringify({
+                    providerUrl: SNX_CONFIG.PROVIDER_API_URL,
+                    params: { key: SNX_CONFIG.PROVIDER_API_KEY, action: 'status', order: externalId }
+                })
             });
-            const response = await fetch(`${SNX_CONFIG.PROVIDER_API_URL}?${params.toString()}`, { method: 'POST' });
             const data = await response.json();
-            return data; // { status, charge, start_count, remains }
+            return data;
         } catch (err) {
             return null;
         }
@@ -621,6 +615,10 @@ async function startBalancePolling() {
     setInterval(async () => {
         if (currentUser && currentUser.id) {
             await refreshUserBalance();
+            if (document.getElementById('dashboard-page').style.display === 'block') {
+                // Sincroniza silenciosamente os pedidos (vai atualizar a UI se mudar)
+                if (typeof loadOrders === 'function') loadOrders(true);
+            }
         }
     }, 10000);
 }
@@ -1349,18 +1347,12 @@ function handleNewOrder(e) {
         `;
     }
 
-    // Simulate processing
-    setTimeout(() => {
-        order.status = 'completed';
-        saveUserData();
-        loadOrders();
-        showToast(`Pedido #${order.id} concluído! ✅`, 'success');
-    }, 15000);
-
+    // O status do pedido já está classificado como 'processing' via sendToProvider assíncrono.
+    // O sync robô checará no backend e atualizará automaticamente.
     loadOrders();
 }
 
-function loadOrders() {
+function loadOrders(silentUpdate = false) {
     const tbody = document.getElementById('orders-tbody');
     const savedOrders = JSON.parse(localStorage.getItem(`snx_orders_${currentUser?.id}`) || '[]');
     orders = savedOrders;
@@ -1380,7 +1372,9 @@ function loadOrders() {
     }
 
     // Tentar sincronizar status de pedidos pendentes/processando
-    document.querySelectorAll('.btn-sync-status').forEach(b => b.classList.add('fa-spin'));
+    if (!silentUpdate) {
+        document.querySelectorAll('.btn-sync-status').forEach(b => b.classList.add('fa-spin'));
+    }
     
     tbody.innerHTML = orders.map(order => {
         // Correção de encoding no histórico (caso o pedido tenha sido salvo com mojibake)
@@ -1445,8 +1439,8 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
         }
         if (needsUpdate) {
             saveUserData();
+            loadOrders(true); // Oculta o loading giratório extra
             if(!silent) {
-                loadOrders();
                 showToast(`Pedido #${orderId} atualizado para ${getStatusLabel(data.status)}`, 'info');
             }
         }
@@ -1931,6 +1925,9 @@ function handleTicket(e) {
 
     showToast('Ticket enviado com sucesso! Responderemos em até 24h.', 'success');
     e.target.reset();
+
+    // Tentar atualizar admin badge em tempo real
+    if(typeof updateNotifBadge === 'function') updateNotifBadge();
 }
 
 // ─── Utility Functions ───
@@ -2270,6 +2267,7 @@ function showAdminTab(tabId, linkEl) {
         loadAdminCategoryFolders();
     }
     if (tabId === 'admin-revenue') loadAdminDashboard(); // Fits revenue too
+    if (tabId === 'admin-tickets') loadAdminTicketsTab();
 
     // Close sidebar on mobile
     const sidebar = document.getElementById('admin-sidebar');
@@ -3659,6 +3657,37 @@ window.updateNotifBadge = function(totalNum = -1) {
         badge.style.display = 'none';
         badge.textContent = '0';
     }
+};
+
+window.loadAdminTicketsTab = function() {
+    const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    const tbody = document.getElementById('admin-tickets-tbody');
+    if (!tbody) return;
+
+    if (tickets.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#888;">Nenhum ticket encontrado.</td></tr>';
+        return;
+    }
+
+    tickets.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    tbody.innerHTML = tickets.map(t => {
+        const isClosed = t.status === 'closed';
+        const stBadge = isClosed ? '<span style="color:#888;">Resolvido</span>' : '<span style="color:#00ff88; font-weight:bold;">Aberto</span>';
+        const stAction = isClosed ? '' : `<button onclick="closeTicket('${t.id}'); setTimeout(loadAdminTicketsTab, 500);" style="background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid #00ff88; padding: 4px 10px; border-radius: 5px; cursor: pointer;"><i class="fas fa-check"></i> Fechar</button>`;
+
+        return `
+            <tr style="${isClosed ? 'opacity: 0.6;' : ''}">
+                <td><strong>${t.id}</strong></td>
+                <td>${t.userName}</td>
+                <td><span style="color:#4facfe;">${t.subject}</span><br><small style="color:#888;">${t.orderId}</small></td>
+                <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${t.message}">${t.message}</td>
+                <td>${formatDate(t.date)}</td>
+                <td>${stBadge}</td>
+                <td>${stAction}</td>
+            </tr>
+        `;
+    }).join('');
 };
 
 // Inicializar Badge no carregamento da página
