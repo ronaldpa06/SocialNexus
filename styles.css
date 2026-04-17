@@ -2311,6 +2311,16 @@ img { max-width: 100%; height: auto; }
     color: #ff6b6b;
 }
 
+.status-offline {
+    background: rgba(245, 87, 108, 0.15) !important;
+    color: #ff4b2b !important;
+}
+
+.status-online {
+    background: rgba(67, 233, 123, 0.15) !important;
+    color: #43e97b !important;
+}
+
 /* Actions in Tables */
 .btn-refill {
     background: rgba(0, 255, 136, 0.15);
