@@ -3675,20 +3675,45 @@ window.loadAdminTicketsTab = function() {
     tbody.innerHTML = tickets.map(t => {
         const isClosed = t.status === 'closed';
         const stBadge = isClosed ? '<span style="color:#888;">Resolvido</span>' : '<span style="color:#00ff88; font-weight:bold;">Aberto</span>';
-        const stAction = isClosed ? '' : `<button onclick="closeTicket('${t.id}'); setTimeout(loadAdminTicketsTab, 500);" style="background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid #00ff88; padding: 4px 10px; border-radius: 5px; cursor: pointer;"><i class="fas fa-check"></i> Fechar</button>`;
-
+        
         return `
-            <tr style="${isClosed ? 'opacity: 0.6;' : ''}">
+            <tr style="${isClosed ? 'opacity: 0.6;' : 'cursor: pointer;'}" onclick="openTicketAdminModal('${t.id}')">
                 <td><strong>${t.id}</strong></td>
                 <td>${t.userName}</td>
                 <td><span style="color:#4facfe;">${t.subject}</span><br><small style="color:#888;">${t.orderId}</small></td>
                 <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${t.message}">${t.message}</td>
                 <td>${formatDate(t.date)}</td>
                 <td>${stBadge}</td>
-                <td>${stAction}</td>
+                <td><button class="btn-action success" title="Ver Detalhes"><i class="fas fa-eye"></i></button></td>
             </tr>
         `;
     }).join('');
+};
+
+window.openTicketAdminModal = function(tktId) {
+    const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    const t = tickets.find(x => x.id === tktId);
+    if (!t) return;
+
+    document.getElementById('tkt-modal-user').textContent = t.userName;
+    document.getElementById('tkt-modal-subject').textContent = t.subject;
+    document.getElementById('tkt-modal-orderid').textContent = t.orderId;
+    document.getElementById('tkt-modal-message').textContent = t.message;
+    document.getElementById('tkt-modal-reply').value = '';
+    
+    const resolveBtn = document.getElementById('btn-resolve-tkt');
+    if (t.status === 'closed') {
+        resolveBtn.style.display = 'none';
+    } else {
+        resolveBtn.style.display = 'inline-block';
+        resolveBtn.onclick = () => {
+            closeTicket(t.id);
+            document.getElementById('ticket-admin-modal').style.display = 'none';
+            loadAdminTicketsTab();
+        };
+    }
+
+    document.getElementById('ticket-admin-modal').style.display = 'flex';
 };
 
 // Inicializar Badge no carregamento da página
