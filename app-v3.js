@@ -2659,7 +2659,7 @@ function deleteEntireCategory(cat) {
     selectCategoryToExclude(cat);
 }
 
-// ─── ADMIN: GESTÃO DE PASTAS DE CATEGORIAS (NOVA FEATURE) ───
+// ─── ADMIN: GESTÃO DE PASTAS DE CATEGORIAS ───
 function createCategoryFolder() {
     const input = document.getElementById('new-folder-name');
     const name = input.value.trim();
@@ -2672,10 +2672,9 @@ function createCategoryFolder() {
     localStorage.setItem('snx_custom_folders', JSON.stringify(folders));
     
     input.value = '';
-    showToast(`Pasta "${name}" criada! Agora adicione categorias a ela.`, 'success');
+    showToast(`Pasta "${name}" criada!`, 'success');
     loadAdminCategoryFolders();
-    // Força atualização do dropdown do cliente imediatamente
-    if (typeof renderCategories === 'function') renderCategories();
+    renderCategories();
 }
 
 function loadAdminCategoryFolders() {
@@ -2685,16 +2684,13 @@ function loadAdminCategoryFolders() {
     const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
     const folderOrder = JSON.parse(localStorage.getItem('snx_folder_order') || '[]');
     
-    // Garantir que todos os nomes de pastas estejam no order
     Object.keys(folders).forEach(f => { if(!folderOrder.includes(f)) folderOrder.push(f); });
-    // Remover do order pastas que não existem mais
     const cleanedOrder = folderOrder.filter(f => folders[f]);
-    if(cleanedOrder.length !== folderOrder.length) localStorage.setItem('snx_folder_order', JSON.stringify(cleanedOrder));
 
     container.innerHTML = '';
     
-    if (Object.keys(folders).length === 0) {
-        container.innerHTML = '<p style="color:#666; font-size:0.85rem;">Nenhuma pasta criada ainda. Experimente criar "📘 Facebook (Geral)".</p>';
+    if (cleanedOrder.length === 0) {
+        container.innerHTML = '<p style="color:#666; font-size:0.85rem;">Nenhuma pasta criada ainda.</p>';
         return;
     }
 
@@ -2702,60 +2698,64 @@ function loadAdminCategoryFolders() {
 
     cleanedOrder.forEach(folderName => {
         const safeId = 'cb-list-' + folderName.replace(/\W+/g, '_');
-        const searchId = 'search-' + folderName.replace(/\W+/g, '_');
         const countId  = 'count-'  + folderName.replace(/\W+/g, '_');
         
         let insideHTML = folders[folderName].length === 0
-            ? '<i style="color:#555; font-size:0.8rem;">(Pasta vazia — adicione categorias abaixo)</i>'
+            ? '<i style="color:#555; font-size:0.8rem;">(Pasta vazia)</i>'
             : folders[folderName].map(c => `
-                <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(0,255,136,0.08); color:#00ff88; padding:4px 10px; border-radius:20px; margin:3px; font-size:0.78rem; border:1px solid rgba(0,255,136,0.2);">
+                <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(0,255,136,0.08); color:#00ff88; padding:4px 10px; border-radius:20px; margin:3px; font-size:0.75rem; border:1px solid rgba(0,255,136,0.2);">
                     ${c}
-                    <i class="fas fa-times" style="cursor:pointer; color:#ff4b2b; font-size:0.7rem;" onclick="removeCatFromFolder('${folderName.replace(/'/g,"\\'")}', '${c.replace(/'/g,"\\'")}')"></i>
+                    <i class="fas fa-times" style="cursor:pointer; color:#ff4b2b;" onclick="removeCatFromFolder('${folderName.replace(/'/g,"\\'")}', '${c.replace(/'/g,"\\'")}')"></i>
                 </span>`).join('');
 
-        const availableForThisFolder = allBaseKeys.filter(k => !folders[folderName].includes(k));
-        let checkboxesHTML = availableForThisFolder.map(k => `
-            <label style="display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; cursor:pointer; font-size:0.82rem; color:#ccc;" 
-                   class="cb-folder-item" data-folder="${folderName.replace(/"/g,'&quot;')}">
-                <input type="checkbox" value="${k.replace(/"/g,'&quot;')}" style="accent-color:#00ff88; width:14px; height:14px;" 
-                       onchange="updateFolderSelCount('${countId}', '${safeId}')">
+        const available = allBaseKeys.filter(k => !folders[folderName].includes(k));
+        let checkboxesHTML = available.map(k => `
+            <label class="cb-folder-item" style="display:flex; align-items:center; gap:8px; padding:5px; cursor:pointer; font-size:0.8rem; color:#ccc;">
+                <input type="checkbox" value="${k.replace(/"/g,'&quot;')}" onchange="updateFolderSelCount('${countId}', '${safeId}')">
                 <span>${k}</span>
             </label>`).join('');
 
         container.innerHTML += `
-            <div class="folder-card-sort" data-name="${folderName}" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,215,0,0.15); padding:16px; border-radius:10px; cursor:default; position:relative;">
+            <div class="folder-card-sort" data-name="${folderName}" style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,215,0,0.1); padding:15px; border-radius:12px; margin-bottom:15px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                     <div style="display:flex; align-items:center; gap:10px;">
-                        <i class="fas fa-grip-vertical drag-handle" style="color:#ffd700; cursor:grab; padding:5px; opacity:0.6;"></i>
-                        <h4 style="color:#ffd700; margin:0; font-size:1rem;"><i class="fas fa-folder-open"></i> ${folderName}</h4>
+                        <i class="fas fa-grip-vertical drag-handle" style="color:#ffd700; cursor:grab; opacity:0.5;"></i>
+                        <h4 style="color:#ffd700; margin:0; font-size:0.95rem;">${folderName}</h4>
                     </div>
-                    <button class="btn-primary-sm" style="background:#ff4b2b; font-size:0.75rem;" onclick="deleteCategoryFolder('${folderName.replace(/'/g,"\\'")}')">
-                        <i class="fas fa-trash"></i> Apagar
+                    <button class="btn-primary-sm" style="background:#ff4b2b; padding:4px 10px;" onclick="deleteCategoryFolder('${folderName.replace(/'/g,"\\'")}')">
+                        <i class="fas fa-trash"></i>
                     </button>
                 </div>
-
-                <div style="margin-bottom:14px; min-height:28px;">
-                    ${insideHTML}
-                </div>
-
-                <div style="background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.08); border-radius:8px; overflow:hidden;">
-                    <div style="display:flex; align-items:center; gap:8px; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <i class="fas fa-search" style="color:#666; font-size:0.8rem;"></i>
-                    <div id="${safeId}" style="max-height:200px; overflow-y:auto; padding:6px;">
-                        ${checkboxesHTML || '<p style="color:#555; padding:8px; font-size:0.8rem;">Todas as categorias já estão nesta pasta.</p>'}
+                <div style="margin-bottom:12px;">${insideHTML}</div>
+                <div style="background:rgba(0,0,0,0.2); border-radius:8px; overflow:hidden; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="padding:8px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-search" style="color:#555; font-size:0.75rem;"></i>
+                        <input type="text" placeholder="Buscar..." oninput="filterFolderCheckboxes('${safeId}', this.value)" style="background:transparent; border:none; color:white; font-size:0.75rem; flex:1; outline:none;">
+                        <span id="${countId}" style="background:#00ff88; color:#000; font-size:0.65rem; padding:1px 6px; border-radius:10px; display:none;">0</span>
                     </div>
-                    <div style="padding:8px 12px; border-top:1px solid rgba(255,255,255,0.05); display:flex; justify-content:flex-end;">
-                        <button class="btn-submit" style="width:auto; padding:7px 18px; font-size:0.82rem;" 
-                                onclick="addCheckedToFolder('${folderName.replace(/'/g,"\\'")}', '${safeId}')">
-                            <i class="fas fa-plus"></i> Adicionar Selecionadas
-                        </button>
+                    <div id="${safeId}" style="max-height:150px; overflow-y:auto; padding:8px; display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+                        ${checkboxesHTML || '<p style="color:#444; font-size:0.75rem;">Vazio</p>'}
                     </div>
+                    <button onclick="addCheckedToFolder('${folderName.replace(/'/g,"\\'")}', '${safeId}')" style="width:100%; padding:8px; border:none; background:rgba(0,255,136,0.1); color:#00ff88; font-weight:700; cursor:pointer; font-size:0.75rem;">
+                        <i class="fas fa-plus"></i> Adicionar Selecionadas
+                    </button>
                 </div>
             </div>`;
+    });
+
+    if (typeof Sortable !== 'undefined') {
+        new Sortable(container, {
+            animation: 150,
+            handle: '.drag-handle',
+            onEnd: () => {
+                const newOrder = [...container.querySelectorAll('.folder-card-sort')].map(el => el.dataset.name);
+                localStorage.setItem('snx_folder_order', JSON.stringify(newOrder));
+                renderCategories();
+            }
+        });
     }
 }
 
-// Atualiza o contador de checkboxes selecionados
 function updateFolderSelCount(countId, listId) {
     const list = document.getElementById(listId);
     if (!list) return;
@@ -2767,7 +2767,6 @@ function updateFolderSelCount(countId, listId) {
     }
 }
 
-// Filtra os checkboxes por texto digitado
 function filterFolderCheckboxes(listId, term) {
     const list = document.getElementById(listId);
     if (!list) return;
@@ -2778,31 +2777,18 @@ function filterFolderCheckboxes(listId, term) {
     });
 }
 
-// Adiciona todas as categorias marcadas à pasta de uma vez
 function addCheckedToFolder(folderName, listId) {
     const list = document.getElementById(listId);
     if (!list) return;
-    
     const checked = [...list.querySelectorAll('input[type=checkbox]:checked')].map(cb => cb.value);
     if (checked.length === 0) return showToast('Marque pelo menos uma categoria!', 'warning');
-
     const folders = JSON.parse(localStorage.getItem('snx_custom_folders') || '{}');
     if (!folders[folderName]) folders[folderName] = [];
-    
-    let added = 0;
-    checked.forEach(cat => {
-        if (!folders[folderName].includes(cat)) {
-            folders[folderName].push(cat);
-            added++;
-        }
-    });
-
+    checked.forEach(cat => { if (!folders[folderName].includes(cat)) folders[folderName].push(cat); });
     localStorage.setItem('snx_custom_folders', JSON.stringify(folders));
-    showToast(`${added} categoria(s) adicionada(s) à pasta! ✅`, 'success');
-    
-    // Atualiza o painel admin E o dropdown do cliente
+    showToast('Categorias adicionadas!', 'success');
     loadAdminCategoryFolders();
-    if (typeof renderCategories === 'function') renderCategories();
+    renderCategories();
 }
 
 function removeCatFromFolder(folderName, cat) {
