@@ -1395,27 +1395,42 @@ function loadOrders() {
     document.querySelectorAll('.btn-sync-status').forEach(b => b.classList.add('fa-spin'));
     
     tbody.innerHTML = orders.map(order => {
+        // Correção de encoding no histórico (caso o pedido tenha sido salvo com mojibake)
+        const serviceName = fixEncoding(order.service);
+        
         // Logica para mostrar botão de Refill
-        const canRefill = order.status === 'completed' && order.externalId;
-        const refillBtn = canRefill 
-            ? `<button class="btn-refill" onclick="requestOrderRefill(${order.id}, ${order.externalId})"><i class="fas fa-redo"></i> Reposição</button>` 
-            : '';
+        // Se o nome do serviço contiver 'REFILL' e NÃO contiver 'NO REFILL'
+        const supportsRefill = serviceName.toUpperCase().includes('REFILL') && !serviceName.toUpperCase().includes('NO REFILL');
+        const isCompleted = order.status.toLowerCase() === 'completed';
+        
+        let refillContent = '';
+        if (supportsRefill) {
+            if (isCompleted) {
+                refillContent = `<button class="btn-refill" onclick="requestOrderRefill(${order.id}, ${order.externalId})"><i class="fas fa-redo"></i> Reposição</button>`;
+            } else {
+                // Pedido ainda não concluído, mas suporta refill futuramente
+                refillContent = `<span style="color: rgba(255,255,255,0.3); font-size: 0.75rem;">(Aguarda conclusão)</span>`;
+            }
+        } else {
+            // Não suporta refill
+            refillContent = `<span style="background:#ff4b2b; color:white; padding:4px 10px; border-radius:4px; font-size:0.7rem; font-weight:700; display:inline-block; border:1px solid rgba(255,255,255,0.2);">SEM REPOSIÇÃO</span>`;
+        }
         
         // Botão para sincronizar manual
-        const syncBtn = order.externalId && order.status !== 'completed' && order.status !== 'cancelled'
-            ? `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status"><i class="fas fa-sync-alt"></i></button>`
+        const syncBtn = order.externalId && !['completed', 'cancelled', 'partial', 'canceled'].includes(order.status.toLowerCase())
+            ? `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status Status"><i class="fas fa-sync-alt"></i></button>`
             : '';
 
         return `
             <tr>
                 <td><strong>#${order.id}</strong></td>
-                <td>${order.service}</td>
+                <td style="font-size: 0.85rem;">${serviceName}</td>
                 <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.link}</td>
                 <td>${order.quantity.toLocaleString('pt-BR')}</td>
                 <td>R$ ${order.total.toFixed(2)}</td>
-                <td><span class="status-badge status-${order.status}">${getStatusLabel(order.status)}</span></td>
+                <td><span class="status-badge status-${order.status.toLowerCase()}">${getStatusLabel(order.status.toLowerCase())}</span></td>
                 <td>${formatDate(order.date)}</td>
-                        <td><div style="display:flex; gap:8px;">${refillBtn}${syncBtn}</div></td>
+                <td><div style="display:flex; align-items:center; gap:8px;">${refillContent}${syncBtn}</div></td>
             </tr>
         `;
     }).join('');
