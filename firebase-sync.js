@@ -31,8 +31,14 @@ if (localStorage.getItem('snx_users') === '[object Object]') {
 const db = firebase.database();
 
 const SYNC_KEYS = ['snx_users', 'snx_custom_services', 'snx_excluded_cats']; // Chaves globais
-const originalSetItem = localStorage.setItem;
-const originalGetItem = localStorage.getItem;
+const originalSetItem = Storage.prototype.setItem;
+const originalGetItem = Storage.prototype.getItem;
+const originalRemoveItem = Storage.prototype.removeItem;
+
+// Expor para que o logout possa usar sem triggar o sync
+window._snxOriginalRemoveItem = function(key) {
+    originalRemoveItem.call(localStorage, key);
+};
 
 let isSyncingFromCloud = false;
 
