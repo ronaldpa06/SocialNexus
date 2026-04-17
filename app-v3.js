@@ -1899,6 +1899,36 @@ function regenerateApiKey() {
 // ─── Support ───
 function handleTicket(e) {
     e.preventDefault();
+    if (!currentUser) return showToast('Faça login primeiro!', 'error');
+
+    const subject = document.getElementById('ticket-subject').value;
+    const subjectMap = {
+        'order': 'Problema com Pedido', 'payment': 'Pagamento', 'refund': 'Reembolso', 'api': 'API', 'other': 'Outro'
+    };
+    const orderId = document.getElementById('ticket-order-id').value;
+    const message = document.getElementById('ticket-message').value;
+
+    const ticket = {
+        id: 'TKT-' + Math.floor(1000 + Math.random() * 9000),
+        userId: currentUser.id,
+        userName: currentUser.name || currentUser.username || currentUser.email,
+        subject: subjectMap[subject] || subject,
+        orderId: orderId || 'N/A',
+        message: message,
+        date: new Date().toISOString(),
+        status: 'open'
+    };
+
+    let tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    tickets.push(ticket);
+    localStorage.setItem('snx_tickets', JSON.stringify(tickets));
+
+    // SYNC TO FIREBASE Se implementado
+    if (typeof firebase !== 'undefined' && firebase.database) {
+        const dbRef = firebase.database().ref('snx_tickets');
+        dbRef.set(tickets);
+    }
+
     showToast('Ticket enviado com sucesso! Responderemos em até 24h.', 'success');
     e.target.reset();
 }
@@ -3047,7 +3077,10 @@ async function syncGrowFollowsServices() {
             // 1. Marca todos os serviços atuais como Pausado (unavailable)
             // Isso garante que se um serviço sumiu da API, ele apareça como Pausado no Admin
             Object.keys(servicesDB).forEach(cat => {
-                servicesDB[cat].forEach(svc => svc.status = 'unavailable');
+                servicesDB[cat].forEach(svc => {
+                    if (svc.status === 'available') svc._wasAvailable = true;
+                    svc.status = 'unavailable';
+                });
             });
             
             data.forEach(s => {
@@ -3069,7 +3102,11 @@ async function syncGrowFollowsServices() {
                     existing.status = 'available'; 
                     existing.providerStatus = 'online'; 
                     existing.category = targetCat;
+                    delete existing._wasAvailable;
                 } else {
+                    if (typeof addSystemAlert === 'function') {
+                        addSystemAlert(`Novo Serviço da GrowFollows: ${s.name} [ID: ${s.service || s.id}]`, 'new');
+                    }
                     servicesDB[targetCat].push({
                         id: s.service || s.id,
                         name: s.name,
@@ -3093,7 +3130,13 @@ async function syncGrowFollowsServices() {
             // A lógica do Merge já faz isso no passo 1, mas vamos garantir:
             Object.keys(servicesDB).forEach(cat => {
                 servicesDB[cat].forEach(svc => {
-                    if (svc.status === 'unavailable') svc.providerStatus = 'offline';
+                    if (svc.status === 'unavailable') {
+                        svc.providerStatus = 'offline';
+                        if (svc._wasAvailable && typeof addSystemAlert === 'function') {
+                            addSystemAlert(`Serviço Pausado no Fornecedor: ${svc.name} [ID: ${svc.id}]`, 'error');
+                        }
+                    }
+                    delete svc._wasAvailable;
                 });
             });
 
@@ -3508,3 +3551,115 @@ document.addEventListener('DOMContentLoaded', function() {
         showPage('landing-page');
     }
 });
+
+// ─── ADMIN NOTIFICATIONS (TICKETS & ALERTS) ───
+window.toggleAdminNotifications = function() {
+    const dropdown = document.getElementById('admin-notif-dropdown');
+    if (dropdown) {
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        if (dropdown.style.display === 'block') {
+            loadAdminNotifications();
+        }
+    }
+};
+
+window.switchNotifTab = function(tab) {
+    document.getElementById('tab-notif-tickets').style.borderBottomColor = tab === 'tickets' ? '#4facfe' : 'transparent';
+    document.getElementById('tab-notif-tickets').style.color = tab === 'tickets' ? '#4facfe' : '#888';
+    document.getElementById('tab-notif-alerts').style.borderBottomColor = tab === 'alerts' ? '#4facfe' : 'transparent';
+    document.getElementById('tab-notif-alerts').style.color = tab === 'alerts' ? '#4facfe' : '#888';
+
+    document.getElementById('notif-content-tickets').style.display = tab === 'tickets' ? 'block' : 'none';
+    document.getElementById('notif-content-alerts').style.display = tab === 'alerts' ? 'block' : 'none';
+};
+
+window.loadAdminNotifications = function() {
+    // Carregar Tickets
+    const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    const openTickets = tickets.filter(t => t.status === 'open');
+    const contentTickets = document.getElementById('notif-content-tickets');
+
+    if (openTickets.length === 0) {
+        contentTickets.innerHTML = '<p style="text-align: center; color: #888; font-size: 0.8rem; padding: 20px 0;">Nenhum ticket pendente.</p>';
+    } else {
+        // Mais recentes primeiro
+        openTickets.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        contentTickets.innerHTML = openTickets.map(t => `
+            <div style="background: rgba(255,255,255,0.02); padding: 12px; margin-bottom: 10px; border-radius: 8px; border-left: 3px solid #ffc107;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <strong style="color: #fff; font-size: 0.85rem;">[${t.id}] ${t.userName}</strong>
+                    <span style="color: #aaa; font-size: 0.7rem;">${formatDate(t.date).substring(0, 10)}</span>
+                </div>
+                <div style="font-size: 0.8rem; color: #4facfe; margin-bottom: 5px;"><i class="fas fa-tag"></i> ${t.subject}</div>
+                <p style="font-size: 0.8rem; color: #ccc; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${t.message}</p>
+                <div style="margin-top: 10px; text-align: right;">
+                    <button onclick="closeTicket('${t.id}')" style="background: rgba(0,255,136,0.1); color: #00ff88; border: 1px solid #00ff88; padding: 4px 10px; border-radius: 5px; cursor: pointer; font-size: 0.75rem;"><i class="fas fa-check"></i> Marcar Resolvido</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Carregar Alertas de Sistema
+    const alerts = JSON.parse(localStorage.getItem('snx_sys_alerts') || '[]');
+    const contentAlerts = document.getElementById('notif-content-alerts');
+
+    if (alerts.length === 0) {
+        contentAlerts.innerHTML = '<p style="text-align: center; color: #888; font-size: 0.8rem; padding: 20px 0;">Nenhuma notificação nova no sistema.</p>';
+    } else {
+        const recentAlerts = alerts.slice().reverse().slice(0, 20); // Mostrar últimos 20
+        contentAlerts.innerHTML = recentAlerts.map(a => `
+            <div style="background: rgba(255,255,255,0.02); padding: 10px; margin-bottom: 10px; border-radius: 8px; border-left: 3px solid ${a.type === 'new' ? '#00ff88' : '#ff4b2b'};">
+                <p style="margin: 0; font-size: 0.85rem; color: #fff;">${a.message}</p>
+                <small style="color: #666; font-size: 0.7rem;">${formatDate(a.date)}</small>
+            </div>
+        `).join('');
+    }
+
+    updateNotifBadge(openTickets.length + alerts.filter(a => !a.read).length);
+};
+
+window.addSystemAlert = function(message, type = 'info') {
+    let alerts = JSON.parse(localStorage.getItem('snx_sys_alerts') || '[]');
+    alerts.push({ id: Date.now(), message, type, date: new Date().toISOString(), read: false });
+    
+    // Manter só os últimos 50 alertas para não pesar o cache
+    if (alerts.length > 50) alerts = alerts.slice(alerts.length - 50);
+    
+    localStorage.setItem('snx_sys_alerts', JSON.stringify(alerts));
+    
+    if (typeof updateNotifBadge === 'function') updateNotifBadge();
+};
+
+window.closeTicket = function(ticketId) {
+    let tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    const t = tickets.find(x => x.id === ticketId);
+    if (t) {
+        t.status = 'closed';
+        localStorage.setItem('snx_tickets', JSON.stringify(tickets));
+        if (typeof firebase !== 'undefined' && firebase.database) firebase.database().ref('snx_tickets').set(tickets);
+        loadAdminNotifications();
+    }
+};
+
+window.updateNotifBadge = function(totalNum = -1) {
+    const badge = document.getElementById('admin-notif-badge');
+    if (!badge) return;
+    
+    if (totalNum === -1) {
+        const t = JSON.parse(localStorage.getItem('snx_tickets') || '[]').filter(x => x.status === 'open').length;
+        const a = JSON.parse(localStorage.getItem('snx_sys_alerts') || '[]').filter(x => !x.read).length;
+        totalNum = t + a;
+    }
+    
+    if (totalNum > 0) {
+        badge.textContent = totalNum > 99 ? '99+' : totalNum;
+        badge.style.display = 'block';
+    } else {
+        badge.style.display = 'none';
+        badge.textContent = '0';
+    }
+};
+
+// Inicializar Badge no carregamento da página
+document.addEventListener('DOMContentLoaded', () => { setTimeout(() => { if (typeof updateNotifBadge === 'function') updateNotifBadge(); }, 1500); });
