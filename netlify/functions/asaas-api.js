@@ -88,47 +88,94 @@ exports.handler = async function(event, context) {
         }
 
         const customerId = customerRes.data.id;
+        const { action, cardData } = payload;
 
-        // 3. Gerar Cobrança Pix
-        const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
-            customer: customerId,
-            billingType: 'PIX',
-            value: parseFloat(amount),
-            dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-            description: `Depósito SocialNexus - ${userName}`,
-            externalReference: userId
-        }, isSandbox);
+        if (action === 'generate_card' && cardData) {
+            // --- FLUXO CARTÃO DE CRÉDITO ---
+            const [expiryMonth, expiryYear] = cardData.expiry.split('/');
+            const paymentData = {
+                customer: customerId,
+                billingType: 'CREDIT_CARD',
+                value: parseFloat(amount),
+                dueDate: new Date().toISOString().split('T')[0],
+                description: `Recarga SocialNexus - ${userName}`,
+                externalReference: userId,
+                creditCard: {
+                    holderName: cardData.name,
+                    number: cardData.number,
+                    expiryMonth: expiryMonth.trim(),
+                    expiryYear: '20' + expiryYear.trim(),
+                    ccv: cardData.cvv // Na Asaas é ccv e não cvv
+                },
+                creditCardHolderInfo: {
+                    name: userName || "Cliente",
+                    email: email || "email@padrao.com",
+                    cpfCnpj: cpfClean,
+                    postalCode: '01001000', // CEP Genérico para viabilizar cadastro simples
+                    addressNumber: '100',
+                    phone: '11999999999'
+                }
+            };
 
-        if (paymentRes.status !== 200 && paymentRes.status !== 201) {
-            return { statusCode: 400, body: JSON.stringify({ success: false, error: "Erro ao gerar PIX" }) };
+            const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, paymentData, isSandbox);
+            
+            if (paymentRes.status === 200 || paymentRes.status === 201) {
+                return { 
+                    statusCode: 200, 
+                    headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type"},
+                    body: JSON.stringify({ 
+                        success: true, 
+                        status: paymentRes.data.status,
+                        id: paymentRes.data.id 
+                    }) 
+                };
+            } else {
+                const errors = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors : [];
+                return { 
+                    statusCode: 400, 
+                    headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type"},
+                    body: JSON.stringify({ 
+                        success: false, 
+                        error: errors.length > 0 ? errors[0].description : "Cartão recusado. Verifique os dados inseridos." 
+                    }) 
+                };
+            }
+        } else {
+            // --- FLUXO PIX (PADRÃO) ---
+            const paymentRes = await asaasRequest('POST', '/payments', finalApiKey, {
+                customer: customerId,
+                billingType: 'PIX',
+                value: parseFloat(amount),
+                dueDate: new Date(Date.now() + 86400000).toISOString().split('T')[0],
+                description: `Depósito SocialNexus - ${userName}`,
+                externalReference: userId
+            }, isSandbox);
+
+            if (paymentRes.status !== 200 && paymentRes.status !== 201) {
+                const errors = paymentRes.data && paymentRes.data.errors ? paymentRes.data.errors : [];
+                const msg = errors.length > 0 ? errors.map(e => e.description).join(", ") : "Erro status " + paymentRes.status;
+                return { statusCode: 400, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type"}, body: JSON.stringify({ success: false, error: "Asaas: " + msg }) };
+            }
+
+            const paymentId = paymentRes.data.id;
+            const qrRes = await asaasRequest('GET', `/payments/${paymentId}/pixQrCode`, finalApiKey, null, isSandbox);
+
+            return {
+                statusCode: 200,
+                headers: { 
+                    "Access-Control-Allow-Origin": "*",
+                    "Access-Control-Allow-Headers": "Content-Type"
+                },
+                body: JSON.stringify({
+                    success: true,
+                    paymentId: paymentId,
+                    payload: qrRes.data?.payload || "",
+                    encodedImage: qrRes.data?.encodedImage || ""
+                })
+            };
         }
-
-        const paymentId = paymentRes.data.id;
-
-        // 4. Buscar QR Code
-        const qrRes = await asaasRequest('GET', `/payments/${paymentId}/pixQrCode`, finalApiKey, null, isSandbox);
-
-        if (!qrRes.data || !qrRes.data.payload) {
-             console.error("❌ Erro ao buscar QR Code:", JSON.stringify(qrRes));
-             return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: Falha ao gerar a imagem do Pix." }) };
-        }
-
-        return {
-            statusCode: 200,
-            headers: { 
-                "Content-Type": "application/json",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "Content-Type"
-            },
-            body: JSON.stringify({
-                success: true,
-                paymentId: paymentId,
-                payload: qrRes.data.payload,
-                encodedImage: qrRes.data.encodedImage
-            })
-        };
 
     } catch (err) {
-        return { statusCode: 500, body: JSON.stringify({ success: false, error: err.message }) };
+        return { statusCode: 500, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type"}, body: JSON.stringify({ success: false, error: err.message }) };
     }
 };
