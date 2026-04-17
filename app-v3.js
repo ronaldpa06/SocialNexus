@@ -14,19 +14,14 @@ window.currentUser = null; // Exposição para o Sincronizador de Nuvem
 // Funcao de limpeza de encoding corrompido (aplicada globalmente)
 function fixEncoding(str) {
     if (!str || typeof str !== 'string') return str;
-    // Substituicoes UTF-8 mal interpretadas como Latin-1
     return str
-        .replace(/Ã§/g, 'c').replace(/Ã£/g, 'a').replace(/Ãµ/g, 'o')
-        .replace(/Ã¡/g, 'a').replace(/Ã©/g, 'e').replace(/Ã­/g, 'i')
-        .replace(/Ã³/g, 'o').replace(/Ãº/g, 'u').replace(/Ã¢/g, 'a')
-        .replace(/Ãª/g, 'e').replace(/Ã´/g, 'o').replace(/Ã /g, 'a')
-        .replace(/Ã/g, 'C').replace(/Ã/g, 'A')
-        .replace(/Â/g, '').replace(/Ã§/g, 'c')
-        .replace(/Ã£/g, 'a').replace(/Ãµ/g, 'o')
-        .replace(/Ã©/g, 'e').replace(/Ã­/g, 'i')
-        .replace(/Ã³/g, 'o').replace(/Ãº/g, 'u')
-        .replace(/Ã¢/g, 'a').replace(/Ãª/g, 'e')
-        .replace(/Ã´/g, 'o').replace(/Ã /g, 'a');
+        .replace(/Ã§/g, 'ç').replace(/Ã£/g, 'ã').replace(/Ãµ/g, 'õ')
+        .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
+        .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã¢/g, 'â')
+        .replace(/Ãª/g, 'ê').replace(/Ã´/g, 'ô').replace(/Ã /g, 'à')
+        .replace(/Ã‡/g, 'Ç').replace(/Ãƒ/g, 'Ã')
+        .replace(/ÃΜ/g, 'Õ').replace(/Ãµ/g, 'õ')
+        .replace(/Â/g, '').replace(/Â®/g, '®').replace(/Â©/g, '©');
 }
 
 
@@ -2577,7 +2572,7 @@ function loadAdminServicesMgmt() {
                 </td>
                 <td style="color: #43e97b; font-weight: 700;">${profitPercent}%</td>
                 <td>
-                    <span class="status-badge ${statusClass}" onclick="toggleSvcStatus('${platform}', ${svc.id})" style="cursor:pointer">
+                    <span class="status-badge ${svc.status === 'available' ? 'status-online' : 'status-offline'}" onclick="toggleSvcStatus('${platform}', ${svc.id})" style="cursor:pointer">
                         ${svc.status === 'available' ? 'Ativo' : 'Pausado'}
                     </span>
                 </td>
@@ -2733,8 +2728,8 @@ function loadAdminCategoryFolders() {
                     <div id="${safeId}" style="max-height:150px; overflow-y:auto; padding:8px; display:grid; grid-template-columns:1fr 1fr; gap:5px;">
                         ${checkboxesHTML || '<p style="color:#444; font-size:0.75rem;">Vazio</p>'}
                     </div>
-                    <button onclick="addCheckedToFolder('${folderName.replace(/'/g,"\\'")}', '${safeId}')" style="width:100%; padding:8px; border:none; background:rgba(0,255,136,0.1); color:#00ff88; font-weight:700; cursor:pointer; font-size:0.75rem;">
-                        <i class="fas fa-plus"></i> Adicionar Selecionadas
+                    <button onclick="addCheckedToFolder('${folderName.replace(/'/g,"\\'")}', '${safeId}')" style="width:100%; padding:10px; border:none; background:#007bff; color:white; font-weight:700; cursor:pointer; font-size:0.85rem; transition:0.2s;" onmouseover="this.style.background='#0056b3'" onmouseout="this.style.background='#007bff'">
+                        <i class="fas fa-save"></i> Salvar categoria
                     </button>
                 </div>
             </div>`;
