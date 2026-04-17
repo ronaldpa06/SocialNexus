@@ -526,19 +526,16 @@ function handleLogout() {
     if (!confirm('Deseja realmente sair da sua conta?')) return;
     
     // Limpeza profunda de qualquer vestígio de sessão
-    localStorage.removeItem('snx_session');
-    localStorage.removeItem('snx_current'); // Limpa chave antiga se existir
+    localStorage.clear(); 
+    sessionStorage.clear();
     currentUser = null;
-    
-    // Redirecionamento e Refresh total
-    showPage('landing-page');
-    window.location.hash = '';
     
     showToast('Sessão encerrada.', 'info');
     
+    // Redirecionamento forçado
     setTimeout(() => {
-        window.location.href = window.location.origin + window.location.pathname;
-    }, 300);
+        window.location.href = window.location.origin + window.location.pathname + '?logout=' + Date.now();
+    }, 100);
 }
 
 /**
@@ -1357,17 +1354,19 @@ function loadOrders() {
                 <td>R$ ${order.total.toFixed(2)}</td>
                 <td><span class="status-badge status-${order.status}">${getStatusLabel(order.status)}</span></td>
                 <td>${formatDate(order.date)}</td>
-                <td><div style="display:flex; gap:5px;">${refillBtn}${syncBtn}</div></td>
+                        <td><div style="display:flex; gap:8px;">${refillBtn}${syncBtn}</div></td>
             </tr>
         `;
     }).join('');
 
     // Sincronização Automática Silenciosa para pedidos recentes
-    orders.forEach(o => {
-        if(o.externalId && (o.status === 'processing' || o.status === 'pending' || o.status === 'InProgress' || o.status === 'Processing')) {
-            syncSpecificOrder(o.id, o.externalId, true);
-        }
-    });
+    if (orders.length > 0) {
+        orders.slice(0, 10).forEach(o => {
+            if(o.externalId && !['completed', 'cancelled', 'partial'].includes(o.status.toLowerCase())) {
+                syncSpecificOrder(o.id, o.externalId, true);
+            }
+        });
+    }
 
     updateOverviewStats();
 }
@@ -1963,24 +1962,9 @@ function openWhatsApp() {
 // Inicializador Global
 document.addEventListener('DOMContentLoaded', () => {
     // Autoload Session (Keep logged in on F5)
-    const savedSession = localStorage.getItem('snx_session');
-    if (savedSession) {
-        currentUser = JSON.parse(savedSession);
-        if (currentUser.role === 'admin') {
-            showPage('admin-page');
-            loadAdminDashboard();
-        } else {
-            loadDashboard();
-            showPage('dashboard-page');
-        }
-        console.log('Sessão restaurada para:', currentUser.name);
-    } else {
-        showPage('landing-page');
-    }
-
-    // Load admin settings
+    // Sistema de Sessão Único (Mudamos para o final para garantir carregamento)
+    // Removed old block to consolidate below
     loadAdminSettings();
-
     animateCounters();
     initScrollAnimations();
 
@@ -2944,6 +2928,24 @@ async function syncGrowFollowsServices() {
             }
         }
 
+        // Limpeza de caracteres corrompidos
+        const cleanText = (str) => {
+            if (!str) return '';
+            return str
+                .replace(/Ã§/g, 'ç').replace(/Ã£/g, 'ã').replace(/Ãµ/g, 'õ')
+                .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
+                .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã¢/g, 'â')
+                .replace(/Ãª/g, 'ê').replace(/Ã´/g, 'ô').replace(/Ã /g, 'à')
+                .replace(/Â/g, '');
+        };
+
+        if (data && Array.isArray(data)) {
+            data.forEach(s => {
+                s.name = cleanText(s.name);
+                s.category = cleanText(s.category);
+            });
+        }
+
         // 2. Se falhar na rede, usar os dados pré-carregados (services-data.js)
         if (!data || !Array.isArray(data)) {
             if (window.GROWFOLLOWS_SERVICES) {
@@ -3324,46 +3326,50 @@ function formatDisplayName(name) {
     return parts.slice(0, 2).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
 }
 
-// ─── 🤖 MOTOR DO ROBÔ (STATUS & RELÓGIO) ───
+// ─── FINAL INITIALIZATION ───
 document.addEventListener('DOMContentLoaded', () => {
-    setInterval(updateRobotClock, 1000);
-    // Simula ciclo do robô (Trabalhando / Dormindo)
-    setInterval(toggleRobotStatus, 15000);
-});
+    // 1. Check for active session
+    const isLogoutAction = window.location.search.includes('logout=');
+    const saved = localStorage.getItem('snx_session');
 
-function updateRobotClock() {
-    const clockEl = document.getElementById('robot-clock');
-    if (!clockEl) return;
-    
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('pt-BR');
-    const dateStr = now.toLocaleDateString('pt-BR');
-    clockEl.textContent = `${timeStr} - ${dateStr}`;
-}
-
-function toggleRobotStatus() {
-    const stateEl = document.getElementById('robot-state');
-    const iconEl = document.getElementById('robot-icon');
-    if (!stateEl || !iconEl) return;
-
-    const isWorking = Math.random() > 0.3;
-    if (isWorking) {
-        stateEl.textContent = 'TRABALHANDO';
-        stateEl.className = 'robot-state working';
-        iconEl.textContent = '⚙️';
+    if (saved && !isLogoutAction) {
+        try {
+            currentUser = JSON.parse(saved);
+            window.currentUser = currentUser;
+            
+            if (currentUser.role === 'admin') {
+                showPage('admin-page');
+                loadAdminDashboard();
+            } else {
+                showPage('dashboard-page');
+                loadDashboard();
+            }
+            console.log('--- Sessão Ativa: ' + currentUser.name + ' ---');
+        } catch(e) {
+            console.error('Sessão corrompida, limpando...');
+            localStorage.clear();
+            showPage('landing-page');
+        }
     } else {
-        stateEl.textContent = 'DORMINDO';
-        stateEl.className = 'robot-state sleeping';
-        iconEl.textContent = '🤖';
+        if (isLogoutAction) {
+            console.log('Logout realizado com sucesso.');
+            // Remove o parâmetro da URL sem refresh
+            window.history.replaceState(null, '', window.location.pathname);
+        }
+        showPage('landing-page');
     }
-}
-/**
- * Fecha o dropdown se clicar fora
- */
-document.addEventListener('mousedown', (e) => {
-    const dropdown = document.getElementById('cat-search-results');
-    const searchArea = document.querySelector('.cat-search-bar');
-    if (dropdown && searchArea && !searchArea.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.style.display = 'none';
-    }
+
+    // 2. Start secondary scripts
+    updateRobotClock();
+    setInterval(updateRobotClock, 1000);
+    setInterval(toggleRobotStatus, 20000);
+    
+    // 3. Close menus on click outside
+    document.addEventListener('mousedown', (e) => {
+        const dropdown = document.getElementById('cat-search-results');
+        const searchArea = document.querySelector('.cat-search-bar');
+        if (dropdown && searchArea && !searchArea.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
 });
