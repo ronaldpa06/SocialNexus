@@ -1321,6 +1321,8 @@ function handleNewOrder(e) {
         document.getElementById('order-total').textContent = 'R$ 0,00';
         document.getElementById('price-per-k').textContent = 'Preço por 1k: R$ 0,00';
         document.getElementById('service-details-panel').style.display = 'none';
+        const receiptBox = document.getElementById('order-receipt-container');
+        if (receiptBox) receiptBox.style.display = 'none';
         activeSelectedServiceInfo = null;
     }
 
@@ -1374,6 +1376,29 @@ function handleNewOrder(e) {
     resetFormUI();
 
     showToast(`Pedido #${order.id} criado com sucesso! 🚀`, 'success');
+
+    // Comprovante Temporário
+    const receiptBox = document.getElementById('order-receipt-container');
+    if (receiptBox) {
+        receiptBox.style.display = 'block';
+        receiptBox.innerHTML = `
+            <div style="background: rgba(20,20,30,0.8); border: 1px dashed rgba(79, 172, 254, 0.4); border-radius: 10px; padding: 15px; margin-bottom: 20px;">
+                <div style="color: #43e97b; font-weight: 800; font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-check-circle"></i> Pedido recebido
+                </div>
+                <div style="font-size: 0.85rem; line-height: 1.6; color: #ccc;">
+                    <div><b style="color: white;">ID:</b> ${order.id}</div>
+                    <div><b style="color: white;">Serviço:</b> ${fixEncoding(selected.name)}</div>
+                    <div><b style="color: white;">Link:</b> <a href="${link}" target="_blank" style="color: #4facfe; text-decoration: none;">${link}</a></div>
+                    <div><b style="color: white;">Quantidade:</b> ${quantity.toLocaleString('pt-BR')}</div>
+                    <div><b style="color: white;">Valor:</b> R$ ${total.toFixed(4)}</div>
+                    <div style="margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.05); color: #00ff88; font-weight: bold;">
+                        <b style="color: white;">Saldo Restante:</b> R$ ${currentUser.balance.toFixed(5)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     // Simulate processing
     setTimeout(() => {
@@ -2302,7 +2327,7 @@ function loadAdminClients() {
         const userOrders = JSON.parse(localStorage.getItem(`snx_orders_${user.id}`) || '[]');
         const maskedPass = '••••••••';
         return `
-            <tr data-search="${(user.name + user.email + user.username).toLowerCase()}">
+            <tr data-search="${(user.name + user.email + user.username).toLowerCase()}" style="cursor: pointer;" onclick="if(!event.target.closest('button') && !event.target.closest('.password-cell')){ viewClientInfo(${user.id}); }">
                 <td><strong>${user.id}</strong></td>
                 <td>${user.name || '-'}</td>
                 <td>${user.email}</td>
@@ -2335,6 +2360,41 @@ function loadAdminClients() {
         `;
     }).join('');
 }
+
+// Visualizar detalhes abertos do cliente no Modal
+function viewClientInfo(userId) {
+    const users = JSON.parse(localStorage.getItem('snx_users') || '[]');
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    document.getElementById('modal-client-name').textContent = user.name || 'Não informado';
+    document.getElementById('modal-client-email').textContent = user.email;
+    document.getElementById('modal-client-login').textContent = user.lastLogin ? formatDate(user.lastLogin) : formatDate(user.joined);
+    document.getElementById('modal-client-balance').textContent = `R$ ${formatCurrency(user.balance || 0)}`;
+
+    const userOrders = JSON.parse(localStorage.getItem(`snx_orders_${user.id}`) || '[]');
+    const tbody = document.getElementById('modal-client-orders');
+    
+    if (userOrders.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#888;">Nenhum pedido realizado.</td></tr>';
+    } else {
+        // Ordena do mais recente para o mais antigo
+        userOrders.sort((a,b) => new Date(b.date) - new Date(a.date));
+        tbody.innerHTML = userOrders.map(o => `
+            <tr>
+                <td style="font-size:0.8rem;">${formatDate(o.date)}</td>
+                <td>#${o.id}</td>
+                <td style="font-size:0.8rem;">${fixEncoding(o.service)}</td>
+                <td>${Number(o.quantity).toLocaleString('pt-BR')}</td>
+                <td>R$ ${parseFloat(o.total || 0).toFixed(4)}</td>
+                <td><span class="status-badge status-${o.status.toLowerCase()}" style="font-size:0.7rem;">${getStatusLabel(o.status)}</span></td>
+            </tr>
+        `).join('');
+    }
+
+    document.getElementById('client-details-modal').style.display = 'flex';
+}
+
 
 // Toggle password visibility in client table
 function toggleClientPass(btn) {
