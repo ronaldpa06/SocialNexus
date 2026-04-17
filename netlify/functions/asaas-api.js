@@ -66,11 +66,13 @@ exports.handler = async function(event, context) {
             }).on('error', () => resolve(null));
         });
 
-        const finalApiKey = (configRaw && (configRaw.asaasKey || configRaw.asaas_key)) || '$aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjA0ZDAzYzExLTJkYWQtNGRlOC05NTY0LWMxYmMwNmU0MGE4OTo6JGFhY2hfZjEwYmJlNTctNjFhMS00NmE0LWIxYzAtNWY0ZDdiOWZkMmM4';
+        const finalApiKey = (configRaw && (configRaw.asaasKey || configRaw.asaas_key)) || 'aact_prod_000MzkwODA2MWY2OGM3MWRlMDU2NWM3MzJlNzZmNGZhZGY6OjA0ZDAzYzExLTJkYWQtNGRlOC05NTY0LWMxYmMwNmU0MGE4OTo6JGFhY2hfZjEwYmJlNTctNjFhMS00NmE0LWIxYzAtNWY0ZDdiOWZkMmM4';
         const isSandbox = finalApiKey.includes('sandbox');
 
         // 2. Cadastro/Busca de Cliente
-        const cpfClean = cpf.replace(/\D/g, '');
+        const cpfClean = cpf ? cpf.replace(/\D/g, '') : '';
+        if (!cpfClean) return { statusCode: 400, body: JSON.stringify({ success: false, error: "CPF é obrigatório para gerar Pix." }) };
+
         const customerRes = await asaasRequest('POST', '/customers', finalApiKey, {
             name: (userName || "Cliente").trim().substring(0, 60),
             cpfCnpj: cpfClean,
@@ -81,6 +83,7 @@ exports.handler = async function(event, context) {
         if (customerRes.status !== 200 && customerRes.status !== 201) {
             const errors = customerRes.data && customerRes.data.errors ? customerRes.data.errors : [];
             const msg = errors.length > 0 ? errors.map(e => e.description).join(", ") : "Erro status " + customerRes.status;
+            console.error("❌ Erro Asaas (Customers):", msg, customerRes.data);
             return { statusCode: 400, body: JSON.stringify({ success: false, error: "Asaas: " + msg }) };
         }
 
