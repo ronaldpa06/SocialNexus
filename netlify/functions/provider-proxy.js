@@ -1,26 +1,29 @@
 /**
  * PROXY PARA A API DO FORNECEDOR (GROWFOLLOWS)
  * Resolve problemas de CORS permitindo que o front-end consulte a API.
+ * Suporta POST com Form Data para máxima compatibilidade.
  */
 const https = require('https');
 const url = require('url');
 
 exports.handler = async function(event, context) {
+    if (event.httpMethod === "OPTIONS") {
+        return { statusCode: 200, headers: { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type", "Access-Control-Allow-Methods": "POST, OPTIONS" }, body: "" };
+    }
+
     if (event.httpMethod !== "POST") return { statusCode: 405, body: "Method Not Allowed" };
 
     try {
         const payload = JSON.parse(event.body);
-        const { providerUrl, params } = payload; // params é um objeto com key, action, etc.
+        const { providerUrl, params } = payload;
 
         if (!providerUrl || !params || !params.key) {
             return { statusCode: 400, body: JSON.stringify({ error: "Parâmetros inválidos ou API Key ausente." }) };
         }
 
-        // Construi URL parameters
-        const formParams = new URLSearchParams(params).toString();
-        const fullUrl = `${providerUrl}?${formParams}`;
-
-        const parsedUrl = url.parse(fullUrl);
+        // Construi URL parameters para converter em String x-www-form-urlencoded
+        const postData = new URLSearchParams(params).toString();
+        const parsedUrl = url.parse(providerUrl);
 
         const response = await new Promise((resolve, reject) => {
             const req = https.request({
@@ -29,7 +32,9 @@ exports.handler = async function(event, context) {
                 path: parsedUrl.path,
                 method: 'POST',
                 headers: {
-                    'User-Agent': 'SocialNexus-Proxy'
+                    'User-Agent': 'SocialNexus-Proxy',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Length': Buffer.byteLength(postData)
                 }
             }, (res) => {
                 let body = '';
@@ -38,15 +43,16 @@ exports.handler = async function(event, context) {
             });
 
             req.on('error', (e) => reject(e));
+            req.write(postData);
             req.end();
         });
 
-        // Tentar prever JSON
         let jsonResponse = {};
         try {
             jsonResponse = JSON.parse(response.data);
         } catch(e) {
-            return { statusCode: 200, body: JSON.stringify({ raw_fallback: response.data }) };
+            // Se não for JSON, retorna o corpo bruto como fallback dentro de um objeto
+            jsonResponse = { raw: response.data };
         }
 
         return {
@@ -59,6 +65,7 @@ exports.handler = async function(event, context) {
         };
 
     } catch (err) {
+        console.error("PROXY ERROR:", err);
         return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
     }
 };
