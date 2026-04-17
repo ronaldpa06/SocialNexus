@@ -14,7 +14,9 @@ window.currentUser = null; // Exposição para o Sincronizador de Nuvem
 // Funcao de limpeza de encoding corrompido (aplicada globalmente)
 function fixEncoding(str) {
     if (!str || typeof str !== 'string') return str;
-    return str
+    
+    // 1. Mojibake Fix
+    let res = str
         .replace(/Ã§/g, 'ç').replace(/Ã£/g, 'ã').replace(/Ãµ/g, 'õ')
         .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
         .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã¢/g, 'â')
@@ -23,6 +25,29 @@ function fixEncoding(str) {
         .replace(/ÃΜ/g, 'Õ').replace(/Ãµ/g, 'õ')
         .replace(/â\u0080\u0099/g, "'").replace(/â\u0080\u009c/g, '"').replace(/â\u0080\u009d/g, '"')
         .replace(/Â®/g, '®').replace(/Â©/g, '©').replace(/Â/g, '');
+
+    // 2. Tradução de Termos Comuns (Inglês -> Português)
+    const map = {
+        'LIKES': 'CURTIDAS',
+        'FOLLOWERS': 'SEGUIDORES',
+        'VIEWS': 'VISUALIZAÇÕES',
+        'COMMENTS': 'COMENTÁRIOS',
+        'MEMBERS': 'MEMBROS',
+        'PLAYS': 'REPRODUÇÕES',
+        'WATCH TIME': 'TEMPO DE EXIBIÇÃO',
+        'SERVICES': 'SERVIÇOS',
+        'BEST': 'MELHOR',
+        'REAL': 'REAIS',
+        'MIXED': 'MISTOS',
+        'INSTANT': 'INSTANTÂNEO'
+    };
+    
+    for (let eng in map) {
+        const reg = new RegExp('\\b' + eng + '\\b', 'gi');
+        res = res.replace(reg, map[eng]);
+    }
+    
+    return res;
 }
 
 function cleanText(str) {
@@ -2577,8 +2602,13 @@ function loadAdminServicesMgmt() {
                 </td>
                 <td style="color: #43e97b; font-weight: 700;">${profitPercent}%</td>
                 <td>
-                    <span class="status-badge ${svc.status === 'available' ? 'status-online' : 'status-offline'}" onclick="toggleSvcStatus('${platform}', ${svc.id})" style="cursor:pointer">
-                        ${svc.status === 'available' ? 'Ativo' : 'Pausado'}
+                    <span class="status-badge ${svc.providerStatus === 'offline' ? 'status-offline' : 'status-online'}" style="opacity: 0.8;">
+                        <i class="fas fa-network-wired"></i> ${svc.providerStatus === 'offline' ? 'OFFLINE' : 'ONLINE'}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge ${svc.status === 'available' ? 'status-online' : 'status-offline'}" onclick="toggleSvcStatus('${platform}', ${svc.id})" style="cursor:pointer; border: 1px solid rgba(255,255,255,0.1);">
+                        ${svc.status === 'available' ? 'ATIVO' : 'PAUSADO'}
                     </span>
                 </td>
                 <td>
@@ -2998,7 +3028,8 @@ async function syncGrowFollowsServices() {
                 if (existing) {
                     existing.cost = cost;
                     existing.price = cost * multiplier;
-                    existing.status = 'available'; // Re-ativa se foi encontrado na API
+                    existing.status = 'available'; 
+                    existing.providerStatus = 'online'; // SINAL DA API
                     existing.category = targetCat;
                 } else {
                     servicesDB[targetCat].push({
@@ -3014,9 +3045,18 @@ async function syncGrowFollowsServices() {
                         refill: s.refill ? 'R30' : 'SR',
                         time: '0-24h',
                         category: s.category,
-                        status: 'available'
+                        status: 'available',
+                        providerStatus: 'online'
                     });
                 }
+            });
+
+            // 3. Marcar os que SOBRARAM na lista local mas NÃO na API como providerStatus = offline
+            // A lógica do Merge já faz isso no passo 1, mas vamos garantir:
+            Object.keys(servicesDB).forEach(cat => {
+                servicesDB[cat].forEach(svc => {
+                    if (svc.status === 'unavailable') svc.providerStatus = 'offline';
+                });
             });
 
             saveDynamicServices();
