@@ -1,5 +1,5 @@
 /* ============================================
-   SocialNexus — JavaScript Application Logic
+   SocialNexus — JavaScript Application Logic (v6.0)
    ============================================ */
 // ─── Services Database ───
 // Usamos window.servicesDB para garantir que o services-data.js e o app.js compartilhem os mesmos dados
@@ -21,7 +21,12 @@ function fixEncoding(str) {
         .replace(/Ãª/g, 'ê').replace(/Ã´/g, 'ô').replace(/Ã /g, 'à')
         .replace(/Ã‡/g, 'Ç').replace(/Ãƒ/g, 'Ã')
         .replace(/ÃΜ/g, 'Õ').replace(/Ãµ/g, 'õ')
-        .replace(/Â/g, '').replace(/Â®/g, '®').replace(/Â©/g, '©');
+        .replace(/â\u0080\u0099/g, "'").replace(/â\u0080\u009c/g, '"').replace(/â\u0080\u009d/g, '"')
+        .replace(/Â®/g, '®').replace(/Â©/g, '©').replace(/Â/g, '');
+}
+
+function cleanText(str) {
+    return fixEncoding(str);
 }
 
 
@@ -1174,7 +1179,7 @@ function renderCategories() {
         const div = document.createElement('div');
         div.className = 'custom-option';
         div.style.borderLeft = item.isFolder ? `4px solid ${color}` : `3px solid ${color}`;
-        div.innerHTML = `<i class="${icon}" style="color: ${color}"></i> <b>${item.name.charAt(0).toUpperCase() + item.name.slice(1)}</b>`;
+        div.innerHTML = `<i class="${icon}" style="color: ${color}"></i> <b>${fixEncoding(item.name.charAt(0).toUpperCase() + item.name.slice(1))}</b>`;
         const actionValue = item.isFolder ? `FOLDER::${item.name}` : item.name;
         div.onclick = () => selectCategory(actionValue, item.name, icon, color);
         container.appendChild(div);
@@ -2561,8 +2566,8 @@ function loadAdminServicesMgmt() {
 
             tr.innerHTML = `
                 <td>#${svc.id}</td>
-                <td><span class="platform-badge">${platform.toUpperCase()}</span></td>
-                <td><div class="svc-name-admin">${svc.name}</div></td>
+                <td><span class="platform-badge">${fixEncoding(platform.toUpperCase())}</span></td>
+                <td><div class="svc-name-admin">${fixEncoding(svc.name)}</div></td>
                 <td><span class="cost-val">${formatValue(svc.cost)}</span></td>
                 <td>
                     <div class="edit-price-wrapper">
@@ -2937,15 +2942,7 @@ async function syncGrowFollowsServices() {
         }
 
         // Limpeza de caracteres corrompidos
-        const cleanText = (str) => {
-            if (!str) return '';
-            return str
-                .replace(/Ã§/g, 'ç').replace(/Ã£/g, 'ã').replace(/Ãµ/g, 'õ')
-                .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
-                .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã¢/g, 'â')
-                .replace(/Ãª/g, 'ê').replace(/Ã´/g, 'ô').replace(/Ã /g, 'à')
-                .replace(/Â/g, '');
-        };
+
 
         if (data && Array.isArray(data)) {
             data.forEach(s => {
@@ -2979,8 +2976,11 @@ async function syncGrowFollowsServices() {
         }
 
         if (data && Array.isArray(data)) {
-            // LIMPAMOS o banco de dados antes de importar
-            for (let key in servicesDB) delete servicesDB[key];
+            // 1. Marca todos os serviços atuais como Pausado (unavailable)
+            // Isso garante que se um serviço sumiu da API, ele apareça como Pausado no Admin
+            Object.keys(servicesDB).forEach(cat => {
+                servicesDB[cat].forEach(svc => svc.status = 'unavailable');
+            });
             
             data.forEach(s => {
                 if (!s || !s.category) return;
@@ -2992,21 +2992,31 @@ async function syncGrowFollowsServices() {
                 const currentProfitRaw = document.getElementById('global-profit-percent') ? document.getElementById('global-profit-percent').value : 50;
                 const multiplier = 1 + (parseFloat(currentProfitRaw) / 100);
 
-                servicesDB[targetCat].push({
-                    id: s.service || s.id,
-                    name: s.name,
-                    cost: cost,
-                    price: cost * multiplier,
-                    min: parseInt(s.min),
-                    max: parseInt(s.max),
-                    desc: s.name,
-                    quality: 'HQ API',
-                    speed: 'Automático',
-                    refill: s.refill ? 'R30' : 'SR',
-                    time: '0-24h',
-                    category: s.category,
-                    status: 'available'
-                });
+                // Verifica se o serviço já existe no nosso banco local
+                let existing = servicesDB[targetCat].find(x => x.id == (s.service || s.id));
+                
+                if (existing) {
+                    existing.cost = cost;
+                    existing.price = cost * multiplier;
+                    existing.status = 'available'; // Re-ativa se foi encontrado na API
+                    existing.category = targetCat;
+                } else {
+                    servicesDB[targetCat].push({
+                        id: s.service || s.id,
+                        name: s.name,
+                        cost: cost,
+                        price: cost * multiplier,
+                        min: parseInt(s.min),
+                        max: parseInt(s.max),
+                        desc: s.name,
+                        quality: 'HQ API',
+                        speed: 'Automático',
+                        refill: s.refill ? 'R30' : 'SR',
+                        time: '0-24h',
+                        category: s.category,
+                        status: 'available'
+                    });
+                }
             });
 
             saveDynamicServices();
