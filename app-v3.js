@@ -10,6 +10,26 @@ const servicesDB = window.servicesDB;
 // ─── App State & Internationalization ───
 let currentUser = null;
 window.currentUser = null; // Exposição para o Sincronizador de Nuvem
+
+// Funcao de limpeza de encoding corrompido (aplicada globalmente)
+function fixEncoding(str) {
+    if (!str || typeof str !== 'string') return str;
+    // Substituicoes UTF-8 mal interpretadas como Latin-1
+    return str
+        .replace(/Ã§/g, 'c').replace(/Ã£/g, 'a').replace(/Ãµ/g, 'o')
+        .replace(/Ã¡/g, 'a').replace(/Ã©/g, 'e').replace(/Ã­/g, 'i')
+        .replace(/Ã³/g, 'o').replace(/Ãº/g, 'u').replace(/Ã¢/g, 'a')
+        .replace(/Ãª/g, 'e').replace(/Ã´/g, 'o').replace(/Ã /g, 'a')
+        .replace(/Ã/g, 'C').replace(/Ã/g, 'A')
+        .replace(/Â/g, '').replace(/Ã§/g, 'c')
+        .replace(/Ã£/g, 'a').replace(/Ãµ/g, 'o')
+        .replace(/Ã©/g, 'e').replace(/Ã­/g, 'i')
+        .replace(/Ã³/g, 'o').replace(/Ãº/g, 'u')
+        .replace(/Ã¢/g, 'a').replace(/Ãª/g, 'e')
+        .replace(/Ã´/g, 'o').replace(/Ã /g, 'a');
+}
+
+
 let orders = [];
 let selectedPaymentMethod = null;
 
@@ -525,17 +545,33 @@ function handleRegister(e) {
 function handleLogout() {
     if (!confirm('Deseja realmente sair da sua conta?')) return;
     
-    // Limpeza profunda de qualquer vestígio de sessão
-    localStorage.clear(); 
-    sessionStorage.clear();
     currentUser = null;
+    window.currentUser = null;
     
-    showToast('Sessão encerrada.', 'info');
+    // IMPORTANTE: Usar originalSetItem para contornar o interceptador do Firebase Sync
+    // O firebase-sync.js intercepta localStorage.setItem e localStorage.clear()
+    // então precisamos usar as funcoes originais antes da interceptacao
+    if (typeof originalSetItem === 'function') {
+        // Remove a sessao sem triggerar o firebase sync
+        // Usar funcao exposta pelo firebase-sync para evitar loop de sync
+        if (typeof window._snxOriginalRemoveItem === 'function') {
+            window._snxOriginalRemoveItem('snx_session');
+        } else {
+            Storage.prototype.removeItem.call(localStorage, 'snx_session');
+        }
+    } else {
+        // Fallback: remover direto
+        try { localStorage.removeItem('snx_session'); } catch(e) {}
+    }
     
-    // Redirecionamento forçado
-    setTimeout(() => {
-        window.location.href = window.location.origin + window.location.pathname + '?logout=' + Date.now();
-    }, 100);
+    // Navegar para home ANTES de recarregar (para evitar loop)
+    showPage('landing-page');
+    showToast('Voce saiu da sua conta.', 'info');
+    
+    // Recarregar apos curto delay para limpar estado
+    setTimeout(function() {
+        window.location.replace(window.location.origin + window.location.pathname);
+    }, 500);
 }
 
 /**
