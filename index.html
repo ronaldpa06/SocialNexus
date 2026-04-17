@@ -2085,6 +2085,34 @@
         </div>
     </div>
 
+    <!-- Modal de Detalhes de Ticket -->
+    <div id="ticket-admin-modal" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; padding: 20px;">
+        <div class="modal-content" style="background: var(--bg-dark); max-width: 600px; width: 100%; border-radius: 15px; border: 1px solid #4facfe; animation: slideUp 0.3s ease; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #fff;"><i class="fas fa-ticket-alt"></i> Responder Ticket</h3>
+                <button onclick="document.getElementById('ticket-admin-modal').style.display='none'" style="background: none; border: none; color: #ff4b2b; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <p style="margin: 0; font-size: 0.8rem; color: #888;">Cliente: <strong id="tkt-modal-user" style="color: #fff;">-</strong></p>
+                    <p style="margin: 5px 0; font-size: 0.8rem; color: #888;">Assunto: <strong id="tkt-modal-subject" style="color: #4facfe;">-</strong></p>
+                    <p style="margin: 5px 0; font-size: 0.8rem; color: #888;">ID Pedido: <strong id="tkt-modal-orderid" style="color: #fff;">-</strong></p>
+                    <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 10px 0;">
+                    <p id="tkt-modal-message" style="color: #eee; font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap;">-</p>
+                </div>
+                
+                <div class="form-group">
+                    <label style="color: #888; font-size: 0.85rem; margin-bottom: 10px; display: block;">Sua Resposta (Interna/Simulada):</label>
+                    <textarea id="tkt-modal-reply" rows="4" style="width: 100%; background: #000; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px; resize: none;" placeholder="Escreva a resposta para o cliente..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 20px; text-align: right; border-top: 1px solid rgba(255,255,255,0.05);">
+                <button onclick="document.getElementById('ticket-admin-modal').style.display='none'" class="btn-outline-sm" style="margin-right: 10px;">Fechar</button>
+                <button id="btn-resolve-tkt" class="btn-primary-sm" style="background: #00ff88; color: #000; border: none;">Marcar como Resolvido</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div class="toast-container" id="toast-container"></div>
 
@@ -2102,8 +2130,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <!-- SocialNexus Engine (Firebase Sync + App Logic) -->
-    <script src="firebase-sync.js?v=15.0"></script>
-    <script src="services-data.js?v=15.0"></script>
-    <script src="app-v3.js?v=15.0"></script>
+    <script src="firebase-sync.js?v=16.0"></script>
+    <script src="services-data.js?v=16.0"></script>
+    <script src="app-v3.js?v=16.0"></script>
 </body>
 </html>
