@@ -30,7 +30,7 @@ if (localStorage.getItem('snx_users') === '[object Object]') {
 
 const db = firebase.database();
 
-const SYNC_KEYS = ['snx_users', 'snx_custom_services', 'snx_excluded_cats']; // Chaves globais
+const SYNC_KEYS = ['snx_users', 'snx_custom_services', 'snx_excluded_cats', 'snx_custom_folders', 'snx_folder_order']; // Chaves globais
 const originalSetItem = Storage.prototype.setItem;
 const originalGetItem = Storage.prototype.getItem;
 const originalRemoveItem = Storage.prototype.removeItem;
