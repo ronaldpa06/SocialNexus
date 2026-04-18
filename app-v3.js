@@ -1,9 +1,8 @@
 /* ============================================
-   SocialNexus — JavaScript Engine (v27.0 - CORREÇÃO CRÍTICA)
+   SocialNexus — JavaScript Engine (v27.5 - DIAGNÓSTICO TOTAL)
    ============================================ */
-alert("SocialNexus v27.0 Ativa! Sincronismo de Pedidos ATUALIZADO.");
-console.log("SocialNexus Engine v27.0 loaded correctly.");
-window.SNX_V = '27.0';
+console.log("SocialNexus Engine v27.5 loaded.");
+window.SNX_V = '27.5';
 // ─── Services Database ───
 // Usamos window.servicesDB para garantir que o services-data.js e o app.js compartilhem os mesmos dados
 if (typeof window.servicesDB === 'undefined') window.servicesDB = {};
@@ -1423,7 +1422,7 @@ function loadOrders(silentUpdate = false) {
 
         return `
             <tr>
-                <td><strong>#${order.id}</strong></td>
+                <td><strong>#${order.id}</strong> <span style="font-size: 0.6rem; color: #4facfe;">(v27.5)</span></td>
                 <td><small>${formatDate(order.date).split(' ')[0]}<br>${formatDate(order.date).split(' ')[1]}</small></td>
                 <td style="font-size: 0.8rem; max-width:150px; overflow:hidden; text-overflow:ellipsis;">${serviceName.replace(/INSTANTÂNEOâneo/g, 'INSTANTÂNEO')}</td>
                 <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><a href="${order.link}" target="_blank" style="color:#4facfe;">${order.link}</a></td>
@@ -1436,8 +1435,8 @@ function loadOrders(silentUpdate = false) {
             </tr>
             <tr style="background: rgba(255,255,255,0.02); height: 2px;">
                 <td colspan="10" style="padding: 4px 15px; font-size: 0.65rem; color: #555; text-align: right;">
-                    <i class="fas fa-history"></i> Status: ${order.lastSyncAt ? 'Sincronizado ' + formatDate(order.lastSyncAt).split(' ')[1] : 'Pendente'} 
-                    | ID Provedor: <span style="color: ${order.externalId ? '#4facfe' : '#ff4b2b'}">${order.externalId || 'FALHA NO ENVIO'}</span>
+                    <i class="fas fa-history"></i> Status Real: <b style="color:#4facfe;">${order.status}</b> | Sincronizado: ${order.lastSyncAt ? formatDate(order.lastSyncAt).split(' ')[1] : 'Nunca'} 
+                    | Provedor: #${order.externalId || 'Não Vinculado'}
                 </td>
             </tr>
         `;
@@ -1466,6 +1465,10 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
     try {
         const data = await AutomationEngine.syncOrderStatus(externalId);
         
+        // --- NOVO DIAGNÓSTICO VISUAL ---
+        updateSyncDebugLog(`Sincronizando #${orderId} (Ext: ${externalId}): ${data ? (data.status || 'Erro API') : 'Falha'}`);
+        // ------------------------------
+
         if (!silent) console.log(`[SocialNexus Sync] Pedido #${orderId}:`, data);
 
         if (data && data.status) {
@@ -1628,6 +1631,18 @@ function saveUserData() {
     localStorage.setItem('snx_users', JSON.stringify(storedUsers));
     localStorage.setItem('snx_session', JSON.stringify(currentUser));
     localStorage.setItem(`snx_orders_${currentUser.id}`, JSON.stringify(orders));
+}
+
+function updateSyncDebugLog(msg) {
+    let log = document.getElementById('sync-debug-log');
+    if (!log) {
+        log = document.createElement('div');
+        log.id = 'sync-debug-log';
+        log.style.cssText = 'position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.9); color: #00ff88; padding: 10px; font-size: 0.6rem; font-family: monospace; z-index: 10000; border: 1px solid #444; border-radius: 5px; max-width: 250px; pointer-events: none;';
+        document.body.appendChild(log);
+    }
+    const time = new Date().toLocaleTimeString();
+    log.innerHTML = `<div>[${time}] ${msg}</div>` + log.innerHTML.split('</div>').slice(0, 3).join('</div>') + '</div>';
 }
 
 // ─── Services List ───
