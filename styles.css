@@ -4089,34 +4089,34 @@ textarea::placeholder { color: var(--text-muted); }
     }
 
     .status-completed { 
-        background: rgba(67, 233, 123, 0.15) !important; 
+        background: rgba(67, 233, 123, 0.1) !important; 
         color: #43e97b !important; 
-        border: 1px solid rgba(67, 233, 123, 0.3) !important;
+        border: 1px solid rgba(67, 233, 123, 0.2) !important;
     }
-    .status-processing, .status-inprogress, .status-in_progress { 
-        background: rgba(249, 168, 37, 0.15) !important; 
+    .status-processing, .status-inprogress, .status-in-progress, .status-in_progress { 
+        background: rgba(249, 168, 37, 0.1) !important; 
         color: #f9a825 !important; 
-        border: 1px solid rgba(249, 168, 37, 0.3) !important;
+        border: 1px solid rgba(249, 168, 37, 0.2) !important;
     }
     .status-cancelled, .status-canceled { 
-        background: rgba(245, 87, 108, 0.15) !important; 
+        background: rgba(245, 87, 108, 0.1) !important; 
         color: #f5576c !important; 
-        border: 1px solid rgba(245, 87, 108, 0.3) !important;
+        border: 1px solid rgba(245, 87, 108, 0.2) !important;
     }
     .status-partial { 
-        background: rgba(255, 215, 0, 0.15) !important; 
+        background: rgba(255, 215, 0, 0.1) !important; 
         color: #ffd700 !important; 
-        border: 1px solid rgba(255, 215, 0, 0.3) !important;
+        border: 1px solid rgba(255, 215, 0, 0.2) !important;
     }
     .status-pending { 
-        background: rgba(79, 172, 254, 0.15) !important; 
+        background: rgba(79, 172, 254, 0.1) !important; 
         color: #4facfe !important; 
-        border: 1px solid rgba(79, 172, 254, 0.3) !important;
+        border: 1px solid rgba(79, 172, 254, 0.2) !important;
     }
     .status-refunded {
-        background: rgba(170, 170, 170, 0.15) !important;
+        background: rgba(170, 170, 170, 0.1) !important;
         color: #aaa !important;
-        border: 1px solid rgba(170, 170, 170, 0.3) !important;
+        border: 1px solid rgba(170, 170, 170, 0.2) !important;
     }
 
     /* Estilos Página de Perfil */
