@@ -1,12 +1,12 @@
 /* ============================================
 
-   SocialNexus — JavaScript Engine (v28.0 - CORRECAO FINAL)
+   SocialNexus — JavaScript Engine (v28.1 - REPARO PROXY)
 
    ============================================ */
 
-console.log("SocialNexus Engine v28.0 loaded.");
+console.log("SocialNexus Engine v28.1 loaded.");
 
-window.SNX_V = '28.0';
+window.SNX_V = '28.1';
 
 // ─── Services Database ───
 
@@ -700,6 +700,12 @@ const AutomationEngine = {
 
             });
 
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error(`[SocialNexus] Falha no Proxy: ${response.status} - ${errText}`);
+                return { success: false, error: `Proxy Error (${response.status})` };
+            }
+
             const data = await response.json();
 
             if (data.order) {
@@ -713,9 +719,8 @@ const AutomationEngine = {
             }
 
         } catch (err) {
-
-            return { success: false, error: 'Proxy Connection failed' };
-
+            console.error('[SocialNexus] Erro de Conexão Proxy:', err);
+            return { success: false, error: `Proxy Connection failed (${err.message})` };
         }
 
     },
