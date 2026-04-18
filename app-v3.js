@@ -1,12 +1,12 @@
 /* ============================================
 
-   SocialNexus — JavaScript Engine (v28.1 - REPARO PROXY)
+   SocialNexus — JavaScript Engine (v29.0)
 
    ============================================ */
 
-console.log("SocialNexus Engine v28.1 loaded.");
+console.log("SocialNexus Engine v29.0 loaded.");
 
-window.SNX_V = '28.1';
+window.SNX_V = '29.0';
 
 // ─── Services Database ───
 
@@ -2822,7 +2822,7 @@ function loadOrders(silentUpdate = false) {
 
             <tr>
 
-                <td><strong>#${order.id}</strong> <span style="font-size: 0.6rem; color: #4facfe;">(v27.5)</span></td>
+                <td><strong>#${order.id}</strong></td>
 
                 <td><small>${formatDate(order.date).split(' ')[0]}<br>${formatDate(order.date).split(' ')[1]}</small></td>
 
@@ -2841,6 +2841,12 @@ function loadOrders(silentUpdate = false) {
                 <td><span class="status-badge status-${(order.status || 'processing').toLowerCase().replace(/\s+/g,'')}">${getStatusLabel(order.status || 'processing')}</span></td>
 
                 <td><div style="display:flex; align-items:center; gap:5px;">${refillContent}${syncBtn}${reorderBtn}</div></td>
+
+            </tr>
+
+            <tr style="display:none; height:0; visibility:hidden;">
+
+                <td colspan="10"></td>
 
             </tr>
 
