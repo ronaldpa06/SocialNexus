@@ -1427,7 +1427,7 @@ function loadOrders(silentUpdate = false) {
                 <td>${order.quantity.toLocaleString('pt-BR')}</td>
                 <td><span style="color:#00ff88;">${order.remains || '--'}</span></td>
                 <td>R$ ${order.total.toFixed(2)}</td>
-                <td><span class="status-badge status-${order.status.toLowerCase()}">${getStatusLabel(order.status.toLowerCase())}</span></td>
+                <td><span class="status-badge status-${order.status.toLowerCase().replace(/\s+/g,'')}">${getStatusLabel(order.status)}</span></td>
                 <td><div style="display:flex; align-items:center; gap:5px;">${refillContent}${syncBtn}${reorderBtn}</div></td>
             </tr>
         `;
@@ -1454,11 +1454,11 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
     if (data && data.status) {
         let needsUpdate = false;
-        const normalizedDataStatus = data.status.toLowerCase().trim();
+        const normalizedDataStatus = data.status.toLowerCase().trim().replace(/\s+/g, '');
         const order = orders.find(o => o.id === orderId);
         
         if (order) {
-            const currentStatusNorm = order.status.toLowerCase().trim();
+            const currentStatusNorm = order.status.toLowerCase().trim().replace(/\s+/g, '');
             
             // Se a API diz "Completed", nós forçamos a finalização mesmo que reste algo no contador
             if (normalizedDataStatus === 'completed') {
@@ -1575,11 +1575,10 @@ function updateOverviewStats() {
 }
 
 function getStatusLabel(status) {
-    const s = status.toLowerCase().trim();
+    const s = status.toLowerCase().trim().replace(/\s+/g, '');
     const labels = {
         'pending': 'Pendente',
         'processing': 'Processamento',
-        'in progress': 'Em Andamento',
         'inprogress': 'Em Andamento',
         'completed': 'Concluído',
         'partial': 'Parcial',
