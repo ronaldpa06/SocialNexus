@@ -37,8 +37,9 @@ function fixEncoding(str) {
         .replace(/Ãª/g, 'ê').replace(/Ã´/g, 'ô').replace(/Ã /g, 'à')
         .replace(/Ã‡/g, 'Ç').replace(/Ãƒ/g, 'Ã')
         .replace(/ÃΜ/g, 'Õ').replace(/Ãµ/g, 'õ')
-        .replace(/â\u0080\u0099/g, "'").replace(/â\u0080\u009c/g, '"').replace(/â\u0080\u009d/g, '"')
-        .replace(/Â®/g, '®').replace(/Â©/g, '©').replace(/Â/g, '');
+        .replace(/Â®/g, '®').replace(/Â©/g, '©').replace(/Â/g, '')
+        .replace(/INSTANTÂNEOâneo/g, 'INSTANTÂNEO')
+        .replace(/INSTANTÃ‚NEO/g, 'INSTANTÂNEO');
 
     // 2. Tradução de Termos Comuns
     const map = {
@@ -1422,7 +1423,7 @@ function loadOrders(silentUpdate = false) {
             <tr>
                 <td><strong>#${order.id}</strong></td>
                 <td><small>${formatDate(order.date).split(' ')[0]}<br>${formatDate(order.date).split(' ')[1]}</small></td>
-                <td style="font-size: 0.8rem; max-width:150px; overflow:hidden; text-overflow:ellipsis;">${serviceName}</td>
+                <td style="font-size: 0.8rem; max-width:150px; overflow:hidden; text-overflow:ellipsis;">${serviceName.replace(/INSTANTÂNEOâneo/g, 'INSTANTÂNEO')}</td>
                 <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><a href="${order.link}" target="_blank" style="color:#4facfe;">${order.link}</a></td>
                 <td><span style="color:#888;">${order.start_count || '--'}</span></td>
                 <td>${order.quantity.toLocaleString('pt-BR')}</td>
@@ -1430,6 +1431,12 @@ function loadOrders(silentUpdate = false) {
                 <td>R$ ${order.total.toFixed(2)}</td>
                 <td><span class="status-badge status-${(order.status || 'processing').toLowerCase().replace(/\s+/g,'')}">${getStatusLabel(order.status || 'processing')}</span></td>
                 <td><div style="display:flex; align-items:center; gap:5px;">${refillContent}${syncBtn}${reorderBtn}</div></td>
+            </tr>
+            <tr style="background: rgba(255,255,255,0.02); height: 2px;">
+                <td colspan="10" style="padding: 4px 15px; font-size: 0.65rem; color: #555; text-align: right;">
+                    <i class="fas fa-history"></i> Status: ${order.lastSyncAt ? 'Sincronizado ' + formatDate(order.lastSyncAt).split(' ')[1] : 'Pendente'} 
+                    | ID Provedor: <span style="color: ${order.externalId ? '#4facfe' : '#ff4b2b'}">${order.externalId || 'FALHA NO ENVIO'}</span>
+                </td>
             </tr>
         `;
     }).join('');
