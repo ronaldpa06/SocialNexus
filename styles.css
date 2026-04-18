@@ -4016,6 +4016,80 @@ textarea::placeholder { color: var(--text-muted); }
         font-weight: 700;
     }
 
+    /* Badge Status SMM */
+    .badge-sr {
+        background: #ff4b2b;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .btn-refill {
+        background: rgba(0, 255, 136, 0.1);
+        color: #00ff88;
+        border: 1px solid #00ff88;
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-refill:hover {
+        background: #00ff88;
+        color: #000;
+    }
+
+    .btn-sync {
+        background: rgba(255, 255, 255, 0.05);
+        color: #888;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 4px 8px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .btn-sync:hover {
+        background: rgba(79, 172, 254, 0.1);
+        color: #4facfe;
+        border-color: #4facfe;
+    }
+
+    /* Tabelas Alinhadas Estilo SMM */
+    .orders-table th {
+        background: rgba(255, 255, 255, 0.02);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #888;
+        padding: 15px 10px;
+    }
+
+    .orders-table td {
+        padding: 12px 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        vertical-align: middle;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-completed { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
+    .status-processing { background: rgba(79, 172, 254, 0.1); color: #4facfe; }
+    .status-cancelled, .status-canceled { background: rgba(255, 75, 43, 0.1); color: #ff4b2b; }
+    .status-partial { background: rgba(255, 215, 0, 0.1); color: #ffd700; }
+    .status-pending { background: rgba(255, 255, 255, 0.05); color: #aaa; }
+
     /* Estilos Página de Perfil */
     .profile-card {
         display: grid;
