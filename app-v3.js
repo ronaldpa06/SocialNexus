@@ -1449,29 +1449,28 @@ function loadOrders(silentUpdate = false) {
 
 async function syncSpecificOrder(orderId, externalId, silent = false) {
     const data = await AutomationEngine.syncOrderStatus(externalId);
+    
+    if (!silent) console.log(`[SocialNexus Sync] Pedido #${orderId}:`, data);
+
     if (data && data.status) {
         let needsUpdate = false;
-        const normalizedDataStatus = data.status.toLowerCase();
-        
-        // Encontrar o pedido no array global 'orders'
+        const normalizedDataStatus = data.status.toLowerCase().trim();
         const order = orders.find(o => o.id === orderId);
         
         if (order) {
-            const oldStatus = order.status.toLowerCase();
+            const currentStatusNorm = order.status.toLowerCase().trim();
             
-            if (order.status !== normalizedDataStatus) {
+            if (currentStatusNorm !== normalizedDataStatus) {
                 // LOGICA DE REEMBOLSO AUTOMÁTICO
                 const isRefundable = ['cancelled', 'canceled', 'refunded', 'partial'].includes(normalizedDataStatus);
-                const wasNotRefunded = !['cancelled', 'canceled', 'refunded', 'partial'].includes(oldStatus);
+                const wasNotRefunded = !['cancelled', 'canceled', 'refunded', 'partial'].includes(currentStatusNorm);
 
                 if (isRefundable && wasNotRefunded) {
                     let refundAmount = 0;
                     if (normalizedDataStatus === 'partial' && data.remains > 0) {
-                        // Reembolso proporcional (preço unitário * quantidade restante)
                         const unitPrice = order.total / order.quantity;
                         refundAmount = unitPrice * parseInt(data.remains);
                     } else {
-                        // Reembolso total para cancelados ou reembolsados
                         refundAmount = order.total;
                     }
 
@@ -1483,6 +1482,7 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
                 order.status = normalizedDataStatus;
                 needsUpdate = true;
             }
+
             if (data.start_count !== undefined && order.start_count !== data.start_count) {
                 order.start_count = data.start_count;
                 needsUpdate = true;
@@ -1497,7 +1497,7 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
             saveUserData();
             loadOrders(true);
             if(!silent) {
-                showToast(`Status do Pedido #${orderId}: ${getStatusLabel(data.status)}`, 'info');
+                showToast(`Status #${orderId}: ${getStatusLabel(data.status)}`, 'info');
             }
         }
     }
@@ -2049,7 +2049,9 @@ function formatCurrency(value) {
 
 function formatDate(dateStr) {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    if (isNaN(date)) return "Data Inválida";
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + 
+           date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
 // ─── Animated Counter ───
@@ -3846,6 +3848,11 @@ window.openClientTicketModal = function(tktId) {
     const t = tickets.find(x => x.id === tktId);
     if (!t) return;
 
+    // Marcar como visto
+    t.seenByClient = true;
+    localStorage.setItem('snx_tickets', JSON.stringify(tickets));
+    if (typeof updateClientNotifBadge === 'function') updateClientNotifBadge();
+
     document.getElementById('cli-tkt-id').textContent = t.id;
     document.getElementById('cli-tkt-subject').textContent = t.subject;
     document.getElementById('cli-tkt-message').textContent = t.message;
@@ -3912,18 +3919,17 @@ window.updateClientNotifBadge = function() {
 
     const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
     const myTickets = tickets.filter(t => t.userId === currentUser.id);
-    const lastRead = parseInt(localStorage.getItem('snx_last_read_tickets') || '0');
     
-    // Filtra tickets que foram respondidos após a última leitura do cliente
-    const newReplies = myTickets.filter(t => t.adminReply && t.status === 'closed' && new Date(t.date).getTime() > 0); 
-    // Simplificando: Qualquer ticket fechado com resposta que o cliente ainda nao clicou em suporte
-    const hasUnread = myTickets.some(t => t.adminReply && t.status === 'closed');
+    // Verificamos se há algum ticket respondido que ainda não foi "visto"
+    const hasUnread = myTickets.some(t => t.adminReply && !t.seenByClient);
 
-    if (hasUnread && !document.getElementById('dash-support').classList.contains('active')) {
+    // Se o usuário está na aba de suporte agora, limpamos o badge
+    const isAtSupport = document.getElementById('dash-support').classList.contains('active');
+
+    if (hasUnread && !isAtSupport) {
         badge.style.display = 'inline-block';
     } else {
         badge.style.display = 'none';
-        // Se já está na aba, marca como lido futuramente
     }
 };
 
