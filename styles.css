@@ -4077,18 +4077,47 @@ textarea::placeholder { color: var(--text-muted); }
     }
 
     .status-badge {
-        padding: 4px 10px;
+        padding: 4px 12px;
         border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
+        font-size: 0.75rem;
+        font-weight: 700;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        display: inline-block;
+        white-space: nowrap;
     }
 
-    .status-completed { background: rgba(0, 255, 136, 0.1); color: #00ff88; }
-    .status-processing { background: rgba(79, 172, 254, 0.1); color: #4facfe; }
-    .status-cancelled, .status-canceled { background: rgba(255, 75, 43, 0.1); color: #ff4b2b; }
-    .status-partial { background: rgba(255, 215, 0, 0.1); color: #ffd700; }
-    .status-pending { background: rgba(255, 255, 255, 0.05); color: #aaa; }
+    .status-completed { 
+        background: rgba(67, 233, 123, 0.15) !important; 
+        color: #43e97b !important; 
+        border: 1px solid rgba(67, 233, 123, 0.3) !important;
+    }
+    .status-processing, .status-inprogress, .status-in_progress { 
+        background: rgba(249, 168, 37, 0.15) !important; 
+        color: #f9a825 !important; 
+        border: 1px solid rgba(249, 168, 37, 0.3) !important;
+    }
+    .status-cancelled, .status-canceled { 
+        background: rgba(245, 87, 108, 0.15) !important; 
+        color: #f5576c !important; 
+        border: 1px solid rgba(245, 87, 108, 0.3) !important;
+    }
+    .status-partial { 
+        background: rgba(255, 215, 0, 0.15) !important; 
+        color: #ffd700 !important; 
+        border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    }
+    .status-pending { 
+        background: rgba(79, 172, 254, 0.15) !important; 
+        color: #4facfe !important; 
+        border: 1px solid rgba(79, 172, 254, 0.3) !important;
+    }
+    .status-refunded {
+        background: rgba(170, 170, 170, 0.15) !important;
+        color: #aaa !important;
+        border: 1px solid rgba(170, 170, 170, 0.3) !important;
+    }
 
     /* Estilos Página de Perfil */
     .profile-card {
