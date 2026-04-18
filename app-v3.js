@@ -1570,25 +1570,19 @@ function updateOverviewStats() {
 }
 
 function getStatusLabel(status) {
+    const s = status.toLowerCase().trim();
     const labels = {
-        pending: 'Pendente',
-        Pending: 'Pendente',
-        processing: 'Processamento',
-        Processing: 'Processamento',
-        inprogress: 'Em Andamento',
-        InProgress: 'Em Andamento',
+        'pending': 'Pendente',
+        'processing': 'Processamento',
         'in progress': 'Em Andamento',
-        completed: 'Concluído',
-        Completed: 'Concluído',
-        partial: 'Parcial',
-        Partial: 'Parcial',
-        cancelled: 'Cancelado',
-        Cancelled: 'Cancelado',
-        canceled: 'Cancelado',
-        Canceled: 'Cancelado',
-        refunded: 'Reembolsado'
+        'inprogress': 'Em Andamento',
+        'completed': 'Concluído',
+        'partial': 'Parcial',
+        'cancelled': 'Cancelado',
+        'canceled': 'Cancelado',
+        'refunded': 'Reembolsado'
     };
-    return labels[status] || status;
+    return labels[s] || status;
 }
 
 function saveUserData() {
@@ -2590,7 +2584,7 @@ function loadAdminOrders() {
                 <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.link}</td>
                 <td>${order.quantity?.toLocaleString('pt-BR') || '-'}</td>
                 <td>${formatValue(order.total || 0)}</td>
-                <td><span class="status-badge status-${order.status}">${getStatusLabel(order.status)}</span> ${syncBtn}</td>
+                <td><span class="status-badge status-${order.status.toLowerCase()}">${getStatusLabel(order.status)}</span> ${syncBtn}</td>
                 <td>${formatDate(order.date)}</td>
                 <td class="order-actions-cell">
                     <div style="display: flex; gap: 5px;">
@@ -2715,7 +2709,6 @@ function loadAdminTransactions() {
 }
 
 // ─── Service & Profit Management (Admin) ───
-
 let excludedCategories = JSON.parse(localStorage.getItem('snx_excluded_cats') || '[]');
 
 function loadAdminServicesMgmt() {
