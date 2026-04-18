@@ -190,6 +190,8 @@ function showPage(pageId) {
     if (targetPage) {
         targetPage.classList.add('active');
         window.scrollTo(0, 0);
+        // Persistência
+        localStorage.setItem('snx_active_page', pageId);
     }
 }
 
@@ -927,10 +929,19 @@ function showDashTab(tabId, linkEl) {
     if (tab) tab.classList.add('active');
     if (linkEl) linkEl.classList.add('active');
 
+    // Persistência
+    localStorage.setItem('snx_active_tab', tabId);
+
     // Close sidebar on mobile
     const sidebar = document.getElementById('sidebar');
     if (window.innerWidth <= 768) {
         sidebar.classList.remove('open');
+    }
+
+    // Se abrir suporte, limpa o badge do cliente
+    if (tabId === 'dash-support') {
+        localStorage.setItem('snx_last_read_tickets', Date.now());
+        updateClientNotifBadge();
     }
 }
 
@@ -3796,30 +3807,66 @@ setInterval(() => { if(typeof updateNotifBadge === 'function') updateNotifBadge(
 
 // Inicializar Listeners de Sincronização (Firebase)
 document.addEventListener('DOMContentLoaded', () => { 
+    // RESTAURAR ESTADO DE NAVEGAÇÃO
+    const lastPage = localStorage.getItem('snx_active_page');
+    const lastTab = localStorage.getItem('snx_active_tab');
+    
     setTimeout(() => { 
+        if (currentUser) {
+            if (lastPage) showPage(lastPage);
+            if (lastTab) {
+                const linkEl = document.querySelector(`.sidebar-link[onclick*="${lastTab}"]`);
+                showDashTab(lastTab, linkEl);
+            }
+        }
+        
         if (typeof updateNotifBadge === 'function') updateNotifBadge(); 
+        if (typeof updateClientNotifBadge === 'function') updateClientNotifBadge();
         
         // Listener REAL-TIME para Novos Tickets no Firebase (broadcast global)
         if (typeof firebase !== 'undefined' && firebase.database) {
             firebase.database().ref('snx_tickets').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
-                    // Converter objeto Firebase (se for objeto com chaves) em Array
                     const ticketsArray = Array.isArray(data) ? data : Object.values(data);
                     localStorage.setItem('snx_tickets', JSON.stringify(ticketsArray));
                     
                     if (typeof updateNotifBadge === 'function') updateNotifBadge();
+                    if (typeof updateClientNotifBadge === 'function') updateClientNotifBadge();
+
                     if (document.getElementById('admin-tickets').style.display === 'block') {
                         loadAdminTicketsTab();
                     }
-                    if (document.getElementById('support-page').style.display === 'block') {
+                    if (document.getElementById('dash-support').classList.contains('active')) {
                         loadClientTickets();
                     }
                 }
             });
         }
-    }, 1500); 
+    }, 500); 
 });
+
+window.updateClientNotifBadge = function() {
+    if (!currentUser) return;
+    const badge = document.getElementById('client-tkt-badge');
+    if (!badge) return;
+
+    const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
+    const myTickets = tickets.filter(t => t.userId === currentUser.id);
+    const lastRead = parseInt(localStorage.getItem('snx_last_read_tickets') || '0');
+    
+    // Filtra tickets que foram respondidos após a última leitura do cliente
+    const newReplies = myTickets.filter(t => t.adminReply && t.status === 'closed' && new Date(t.date).getTime() > 0); 
+    // Simplificando: Qualquer ticket fechado com resposta que o cliente ainda nao clicou em suporte
+    const hasUnread = myTickets.some(t => t.adminReply && t.status === 'closed');
+
+    if (hasUnread && !document.getElementById('dash-support').classList.contains('active')) {
+        badge.style.display = 'inline-block';
+    } else {
+        badge.style.display = 'none';
+        // Se já está na aba, marca como lido futuramente
+    }
+};
 
 window.reorderService = function(serviceId) {
     // Tenta encontrar o serviço no db local para preencher o form
