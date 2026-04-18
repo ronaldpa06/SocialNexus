@@ -1,6 +1,9 @@
 /* ============================================
-   SocialNexus — JavaScript Application Logic (v6.0)
+   SocialNexus — JavaScript Engine (v27.0 - CORREÇÃO CRÍTICA)
    ============================================ */
+alert("SocialNexus v27.0 Ativa! Sincronismo de Pedidos ATUALIZADO.");
+console.log("SocialNexus Engine v27.0 loaded correctly.");
+window.SNX_V = '27.0';
 // ─── Services Database ───
 // Usamos window.servicesDB para garantir que o services-data.js e o app.js compartilhem os mesmos dados
 if (typeof window.servicesDB === 'undefined') window.servicesDB = {};
@@ -30,7 +33,6 @@ function fixEncoding(str) {
     for(let b in boldMap) { res = res.split(b).join(boldMap[b]); }
 
     // 1. Mojibake Fix
-    res = res
         .replace(/Ã§/g, 'ç').replace(/Ã£/g, 'ã').replace(/Ãµ/g, 'õ')
         .replace(/Ã¡/g, 'á').replace(/Ã©/g, 'é').replace(/Ã­/g, 'í')
         .replace(/Ã³/g, 'ó').replace(/Ãº/g, 'ú').replace(/Ã¢/g, 'â')
@@ -1474,12 +1476,16 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
             if (order) {
                 const currentStatusNorm = (order.status || '').toLowerCase().trim().replace(/\s+/g, '');
                 
-                // Se a API diz "Completed", nós forçamos a finalização
-                if (normalizedDataStatus === 'completed') {
+                // Se a API diz "Completed" ou "Concluído", nós forçamos a finalização
+                const isFinished = ['completed', 'concluido', 'concluído', 'success'].includes(normalizedDataStatus);
+                if (isFinished) {
                     order.remains = 0;
+                    order.status = 'completed';
+                    needsUpdate = true;
                 }
 
                 if (currentStatusNorm !== normalizedDataStatus) {
+                    console.log(`[SYNC] Mudança de Status do Pedido #${orderId}: ${currentStatusNorm} -> ${normalizedDataStatus}`);
                     // LOGICA DE REEMBOLSO ...
                 // LOGICA DE REEMBOLSO AUTOMÁTICO
                 const isRefundable = ['cancelled', 'canceled', 'refunded', 'partial'].includes(normalizedDataStatus);
