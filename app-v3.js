@@ -1380,7 +1380,7 @@ function loadOrders(silentUpdate = false) {
     }
     
     tbody.innerHTML = orders.map(order => {
-        // Correção de encoding no histórico (caso o pedido tenha sido salvo com mojibake)
+        // Correção de encoding no histórico
         const serviceName = fixEncoding(order.service);
         
         // Logica para mostrar botão de Refill
@@ -1392,37 +1392,40 @@ function loadOrders(silentUpdate = false) {
             if (isCompleted) {
                 refillContent = `<button class="btn-refill" onclick="requestOrderRefill(${order.id}, ${order.externalId})"><i class="fas fa-redo"></i> Reposição</button>`;
             } else {
-                // Pedido ainda não concluído, mas suporta refill futuramente
                 refillContent = `<span style="color: rgba(255,255,255,0.3); font-size: 0.75rem;">(Aguarda conclusão)</span>`;
             }
         } else {
-            // Não suporta refill
-            refillContent = `<span style="background:#ff4b2b; color:white; padding:4px 10px; border-radius:4px; font-size:0.7rem; font-weight:700; display:inline-block; border:1px solid rgba(255,255,255,0.2);">SEM REPOSIÇÃO</span>`;
+            refillContent = `<span class="badge-sr">SEM REPOSIÇÃO</span>`;
         }
         
         // Botão para sincronizar manual
         const syncBtn = order.externalId && !['completed', 'cancelled', 'partial', 'canceled'].includes(order.status.toLowerCase())
-            ? `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status Status"><i class="fas fa-sync-alt"></i></button>`
+            ? `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status"><i class="fas fa-sync-alt"></i></button>`
             : '';
+
+        // Botão Reorder
+        const reorderBtn = `<button class="btn-sync" style="background:#4facfe; color:white; margin-left:5px;" onclick="reorderService(${order.serviceId})" title="Repetir Pedido"><i class="fas fa-play"></i></button>`;
 
         return `
             <tr>
                 <td><strong>#${order.id}</strong></td>
-                <td style="font-size: 0.85rem;">${serviceName}</td>
-                <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${order.link}</td>
+                <td><small>${formatDate(order.date).split(' ')[0]}<br>${formatDate(order.date).split(' ')[1]}</small></td>
+                <td style="font-size: 0.8rem; max-width:150px; overflow:hidden; text-overflow:ellipsis;">${serviceName}</td>
+                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><a href="${order.link}" target="_blank" style="color:#4facfe;">${order.link}</a></td>
+                <td><span style="color:#888;">${order.start_count || '--'}</span></td>
                 <td>${order.quantity.toLocaleString('pt-BR')}</td>
+                <td><span style="color:#00ff88;">${order.remains || '--'}</span></td>
                 <td>R$ ${order.total.toFixed(2)}</td>
                 <td><span class="status-badge status-${order.status.toLowerCase()}">${getStatusLabel(order.status.toLowerCase())}</span></td>
-                <td>${formatDate(order.date)}</td>
-                <td><div style="display:flex; align-items:center; gap:8px;">${refillContent}${syncBtn}</div></td>
+                <td><div style="display:flex; align-items:center; gap:5px;">${refillContent}${syncBtn}${reorderBtn}</div></td>
             </tr>
         `;
     }).join('');
 
     // Sincronização Automática Silenciosa para pedidos recentes
     if (orders.length > 0) {
-        orders.slice(0, 10).forEach(o => {
-            if(o.externalId && !['completed', 'cancelled', 'partial'].includes(o.status.toLowerCase())) {
+        orders.slice(0, 15).forEach(o => {
+            if(o.externalId && !['completed', 'cancelled', 'partial', 'canceled'].includes(o.status.toLowerCase())) {
                 syncSpecificOrder(o.id, o.externalId, true);
             }
         });
@@ -1436,16 +1439,30 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
     if (data && data.status) {
         let needsUpdate = false;
         const normalizedDataStatus = data.status.toLowerCase();
+        
+        // Encontrar o pedido no array global 'orders'
         const order = orders.find(o => o.id === orderId);
-        if (order && order.status !== normalizedDataStatus) {
-            order.status = normalizedDataStatus;
-            needsUpdate = true;
+        
+        if (order) {
+            if (order.status !== normalizedDataStatus) {
+                order.status = normalizedDataStatus;
+                needsUpdate = true;
+            }
+            if (data.start_count !== undefined && order.start_count !== data.start_count) {
+                order.start_count = data.start_count;
+                needsUpdate = true;
+            }
+            if (data.remains !== undefined && order.remains !== data.remains) {
+                order.remains = data.remains;
+                needsUpdate = true;
+            }
         }
+
         if (needsUpdate) {
             saveUserData();
-            loadOrders(true); // Oculta o loading giratório extra
+            loadOrders(true);
             if(!silent) {
-                showToast(`Pedido #${orderId} atualizado para ${getStatusLabel(data.status)}`, 'info');
+                showToast(`Status do Pedido #${orderId}: ${getStatusLabel(data.status)}`, 'info');
             }
         }
     }
@@ -3777,5 +3794,46 @@ window.openClientTicketModal = function(tktId) {
 // Auto-Update Badge every 30s
 setInterval(() => { if(typeof updateNotifBadge === 'function') updateNotifBadge(); }, 30000);
 
-// Inicializar Badge no carregamento da página
-document.addEventListener('DOMContentLoaded', () => { setTimeout(() => { if (typeof updateNotifBadge === 'function') updateNotifBadge(); }, 1500); });
+// Inicializar Listeners de Sincronização (Firebase)
+document.addEventListener('DOMContentLoaded', () => { 
+    setTimeout(() => { 
+        if (typeof updateNotifBadge === 'function') updateNotifBadge(); 
+        
+        // Listener REAL-TIME para Novos Tickets no Firebase (broadcast global)
+        if (typeof firebase !== 'undefined' && firebase.database) {
+            firebase.database().ref('snx_tickets').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    // Converter objeto Firebase (se for objeto com chaves) em Array
+                    const ticketsArray = Array.isArray(data) ? data : Object.values(data);
+                    localStorage.setItem('snx_tickets', JSON.stringify(ticketsArray));
+                    
+                    if (typeof updateNotifBadge === 'function') updateNotifBadge();
+                    if (document.getElementById('admin-tickets').style.display === 'block') {
+                        loadAdminTicketsTab();
+                    }
+                    if (document.getElementById('support-page').style.display === 'block') {
+                        loadClientTickets();
+                    }
+                }
+            });
+        }
+    }, 1500); 
+});
+
+window.reorderService = function(serviceId) {
+    // Tenta encontrar o serviço no db local para preencher o form
+    let found = null;
+    Object.values(servicesDB).forEach(cat => {
+        const s = cat.find(x => x.id == serviceId);
+        if (s) found = s;
+    });
+
+    if (found) {
+        showPage('dashboard-page');
+        selectService(found);
+        showToast('Serviço carregado! Basta inserir o link e quantidade.', 'info');
+    } else {
+        showToast('Serviço não encontrado na base atual.', 'warning');
+    }
+};
