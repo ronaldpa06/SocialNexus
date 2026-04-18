@@ -1426,9 +1426,9 @@ function loadOrders(silentUpdate = false) {
                 <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><a href="${order.link}" target="_blank" style="color:#4facfe;">${order.link}</a></td>
                 <td><span style="color:#888;">${order.start_count || '--'}</span></td>
                 <td>${order.quantity.toLocaleString('pt-BR')}</td>
-                <td><span style="color:#00ff88;">${order.remains || '--'}</span></td>
+                <td><span style="color:#00ff88;">${order.remains !== undefined ? order.remains : '--'}</span></td>
                 <td>R$ ${order.total.toFixed(2)}</td>
-                <td><span class="status-badge status-${order.status.toLowerCase().replace(/\s+/g,'')}">${getStatusLabel(order.status)}</span></td>
+                <td><span class="status-badge status-${(order.status || 'processing').toLowerCase().replace(/\s+/g,'')}">${getStatusLabel(order.status || 'processing')}</span></td>
                 <td><div style="display:flex; align-items:center; gap:5px;">${refillContent}${syncBtn}${reorderBtn}</div></td>
             </tr>
         `;
@@ -1449,24 +1449,31 @@ function loadOrders(silentUpdate = false) {
 }
 
 async function syncSpecificOrder(orderId, externalId, silent = false) {
-    const data = await AutomationEngine.syncOrderStatus(externalId);
-    
-    if (!silent) console.log(`[SocialNexus Sync] Pedido #${orderId}:`, data);
+    if (!externalId) {
+        if (!silent) showToast(`Pedido #${orderId} sem ID externo para sincronizar.`, 'warning');
+        return;
+    }
 
-    if (data && data.status) {
-        let needsUpdate = false;
-        const normalizedDataStatus = data.status.toLowerCase().trim().replace(/\s+/g, '');
-        const order = orders.find(o => o.id === orderId);
+    try {
+        const data = await AutomationEngine.syncOrderStatus(externalId);
         
-        if (order) {
-            const currentStatusNorm = order.status.toLowerCase().trim().replace(/\s+/g, '');
-            
-            // Se a API diz "Completed", nós forçamos a finalização mesmo que reste algo no contador
-            if (normalizedDataStatus === 'completed') {
-                order.remains = 0;
-            }
+        if (!silent) console.log(`[SocialNexus Sync] Pedido #${orderId}:`, data);
 
-            if (currentStatusNorm !== normalizedDataStatus) {
+        if (data && data.status) {
+            let needsUpdate = false;
+            const normalizedDataStatus = data.status.toLowerCase().trim().replace(/\s+/g, '');
+            const order = orders.find(o => o.id === orderId);
+            
+            if (order) {
+                const currentStatusNorm = (order.status || '').toLowerCase().trim().replace(/\s+/g, '');
+                
+                // Se a API diz "Completed", nós forçamos a finalização
+                if (normalizedDataStatus === 'completed') {
+                    order.remains = 0;
+                }
+
+                if (currentStatusNorm !== normalizedDataStatus) {
+                    // LOGICA DE REEMBOLSO ...
                 // LOGICA DE REEMBOLSO AUTOMÁTICO
                 const isRefundable = ['cancelled', 'canceled', 'refunded', 'partial'].includes(normalizedDataStatus);
                 const wasNotRefunded = !['cancelled', 'canceled', 'refunded', 'partial'].includes(currentStatusNorm);
@@ -1489,23 +1496,33 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
                 needsUpdate = true;
             }
 
-            if (data.start_count !== undefined && order.start_count !== data.start_count) {
-                order.start_count = data.start_count;
+                if (data.start_count !== undefined && order.start_count != data.start_count) {
+                    order.start_count = data.start_count;
+                    needsUpdate = true;
+                }
+                if (data.remains !== undefined && order.remains != data.remains && normalizedDataStatus !== 'completed') {
+                    order.remains = data.remains;
+                    needsUpdate = true;
+                }
+                
+                // Marca que foi sincronizado agora
+                order.lastSyncAt = new Date().toISOString(); 
                 needsUpdate = true;
             }
-            if (data.remains !== undefined && order.remains !== data.remains && normalizedDataStatus !== 'completed') {
-                order.remains = data.remains;
-                needsUpdate = true;
-            }
-        }
 
-        if (needsUpdate) {
-            saveUserData();
-            loadOrders(true);
-            if(!silent) {
-                showToast(`Status #${orderId}: ${getStatusLabel(data.status)}`, 'info');
+            if (needsUpdate) {
+                saveUserData();
+                loadOrders(true);
+                if (!silent) showToast(`Pedido #${orderId} atualizado para: ${getStatusLabel(data.status)}`, 'success');
+            } else if (!silent) {
+                showToast(`Pedido #${orderId} já está atualizado.`, 'info');
             }
+        } else if (data && data.error) {
+            if (!silent) showToast(`Erro no Fornecedor (#${orderId}): ${data.error}`, 'error');
         }
+    } catch (err) {
+        console.error("Sync Error:", err);
+        if (!silent) showToast(`Falha na conexão de sincronismo (#${orderId}).`, 'error');
     }
 }
 
