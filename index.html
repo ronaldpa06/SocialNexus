@@ -1,6 +1,37 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
+<head>\n    <script>
+// FORCE CACHE INVALIDATION AND DATA CLEANUP
+(function() {
+    const EXPECTED_VERSION = '30.0';
+    if (localStorage.getItem('snx_engine_version') !== EXPECTED_VERSION) {
+        localStorage.setItem('snx_engine_version', EXPECTED_VERSION);
+        
+        // Clean up corrupt orders internally
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key && key.startsWith('snx_orders_')) {
+                try {
+                    let orders = JSON.parse(localStorage.getItem(key));
+                    let changed = false;
+                    orders.forEach(o => {
+                        if (o.service && o.service.includes('INSTANTÂNEOâneo')) {
+                            o.service = o.service.replace(/INSTANTÂNEOâneo/g, 'INSTANTÂNEO');
+                            changed = true;
+                        }
+                    });
+                    if (changed) {
+                        localStorage.setItem(key, JSON.stringify(orders));
+                    }
+                } catch(e){}
+            }
+        }
+        
+        console.log('Forcing reload for v30.0...');
+        window.location.reload(true);
+    }
+})();
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="SocialNexus - A plataforma #1 de marketing em redes sociais. Seguidores, curtidas, visualizações e engajamento real para todas as redes sociais.">
