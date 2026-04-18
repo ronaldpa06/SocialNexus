@@ -1460,6 +1460,11 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
         if (order) {
             const currentStatusNorm = order.status.toLowerCase().trim();
             
+            // Se a API diz "Completed", nós forçamos a finalização mesmo que reste algo no contador
+            if (normalizedDataStatus === 'completed') {
+                order.remains = 0;
+            }
+
             if (currentStatusNorm !== normalizedDataStatus) {
                 // LOGICA DE REEMBOLSO AUTOMÁTICO
                 const isRefundable = ['cancelled', 'canceled', 'refunded', 'partial'].includes(normalizedDataStatus);
@@ -1487,7 +1492,7 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
                 order.start_count = data.start_count;
                 needsUpdate = true;
             }
-            if (data.remains !== undefined && order.remains !== data.remains) {
+            if (data.remains !== undefined && order.remains !== data.remains && normalizedDataStatus !== 'completed') {
                 order.remains = data.remains;
                 needsUpdate = true;
             }
@@ -3841,9 +3846,13 @@ window.openClientTicketModal = function(tktId) {
     const t = tickets.find(x => x.id === tktId);
     if (!t) return;
 
-    // Marcar como visto
-    t.seenByClient = true;
-    localStorage.setItem('snx_tickets', JSON.stringify(tickets));
+    // Marcar como visto em uma key persistente (não sobreposta pelo Firebase)
+    const seenTkts = JSON.parse(localStorage.getItem('snx_seen_tickets') || '[]');
+    if (!seenTkts.includes(tktId)) {
+        seenTkts.push(tktId);
+        localStorage.setItem('snx_seen_tickets', JSON.stringify(seenTkts));
+    }
+    
     if (typeof updateClientNotifBadge === 'function') updateClientNotifBadge();
 
     document.getElementById('cli-tkt-id').textContent = t.id;
@@ -3912,9 +3921,10 @@ window.updateClientNotifBadge = function() {
 
     const tickets = JSON.parse(localStorage.getItem('snx_tickets') || '[]');
     const myTickets = tickets.filter(t => t.userId === currentUser.id);
+    const seenTkts = JSON.parse(localStorage.getItem('snx_seen_tickets') || '[]');
     
     // Verificamos se há algum ticket respondido que ainda não foi "visto"
-    const hasUnread = myTickets.some(t => t.adminReply && !t.seenByClient);
+    const hasUnread = myTickets.some(t => t.adminReply && !seenTkts.includes(t.id));
 
     // Se o usuário está na aba de suporte agora, limpamos o badge
     const isAtSupport = document.getElementById('dash-support').classList.contains('active');
