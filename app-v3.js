@@ -615,6 +615,7 @@ async function startBalancePolling() {
     await refreshUserBalance();
     
     // E depois a cada 10 segundos de forma invisível
+    // E depois a cada 3 segundos de forma invisível para ser "tempo real" como o cliente pediu
     setInterval(async () => {
         if (currentUser && currentUser.id) {
             await refreshUserBalance();
@@ -623,7 +624,7 @@ async function startBalancePolling() {
                 if (typeof loadOrders === 'function') loadOrders(true);
             }
         }
-    }, 10000);
+    }, 3000); 
 }
 
 async function refreshUserBalance() {
