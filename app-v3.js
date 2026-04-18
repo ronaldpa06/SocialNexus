@@ -1,12 +1,12 @@
 /* ============================================
 
-   SocialNexus — JavaScript Engine (v27.5 - DIAGNÓSTICO TOTAL)
+   SocialNexus — JavaScript Engine (v28.0 - CORRECAO FINAL)
 
    ============================================ */
 
-console.log("SocialNexus Engine v27.5 loaded.");
+console.log("SocialNexus Engine v28.0 loaded.");
 
-window.SNX_V = '27.5';
+window.SNX_V = '28.0';
 
 // ─── Services Database ───
 
@@ -64,14 +64,13 @@ function fixEncoding(str) {
 
 
 
-    // 1. Mojibake Fix
-
+        // 1. Mojibake Fix
     res = res
-        .replace(/\u00c2\u00ae/g, '\u00ae').replace(/\u00c2\u00a9/g, '\u00a9').replace(/\u00c2/g, '');
+        .replace(/INSTANTÂNEOâneo/g, 'INSTANTÂNEO')
+        .replace(/INSTANTÃ‚NEO/g, 'INSTANTÂNEO')
+        .replace(/Â/g, '');
 
-
-
-    // 2. Tradução de Termos Comuns
+// 2. Tradução de Termos Comuns
 
     const map = {
 
@@ -2617,45 +2616,32 @@ function handleNewOrder(e) {
 
     // Executar Automação
 
-    AutomationEngine.sendToProvider(order).then(result => {
-
-        if (result.success) {
-
-            order.status = 'processing';
-
-            order.externalId = result.externalId;
-
-            showToast(`Pedido #${order.id} enviado ao fornecedor! 🤖`, 'success');
-
-        } else {
-
-            // Se falhar o envio automático, o admin precisará intervir
-
-            order.status = 'pending';
-
-            const errorMsg = result.error || 'Erro Crítico de API';
-
-            showToast(`Erro na automação: ${errorMsg}. Verifique os detalhes.`, 'warning');
-
-            console.error(`[SocialNexus] Falha no Pedido #${order.id}:`, errorMsg);
-
-        }
-
-        
-
-        saveUserData();
-
-        loadOrders();
-
-    });
-
-
-
     orders.push(order);
-
     currentUser.balance -= total;
-
     saveUserData();
+
+    // Enviar ao fornecedor e AGUARDAR resposta antes de salvar o externalId
+    AutomationEngine.sendToProvider(order).then(result => {
+        if (result.success) {
+            order.status = 'processing';
+            order.externalId = result.externalId;
+            showToast('Pedido #' + order.id + ' enviado ao fornecedor! ID: ' + result.externalId, 'success');
+            console.log('[PROVIDER] Pedido #' + order.id + ' vinculado ao ID externo: ' + result.externalId);
+        } else {
+            order.status = 'pending';
+            var errorMsg = result.error || 'Erro de API';
+            showToast('Erro ao enviar pedido #' + order.id + ': ' + errorMsg, 'error');
+            console.error('[PROVIDER] Falha no Pedido #' + order.id + ':', errorMsg);
+        }
+        saveUserData();
+        loadOrders();
+    }).catch(function(err) {
+        order.status = 'pending';
+        showToast('Falha de conexao com fornecedor: ' + err.message, 'error');
+        console.error('[PROVIDER] Erro fatal:', err);
+        saveUserData();
+        loadOrders();
+    });
 
     document.getElementById('user-balance').textContent = formatValue(currentUser.balance);
 
