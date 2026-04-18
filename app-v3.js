@@ -1433,10 +1433,12 @@ function loadOrders(silentUpdate = false) {
         `;
     }).join('');
 
-    // Sincronização Automática Silenciosa para pedidos recentes
+    // Sincronização Automática Silenciosa para todos os pedidos ativos (Processamento/Pendente)
     if (orders.length > 0) {
-        orders.slice(0, 15).forEach(o => {
-            if(o.externalId && !['completed', 'cancelled', 'partial', 'canceled'].includes(o.status.toLowerCase())) {
+        orders.forEach(o => {
+            const lowSt = o.status.toLowerCase();
+            // Só sincroniza se for um status "Em andamento"
+            if(o.externalId && !['completed', 'cancelled', 'partial', 'canceled', 'refunded'].includes(lowSt)) {
                 syncSpecificOrder(o.id, o.externalId, true);
             }
         });
@@ -1455,7 +1457,29 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
         const order = orders.find(o => o.id === orderId);
         
         if (order) {
+            const oldStatus = order.status.toLowerCase();
+            
             if (order.status !== normalizedDataStatus) {
+                // LOGICA DE REEMBOLSO AUTOMÁTICO
+                const isRefundable = ['cancelled', 'canceled', 'refunded', 'partial'].includes(normalizedDataStatus);
+                const wasNotRefunded = !['cancelled', 'canceled', 'refunded', 'partial'].includes(oldStatus);
+
+                if (isRefundable && wasNotRefunded) {
+                    let refundAmount = 0;
+                    if (normalizedDataStatus === 'partial' && data.remains > 0) {
+                        // Reembolso proporcional (preço unitário * quantidade restante)
+                        const unitPrice = order.total / order.quantity;
+                        refundAmount = unitPrice * parseInt(data.remains);
+                    } else {
+                        // Reembolso total para cancelados ou reembolsados
+                        refundAmount = order.total;
+                    }
+
+                    if (refundAmount > 0) {
+                        await processAutomaticRefund(order.userId, refundAmount, orderId, normalizedDataStatus);
+                    }
+                }
+
                 order.status = normalizedDataStatus;
                 needsUpdate = true;
             }
@@ -1476,6 +1500,41 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
                 showToast(`Status do Pedido #${orderId}: ${getStatusLabel(data.status)}`, 'info');
             }
         }
+    }
+}
+
+async function processAutomaticRefund(userId, amount, orderId, status) {
+    try {
+        const users = await syncFromFirebase();
+        if (!users || users.length === 0) return;
+
+        const userIdx = users.findIndex(u => u.id.toString() === userId.toString());
+        if (userIdx === -1) return;
+
+        const targetUser = users[userIdx];
+        const oldBalance = parseFloat(targetUser.balance || 0);
+        const newBalance = oldBalance + amount;
+
+        targetUser.balance = newBalance;
+        
+        if (typeof firebase !== 'undefined' && firebase.database) {
+            await firebase.database().ref('snx_users').set(users);
+            
+            if (typeof addSystemAlert === 'function') {
+                const alertMsg = `Pedido #${orderId} ${status === 'partial' ? 'parcialmente ' : ''}reembolsado: +R$ ${amount.toFixed(2)} adicionado ao seu saldo.`;
+                addSystemAlert(alertMsg, 'info');
+            }
+
+            if (currentUser && currentUser.id.toString() === userId.toString()) {
+                currentUser.balance = newBalance;
+                localStorage.setItem('snx_session', JSON.stringify(currentUser));
+                showToast(`Reembolso automático: R$ ${amount.toFixed(2)} devolvidos ao seu saldo! 💸`, 'success');
+                const balEl = document.getElementById('user-balance');
+                if (balEl) balEl.textContent = `R$ ${newBalance.toFixed(2)}`;
+            }
+        }
+    } catch (e) {
+        console.error("Erro no Reembolso Automático:", e);
     }
 }
 
