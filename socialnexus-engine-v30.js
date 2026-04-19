@@ -2806,11 +2806,19 @@ function loadOrders(silentUpdate = false) {
 
         // Botão para sincronizar manual
 
-        const syncBtn = order.externalId && !['completed', 'cancelled', 'partial', 'canceled'].includes(order.status.toLowerCase())
+        let syncBtn = '';
 
-            ? `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status"><i class="fas fa-sync-alt"></i></button>`
+        if (order.externalId && !['completed', 'cancelled', 'partial', 'canceled'].includes(order.status.toLowerCase())) {
 
-            : '';
+            syncBtn = `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status"><i class="fas fa-sync-alt"></i></button>`;
+
+        } else if (!order.externalId) {
+
+            // Caso o pedido tenha sido criado no fornecedor mas não devolveu o ID (Timeout da API), permite linkar manualmente
+
+            syncBtn = `<button class="btn-sync" onclick="linkExternalOrder(${order.id})" title="Vincular ID Manual" style="background:#ff9800; color:white;"><i class="fas fa-link"></i> Ligar ao Fornecedor</button>`;
+
+        }
 
 
 
@@ -3189,6 +3197,34 @@ function updateOverviewStats() {
     }
 
 }
+
+window.linkExternalOrder = function(orderId) {
+
+    const extId = prompt(`A API do Fornecedor não retornou o ID deste pedido.\n\nPor favor, vá no painel do Fornecedor (GrowFollows), veja qual é o número/ID oficial que este pedido gerou lá, e digite-o abaixo para conectá-lo ao painel do cliente:`);
+
+    if (extId && extId.trim() !== '') {
+
+        const order = orders.find(o => o.id === parseInt(orderId));
+
+        if (order) {
+
+            order.externalId = extId.trim();
+
+            saveUserData();
+
+            showToast(`Pedido vinculado ao ID: ${extId}! Sincronizando agora...`, 'info');
+
+            syncSpecificOrder(order.id, order.externalId, false).then(() => {
+
+                loadOrders();
+
+            });
+
+        }
+
+    }
+
+};
 
 
 
