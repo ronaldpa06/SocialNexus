@@ -3344,23 +3344,9 @@ function saveUserData() {
 
 function updateSyncDebugLog(msg) {
 
-    let log = document.getElementById('sync-debug-log');
+    // Função desativada para manter painel limpo (white-label). Não gera caixa de debug.
 
-    if (!log) {
-
-        log = document.createElement('div');
-
-        log.id = 'sync-debug-log';
-
-        log.style.cssText = 'position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.9); color: #00ff88; padding: 10px; font-size: 0.6rem; font-family: monospace; z-index: 10000; border: 1px solid #444; border-radius: 5px; max-width: 250px; pointer-events: none;';
-
-        document.body.appendChild(log);
-
-    }
-
-    const time = new Date().toLocaleTimeString();
-
-    log.innerHTML = `<div>[${time}] ${msg}</div>` + log.innerHTML.split('</div>').slice(0, 3).join('</div>') + '</div>';
+    // console.log("[DEBUG INTERNO]", msg);
 
 }
 
