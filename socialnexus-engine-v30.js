@@ -1701,6 +1701,14 @@ function startLiveTicker() {
 
     if (!container) return;
 
+    
+
+    if (window.activeTickerInterval) clearInterval(window.activeTickerInterval);
+
+    if (window.activeTickerTimeout) clearTimeout(window.activeTickerTimeout);
+
+
+
 
 
     // Lista expandida com mais de 30 nomes para evitar repetição
@@ -1777,33 +1785,39 @@ function startLiveTicker() {
 
         `;
 
-        
+        ticker.style.opacity = '1';
+
+        ticker.style.transform = 'translateY(0)';
+
+
 
         container.appendChild(ticker);
+
+
 
         setTimeout(() => {
 
             ticker.style.opacity = '0';
 
-            ticker.style.transform = 'translateX(-20px)';
+            ticker.style.transform = 'translateY(20px)';
 
             setTimeout(() => ticker.remove(), 500);
 
-        }, 5000);
+        }, 6000);
 
     }
 
 
 
-    // Início aleatório para não começar sempre igual
+    // Início com timeout simples e depois cria o intervalo na janela global
 
-    setTimeout(() => {
+    window.activeTickerTimeout = setTimeout(() => {
 
         generateTicker();
 
-        setInterval(generateTicker, 18000); // Intervalo de 18 segundos
+        window.activeTickerInterval = setInterval(generateTicker, 25000); // 1 Mensagem a cada 25 segundos
 
-    }, Math.random() * 5000 + 2000);
+    }, 3000);
 
 }
 
