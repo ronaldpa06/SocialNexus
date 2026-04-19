@@ -2810,13 +2810,13 @@ function loadOrders(silentUpdate = false) {
 
         if (order.externalId && !['completed', 'cancelled', 'partial', 'canceled'].includes(order.status.toLowerCase())) {
 
-            syncBtn = `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Sincronizar Status"><i class="fas fa-sync-alt"></i></button>`;
+            syncBtn = `<button class="btn-sync" onclick="syncSpecificOrder(${order.id}, ${order.externalId})" title="Atualizar Status"><i class="fas fa-sync-alt"></i></button>`;
 
         } else if (!order.externalId) {
 
-            // Caso o pedido tenha sido criado no fornecedor mas não devolveu o ID (Timeout da API), permite linkar manualmente
+            // Botão Fake "Atualizar" para o cliente que perdeu o external ID devido ao timeout. Mantém o white-label.
 
-            syncBtn = `<button class="btn-sync" onclick="linkExternalOrder(${order.id})" title="Vincular ID Manual" style="background:#ff9800; color:white;"><i class="fas fa-link"></i> Ligar ao Fornecedor</button>`;
+            syncBtn = `<button class="btn-sync" onclick="showToast('O servidor está processando seu pedido nesta fila. Aguarde a validação!', 'info')" title="Atualizar Status"><i class="fas fa-sync-alt"></i></button>`;
 
         }
 
@@ -2832,7 +2832,7 @@ function loadOrders(silentUpdate = false) {
 
             <tr>
 
-                <td><strong>#${order.id}</strong></td>
+                <td ondblclick="linkExternalOrder(${order.id})" title="Admin: Duplo clique para vincular ID manual" style="cursor: pointer;"><strong>#${order.id}</strong></td>
 
                 <td><small>${formatDate(order.date).split(' ')[0]}<br>${formatDate(order.date).split(' ')[1]}</small></td>
 
@@ -3200,7 +3200,7 @@ function updateOverviewStats() {
 
 window.linkExternalOrder = function(orderId) {
 
-    const extId = prompt(`A API do Fornecedor não retornou o ID deste pedido.\n\nPor favor, vá no painel do Fornecedor (GrowFollows), veja qual é o número/ID oficial que este pedido gerou lá, e digite-o abaixo para conectá-lo ao painel do cliente:`);
+    const extId = prompt(`[SISTEMA DE EMERGÊNCIA ADMIN]\n\nO pedido #${orderId} perdeu a conexão com o provedor e nunca sairá de Pendente sozinho.\nPara arrumar isso e ocultar do cliente, digite o ID que foi gerado na GrowFollows para este pedido:`);
 
     if (extId && extId.trim() !== '') {
 
@@ -3212,7 +3212,7 @@ window.linkExternalOrder = function(orderId) {
 
             saveUserData();
 
-            showToast(`Pedido vinculado ao ID: ${extId}! Sincronizando agora...`, 'info');
+            showToast(`ID Vinculado perfeitamente! Atualizando o sistema...`, 'success');
 
             syncSpecificOrder(order.id, order.externalId, false).then(() => {
 
