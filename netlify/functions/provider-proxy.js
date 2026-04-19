@@ -4,9 +4,13 @@
 
  * Resolve problemas de CORS permitindo que o front-end consulte a API.
 
- * Adicionado AbortController para timeout explícito.
+ * Suporta POST com Form Data para máxima compatibilidade.
 
  */
+
+const https = require('https');
+
+const url = require('url');
 
 
 
@@ -40,109 +44,105 @@ exports.handler = async function(event, context) {
 
 
 
+        // Construi URL parameters para converter em String x-www-form-urlencoded
+
         const postData = new URLSearchParams(params).toString();
 
-        
-
-        const controller = new AbortController();
-
-        const timeoutId = setTimeout(() => controller.abort(), 9000); // 9 segundos max, antes do netlify matar (10s)
+        const parsedUrl = url.parse(providerUrl);
 
 
 
-        try {
+        const response = await new Promise((resolve, reject) => {
 
-            const response = await fetch(providerUrl, {
+            const req = https.request({
+
+                hostname: parsedUrl.hostname,
+
+                port: 443,
+
+                path: parsedUrl.path,
 
                 method: 'POST',
 
                 headers: {
 
+                    'User-Agent': 'SocialNexus-Proxy',
+
                     'Content-Type': 'application/x-www-form-urlencoded',
 
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0',
+                    'Content-Length': Buffer.byteLength(postData)
 
-                    'Accept': 'application/json'
+                }
 
-                },
+            }, (res) => {
 
-                body: postData,
+                let body = '';
 
-                signal: controller.signal
+                res.on('data', chunk => body += chunk);
+
+                res.on('end', () => resolve({ status: res.statusCode, data: body }));
 
             });
 
-            
-
-            clearTimeout(timeoutId);
 
 
+            req.on('error', (e) => reject(e));
 
-            const textBody = await response.text();
+            req.setTimeout(8000, () => {
 
-            
+                req.abort();
 
-            let jsonResponse;
+                reject(new Error('TIMEOUT_PROVIDER'));
 
-            try {
+            });
 
-                jsonResponse = JSON.parse(textBody);
+            req.write(postData);
 
-            } catch(e) {
+            req.end();
 
-                jsonResponse = { raw: textBody };
-
-            }
+        });
 
 
 
-            return {
+        let jsonResponse = {};
 
-                statusCode: 200,
+        try {
 
-                headers: {
+            jsonResponse = JSON.parse(response.data);
 
-                    "Access-Control-Allow-Origin": "*",
+        } catch(e) {
 
-                    "Content-Type": "application/json"
+            // Se não for JSON, retorna o corpo bruto como fallback dentro de um objeto
 
-                },
-
-                body: JSON.stringify(jsonResponse)
-
-            };
-
-
-
-        } catch(netErr) {
-
-            clearTimeout(timeoutId);
-
-            if (netErr.name === 'AbortError') {
-
-                return { 
-
-                    statusCode: 200, 
-
-                    headers: {"Access-Control-Allow-Origin": "*", "Content-Type": "application/json"},
-
-                    body: JSON.stringify({ error: "TIMEOUT_PROVIDER", message: "O fornecedor demorou mais de 9 segundos para responder." })
-
-                };
-
-            } else {
-
-                throw netErr;
-
-            }
+            jsonResponse = { raw: response.data };
 
         }
+
+
+
+        return {
+
+            statusCode: 200,
+
+            headers: {
+
+                "Access-Control-Allow-Origin": "*",
+
+                "Content-Type": "application/json"
+
+            },
+
+            body: JSON.stringify(jsonResponse)
+
+        };
+
+
 
     } catch (err) {
 
         console.error("PROXY ERROR:", err);
 
-        return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+        return { statusCode: 200, headers: { "Access-Control-Allow-Origin": "*" }, body: JSON.stringify({ error: err.message }) };
 
     }
 
