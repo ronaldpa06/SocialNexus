@@ -2918,7 +2918,37 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
         // --- NOVO DIAGNÓSTICO VISUAL ---
 
-        updateSyncDebugLog(`Sincronizando #${orderId} (Ext: ${externalId}): ${data ? (data.status || 'Erro API') : 'Falha'}`);
+        // Função para encontrar a prop "status" em qualquer nível do JSON (se for um objeto das antigas, ou array, ou com chaves)
+
+        function extractNestedStatus(obj) {
+
+            if (!obj) return undefined;
+
+            if (obj.status) return obj.status;
+
+            for (let k in obj) {
+
+                if (typeof obj[k] === 'object' && obj[k] !== null) {
+
+                    if (obj[k].status) return obj[k].status;
+
+                }
+
+            }
+
+            // Fallback se estiver dentro de array
+
+            if (Array.isArray(obj) && obj.length > 0 && obj[0].status) return obj[0].status;
+
+            return undefined;
+
+        }
+
+
+
+        const foundStatus = extractNestedStatus(data);
+
+        updateSyncDebugLog(`Sincronizando #${orderId} (Ext: ${externalId}): ${foundStatus ? foundStatus : JSON.stringify(data).substring(0,30)}`);
 
         // ------------------------------
 
@@ -2928,13 +2958,33 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
 
 
-        if (data && data.status) {
+        if (data && foundStatus) {
 
             let needsUpdate = false;
 
-            const normalizedDataStatus = data.status.toLowerCase().trim().replace(/\s+/g, '');
+            const normalizedDataStatus = foundStatus.toLowerCase().trim().replace(/\s+/g, '');
 
             const order = orders.find(o => o.id === orderId);
+
+            
+
+            // Tentar extrair remains em qualquer nivel também:
+
+            let foundRemains = data.remains;
+
+            if (foundRemains === undefined) {
+
+                for (let k in data) { if (data[k] && data[k].remains !== undefined) foundRemains = data[k].remains; }
+
+            }
+
+            let foundStartCount = data.start_count;
+
+            if (foundStartCount === undefined) {
+
+                for (let k in data) { if (data[k] && data[k].start_count !== undefined) foundStartCount = data[k].start_count; }
+
+            }
 
             
 
@@ -2946,7 +2996,7 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
                 // Se a API diz "Completed" ou "Concluído", nós forçamos a finalização
 
-                const isFinished = ['completed', 'complete', 'concluido', 'concluído', 'success'].includes(normalizedDataStatus);
+                const isFinished = ['completed', 'complete', 'finished', 'concluido', 'concluído', 'success'].includes(normalizedDataStatus);
 
                 if (isFinished) {
 
@@ -3008,17 +3058,17 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
 
 
-                if (data.start_count !== undefined && order.start_count != data.start_count) {
+                if (foundStartCount !== undefined && order.start_count != foundStartCount) {
 
-                    order.start_count = data.start_count;
+                    order.start_count = foundStartCount;
 
                     needsUpdate = true;
 
                 }
 
-                if (data.remains !== undefined && order.remains != data.remains && !isFinished) {
+                if (foundRemains !== undefined && order.remains != foundRemains && !isFinished) {
 
-                    order.remains = data.remains;
+                    order.remains = foundRemains;
 
                     needsUpdate = true;
 
@@ -3042,7 +3092,7 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
                 loadOrders(true);
 
-                if (!silent) showToast(`Pedido #${orderId} atualizado para: ${getStatusLabel(data.status)}`, 'success');
+                if (!silent) showToast(`Pedido #${orderId} atualizado para: ${getStatusLabel(foundStatus)}`, 'success');
 
             } else if (!silent) {
 
@@ -3053,6 +3103,18 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
         } else if (data && data.error) {
 
             if (!silent) showToast(`Erro no Fornecedor (#${orderId}): ${data.error}`, 'error');
+
+        } else {
+
+            // Caso o data venha sem status, e sem error
+
+            if (!silent) {
+
+                if(data) showToast(`Fornecedor retornou formato desconhecido.`, 'warning');
+
+                else showToast(`Sem resposta do fornecedor no momento.`, 'warning');
+
+            }
 
         }
 
