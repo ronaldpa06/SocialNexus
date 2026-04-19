@@ -2764,7 +2764,9 @@ function loadOrders(silentUpdate = false) {
 
     
 
-    tbody.innerHTML = orders.map(order => {
+    const ordersToRender = [...orders].reverse();
+
+    tbody.innerHTML = ordersToRender.map(order => {
 
         // Correção de encoding no histórico
 
@@ -2826,7 +2828,7 @@ function loadOrders(silentUpdate = false) {
 
                 <td><small>${formatDate(order.date).split(' ')[0]}<br>${formatDate(order.date).split(' ')[1]}</small></td>
 
-                <td style="font-size: 0.8rem; max-width:150px; overflow:hidden; text-overflow:ellipsis;">${serviceName.replace(/INSTANTÂNEO/g, 'INSTANTÂNEO')}</td>
+                <td style="font-size: 0.8rem; max-width:150px; overflow:hidden; text-overflow:ellipsis;">${serviceName.replace(/INSTANTÂNEOâneo/g, 'INSTANTÂNEO').replace(/INSTANTÂNEO/g, 'INSTANTÂNEO')}</td>
 
                 <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><a href="${order.link}" target="_blank" style="color:#4facfe;">${order.link}</a></td>
 
@@ -2936,7 +2938,7 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
                 // Se a API diz "Completed" ou "Concluído", nós forçamos a finalização
 
-                const isFinished = ['completed', 'concluido', 'concluído', 'success'].includes(normalizedDataStatus);
+                const isFinished = ['completed', 'complete', 'concluido', 'concluído', 'success'].includes(normalizedDataStatus);
 
                 if (isFinished) {
 
@@ -2950,53 +2952,51 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
 
 
-                if (currentStatusNorm !== normalizedDataStatus) {
+                if (currentStatusNorm !== normalizedDataStatus && !isFinished) {
 
                     console.log(`[SYNC] Mudança de Status do Pedido #${orderId}: ${currentStatusNorm} -> ${normalizedDataStatus}`);
 
-                    // LOGICA DE REEMBOLSO ...
+                    // LOGICA DE REEMBOLSO AUTOMÁTICO
 
-                // LOGICA DE REEMBOLSO AUTOMÁTICO
+                    const isRefundable = ['cancelled', 'canceled', 'refunded', 'partial'].includes(normalizedDataStatus);
 
-                const isRefundable = ['cancelled', 'canceled', 'refunded', 'partial'].includes(normalizedDataStatus);
-
-                const wasNotRefunded = !['cancelled', 'canceled', 'refunded', 'partial'].includes(currentStatusNorm);
+                    const wasNotRefunded = !['cancelled', 'canceled', 'refunded', 'partial'].includes(currentStatusNorm);
 
 
 
-                if (isRefundable && wasNotRefunded) {
+                    if (isRefundable && wasNotRefunded) {
 
-                    let refundAmount = 0;
+                        let refundAmount = 0;
 
-                    if (normalizedDataStatus === 'partial' && data.remains > 0) {
+                        if (normalizedDataStatus === 'partial' && data.remains > 0) {
 
-                        const unitPrice = order.total / order.quantity;
+                            const unitPrice = order.total / order.quantity;
 
-                        refundAmount = unitPrice * parseInt(data.remains);
+                            refundAmount = unitPrice * parseInt(data.remains);
 
-                    } else {
+                        } else {
 
-                        refundAmount = order.total;
+                            refundAmount = order.total;
+
+                        }
+
+
+
+                        if (refundAmount > 0) {
+
+                            await processAutomaticRefund(order.userId || currentUser?.id, refundAmount, orderId, normalizedDataStatus);
+
+                        }
 
                     }
 
 
 
-                    if (refundAmount > 0) {
+                    order.status = normalizedDataStatus;
 
-                        await processAutomaticRefund(order.userId, refundAmount, orderId, normalizedDataStatus);
-
-                    }
+                    needsUpdate = true;
 
                 }
-
-
-
-                order.status = normalizedDataStatus;
-
-                needsUpdate = true;
-
-            }
 
 
 
@@ -3008,7 +3008,7 @@ async function syncSpecificOrder(orderId, externalId, silent = false) {
 
                 }
 
-                if (data.remains !== undefined && order.remains != data.remains && normalizedDataStatus !== 'completed') {
+                if (data.remains !== undefined && order.remains != data.remains && !isFinished) {
 
                     order.remains = data.remains;
 
@@ -3200,11 +3200,13 @@ function getStatusLabel(status) {
 
         'pending': 'Pendente',
 
-        'processing': 'Processamento',
+        'processing': 'Processando',
 
-        'inprogress': 'Em Andamento',
+        'inprogress': 'Processando',
 
         'completed': 'Concluído',
+
+        'complete': 'Concluído',
 
         'partial': 'Parcial',
 
